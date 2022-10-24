@@ -142,9 +142,9 @@ void loop() {
 		//#T_LEDRING#0/1;A/B
 		String m = msg.substring(11);
 		if (m[0] == '0')
-			TurnLEDRing(true, m.substring(2))
+			TurnLEDRing(true, m.substring(2));
 		else if (m[0] == '1')
-			TurnLEDRing(false, m.substring(2))
+			TurnLEDRing(false, m.substring(2));
     }
 	else if (msg.substring(0, 8) == "#T_PUMP#")
 	{
@@ -156,14 +156,14 @@ void loop() {
     {
 		//#GET_MOISTURE#A/B
         String m = msg.substring(9);
-        int mois = GetMoisture(m)
+        int mois = GetMoisture(m);
         Serial.print("#MOISTURE#" + m.ToString());
     }
 	else if (msg.substring(0, 7) == "#LIGHT#")
 	{
 		//#GET_LIGHT#A/B
 		String m = msg.substring(7);
-		int mois = GetLightSensor(m)
+		int mois = GetLightSensor(m);
 		Serial.print("#LIGHT#" + m.ToString());
 	}
     else
