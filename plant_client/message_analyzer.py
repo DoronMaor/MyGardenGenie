@@ -5,12 +5,16 @@ def remote_message(m):
         # m[1]: (action_type, data)
         action_details = m[1]
 
-        if action_details[0] == "display":
+        if action_details[0] == "display_text":
             action = "display_text", (action_details[1])
-        elif action_details[0] == "test_led":
-            action = "test_led", (action_details[1])
-        elif action_details[0] == "test_get_joystick":
-            action = "get_joystick_cords", (action_details[1])
+        elif action_details[0] == "get_moisture":
+            action = "get_moisture", (action_details[1])
+        elif action_details[0] == "led_ring":
+            action = "led_ring", (action_details[1])
+        elif action_details[0] == "get_moisture":
+            action = "get_moisture", (action_details[1])
+        elif action_details[0] == "add_water":
+            action = "add_water", (action_details[1])
         else:
             action = None, None
         return "garden_action", action

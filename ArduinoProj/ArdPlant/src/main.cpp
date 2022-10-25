@@ -17,11 +17,11 @@
 */
 
 // Define pins
-#define LED_PIN_A           1
-#define LED_PIN_B           2
-#define LED_SCREEN_PIN      3
-#define WATER_PUMP_PIN_A    4
-#define WATER_PUMP_PIN_B    5
+#define LED_PIN_A           0
+#define LED_PIN_B           1
+#define LED_SCREEN_PIN      2
+#define WATER_PUMP_PIN_A    3
+#define WATER_PUMP_PIN_B    4
 #define LIGHT_SENS_PIN_A    A0
 #define LIGHT_SENS_PIN_B    A1
 #define MOISTURE_PIN_A      A2
@@ -45,14 +45,12 @@ LiquidCrystal_I2C lcd(0x3f, 16, 2);
 		v) TurnLEDRing
 		v) WriteToLCD
 		x) TurnPump
-		x) GetMoisture
+		v) GetMoisture
 		x) GetLightSensor
 */
 
 
 void setup() {
-
-	pinMode(LED, OUTPUT); // Declare the LED as an output
 
 	Wire.begin();
 	// LED screen
@@ -148,30 +146,30 @@ void loop() {
 	{
 		//#GET_MOISTURE#A/B
 		String plant = msg.substring(9);
-		int mois = GetMoisture(plant)
+		int mois = GetMoisture(plant);
 		Serial.print("#MOISTURE#" + m.ToString());
 	}
 	else if (msg.substring(0, 7) == "#LIGHT#")
 	{
 		//#GET_LIGHT#A/B
 		String m = msg.substring(7);
-		int mois = GetLightSensor(m)
+		int mois = GetLightSensor(m);
 		Serial.print("#LIGHT#" + m.ToString());
 	}
 	else if (msg.substring(0, 8) == "#T_PUMP#")
 	{
 		//#T_PUMP#10/[time];A/B
 		String m = msg.substring(8);
-		TurnPump((int)(m[0] + m[1]), m.substring(2))
+		TurnPump((int)(m[0] + m[1]), m.substring(2));
 	}
 	else if (msg.substring(0, 11) == "#T_LEDRING#")
 	{
 		//#T_LEDRING#0/1;A/B
 		String m = msg.substring(11);
 		if (m[0] == '0')
-			TurnLEDRing(true, m.substring(2))
+			TurnLEDRing(true, m.substring(2));
 		else if (m[0] == '1')
-			TurnLEDRing(false, m.substring(2))
+			TurnLEDRing(false, m.substring(2));
 	}
     else
     {

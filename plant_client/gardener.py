@@ -8,8 +8,10 @@ class Gardener:
         self.commands_dict = \
             {
                 "display_text": self.set_text_display,
-                "test_led": self.set_test_led,
-                "get_joystick_cords": self.get_joystick_cords
+                "led_ring": self.set_led_ring,
+                "get_moisture": self.get_moisture,
+                "get_light_level": self.get_light_level,
+                "add_water": self.add_water,
             }
 
     def do_action(self, action: tuple):
@@ -31,8 +33,6 @@ class Gardener:
     def add_water(self, plant: str, dur: int, rec=False):
         self.arduino_robot.get_moisture_level(plant=plant, dur=dur, rec=rec)
 
-    def set_light(self, plant: str, mode: bool, rec=False):
-        self.arduino_robot.set_light(plant=plant, mode=mode, rec=rec)
 
     #region POC
     def set_test_led(self, mode: bool):
