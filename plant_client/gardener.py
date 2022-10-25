@@ -12,15 +12,27 @@ class Gardener:
                 "get_joystick_cords": self.get_joystick_cords
             }
 
-    def set_text_display(self, txt: str):
-        self.arduino_robot.set_text_display(txt)
-
     def do_action(self, action: tuple):
+        # the action(values)
         return self.commands_dict[action[0]](action[1])
 
-    def set_led_ring(self, mode: bool):
-        self.arduino_robot.set_test_led(mode)
+    def set_text_display(self, txt: str):
+        self.arduino_robot.set_text_display(msg=txt, rec=False)
 
+    def set_led_ring(self, plant: str, mode: bool, rec=False):
+        self.arduino_robot.set_light(plant=plant, mode=mode, rec=rec)
+
+    def get_moisture(self, plant: str, transformed=True, rec=True):
+        return self.arduino_robot.get_moisture_level(plant=plant, transformed=transformed, rec=rec)
+
+    def get_light_level(self, plant: str, transformed=True, rec=True):
+        return self.arduino_robot.get_light_level(plant=plant, transformed=transformed, rec=rec)
+
+    def add_water(self, plant: str, dur: int, rec=False):
+        self.arduino_robot.get_moisture_level(plant=plant, dur=dur, rec=rec)
+
+    def set_light(self, plant: str, mode: bool, rec=False):
+        self.arduino_robot.set_light(plant=plant, mode=mode, rec=rec)
 
     #region POC
     def set_test_led(self, mode: bool):

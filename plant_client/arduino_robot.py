@@ -51,7 +51,6 @@ class ArduinoRobot:
         return mois
 
     def get_light_level(self, plant: str, transformed=True, rec=True):
-        # read pin
         flag = "#LIGHT#"
         m = flag + plant
         l = self.send_and_receive(m, rec).replace(flag, "")
@@ -91,33 +90,4 @@ class ArduinoRobot:
         m = "#T_LED#" + ("1" if mode else "0")
         return self.send_and_receive(m, rec)
 
-    #endregion
-
-    #region Future refs
-    def get_moisture_level(self, transformed=True):
-        # read pin
-        p = 5
-        if transformed:
-            return dt.raw_moisture_to_scale(p)
-        return p
-
-    def get_light_level(self, transformed=True):
-        # read pin
-        l = 5
-        if transformed:
-            return dt.raw_light_to_scale(l)
-        return l
-
-    def get_led_mode(self):
-        # check led mode
-        return True
-
-    def add_water(self, dur: int):
-        print("Water was added in Arduino for %d seconds" % dur)
-
-    def set_light(self, on: bool, dur: int):
-        if on:
-            print("Light has turned on from Arduino for: %d hours" % dur)
-        else:
-            print("Light has turned off from Arduino")
     #endregion

@@ -37,12 +37,17 @@ Adafruit_NeoPixel ledRingB(LED_RING_PIXELS, LED_PIN_B, NEO_GRB + NEO_KHZ800);
 LiquidCrystal_I2C lcd(0x3f, 16, 2);
 
 // water pump
-// moisture
 // light sens
 
-// publics
-bool ledA_mode = false;
-bool ledB_mode = false;
+
+/*
+	Functions:
+		v) TurnLEDRing
+		v) WriteToLCD
+		x) TurnPump
+		x) GetMoisture
+		x) GetLightSensor
+*/
 
 
 void setup() {
@@ -71,6 +76,25 @@ void setup() {
 }
 
 
+void WriteToLCD(String text) {
+	lcd.backlight();
+	lcd.clear();
+	int i;
+	for (i = 0; text[i] != '\0'; ++i);
+	if (i > 16)
+	{
+		lcd.setCursor(0, 0);
+		lcd.print(text.substring(0, 16));
+		lcd.setCursor(0, 1);
+		lcd.print(text.substring(16));
+	}
+	else
+	{
+		lcd.setCursor(0, 0);
+		lcd.print(text);
+	}
+}
+
 void TurnLEDRing(bool mode, String type) {
 	if (type == "A")
 	{
@@ -90,32 +114,18 @@ void TurnLEDRing(bool mode, String type) {
 	}
 }
 
-void WriteToLCD(String text){
-    lcd.backlight();
-    lcd.clear();
-    int i;
-    for (i = 0; text[i] != '\0'; ++i);
-    if (i > 16)
-    {
-      lcd.setCursor(0, 0);
-      lcd.print(text.substring(0, 16));
-      lcd.setCursor(0, 1);
-      lcd.print(text.substring(16));
-    }
-    else
-    {
-      lcd.setCursor(0, 0);
-      lcd.print(text);
-    }
-}
-
 void TurnPump(int dur, String type) {
 	//
 }
 
 void int GetMoisture(String type) {
-	//
-	return 0;
+	int val = -1;
+	if (type == "A")
+		val = analogRead(MOISTURE_PIN_A);
+	else if (type== "B")
+		val = analogRead(MOISTURE_PIN_A);
+
+	return val;
 }
 
 void int GetLightSensor(String type) {
@@ -127,38 +137,20 @@ void int GetLightSensor(String type) {
 void loop() {
 
   if (Serial.available() > 0){
-    //delay(100);
     String msg = Serial.readStringUntil('\n');
-    //WriteToLCD(msg, 0);
 
     if (msg.substring(0, 5) == "#LCD#")
     {
-		// #LCD#message
+		// #LCD#text
         WriteToLCD(msg.substring(5));
-        Serial.print("Done LCD");
     }
-    else if (msg.substring(0, 11) == "#T_LEDRING#")
-    {
-		//#T_LEDRING#0/1;A/B
-		String m = msg.substring(11);
-		if (m[0] == '0')
-			TurnLEDRing(true, m.substring(2))
-		else if (m[0] == '1')
-			TurnLEDRing(false, m.substring(2))
-    }
-	else if (msg.substring(0, 8) == "#T_PUMP#")
+	else if (msg.substring(0, 9) == "#MOISTURE#")
 	{
-		//#T_PUMP#10/[time];A/B
-		String m = msg.substring(8);
-		TurnPump((int)(m[0]+m[1]), m.substring(2))
-	}
-    else if (msg.substring(0, 9) == "#MOISTURE#")
-    {
 		//#GET_MOISTURE#A/B
-        String m = msg.substring(9);
-        int mois = GetMoisture(m)
-        Serial.print("#MOISTURE#" + m.ToString());
-    }
+		String plant = msg.substring(9);
+		int mois = GetMoisture(plant)
+		Serial.print("#MOISTURE#" + m.ToString());
+	}
 	else if (msg.substring(0, 7) == "#LIGHT#")
 	{
 		//#GET_LIGHT#A/B
@@ -166,10 +158,24 @@ void loop() {
 		int mois = GetLightSensor(m)
 		Serial.print("#LIGHT#" + m.ToString());
 	}
+	else if (msg.substring(0, 8) == "#T_PUMP#")
+	{
+		//#T_PUMP#10/[time];A/B
+		String m = msg.substring(8);
+		TurnPump((int)(m[0] + m[1]), m.substring(2))
+	}
+	else if (msg.substring(0, 11) == "#T_LEDRING#")
+	{
+		//#T_LEDRING#0/1;A/B
+		String m = msg.substring(11);
+		if (m[0] == '0')
+			TurnLEDRing(true, m.substring(2))
+		else if (m[0] == '1')
+			TurnLEDRing(false, m.substring(2))
+	}
     else
     {
         Serial.print("ERROR" + msg);
     }
-
   }
 }
