@@ -34,11 +34,9 @@ def remote_mode():
 
 
 while True:
-    srvr_msg = analyze_message(server_handler.listen())
-    print(srvr_msg)
-    if srvr_msg[0] == "remote_start":
+    server_msg = analyze_message(server_handler.listen())
+    print(server_msg)
+    if server_msg[0] == "remote_start":
         remote_mode()
     else:
         print("lol something went wrong")
-
-

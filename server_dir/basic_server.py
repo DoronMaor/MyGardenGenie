@@ -2,7 +2,7 @@ import datetime
 from socket import *
 import select
 import pickle
-#from Dbs.db_users import *
+from db_users import *
 #from Dbs.db_apartments import *
 import fuckit as fit
 
@@ -161,5 +161,8 @@ to_send = [] # [(sock, message), (sock, message), ...]
 active_plants = {} # {plant_id: sock, ...}
 active_users = {} # {user_id: sock, ...}
 active_remotes = {} # {sock_user: sock:plant, ...}
+
+# SQL
+userdb
 
 start_server(HOST, PORT)
