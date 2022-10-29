@@ -8,32 +8,39 @@
 #endif
 
 /*
-	HARDWARE LIST:
-		+ LED RINGx2 [1:2-D] [5v]
-		+ LED SCREENx1 [3-D] [3v]
-		+ WATER PUMPx2 [4-5:D] [5v]
-		+ MOISTUREx2 [0-1:A] [3v]
-		+
+	HARDWARE & COMPONENTS LIST:
+		+ LED RINGx2 [] [5v] *
+		+ LED SCREENx1 [] [3v]
+		+ WATER PUMPx2 [] [12v - batteries] *
+			# RELAYx2 [] [5v]
+			# SWITCHx1 *?*
+			# BATTERIES HOLDER
+		+ MOISTUREx2 [] *
+			# COMPARATORx2 [3v] *
+		+ LIGHT SENSORx2 [3v] *
+		+ MINI-BREADBOARD
 */
 
 // Define pins
-#define LED_PIN_A           0
-#define LED_PIN_B           1
-#define LED_SCREEN_PIN      2
-#define WATER_PUMP_PIN_A    3
-#define WATER_PUMP_PIN_B    4
-#define LIGHT_SENS_PIN_A    A0
-#define LIGHT_SENS_PIN_B    A1
-#define MOISTURE_PIN_A      A2
-#define MOISTURE_PIN_B      A3
+#define LED_PIN_A                 0
+#define LED_PIN_B                 1
+#define LED_SCREEN_PIN            2
+#define WATER_PUMP_RELAY_PIN_A    3
+#define WATER_PUMP_RELAY_PIN_B    4
+#define LIGHT_SENS_PIN_A          A0
+#define LIGHT_SENS_PIN_B          A1
+#define MOISTURE_PIN_A            A2
+#define MOISTURE_PIN_B            A3
 
+/*
 #define LED_RING_PIXELS     12
 #define LED_COLOR[]         {204, 51, 255}
+
 
 // Hardware objects
 Adafruit_NeoPixel ledRingA(LED_RING_PIXELS, LED_PIN_A, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel ledRingB(LED_RING_PIXELS, LED_PIN_B, NEO_GRB + NEO_KHZ800);
-
+*/
 LiquidCrystal_I2C lcd(0x3f, 16, 2);
 
 // water pump
@@ -63,17 +70,21 @@ void setup() {
 #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
 	clock_prescale_set(clock_div_1);
 #endif
+/*
 	ledRingA.begin();
 	ledRingB.begin();
-
+*/
 	//water pump
+	pinMode(WATER_PUMP_RELAY_PIN_A, OUTPUT);
+
 
 	//moisture
+	pinMode()
 
 	Serial.begin(115200);
 }
 
-
+/*
 void WriteToLCD(String text) {
 	lcd.backlight();
 	lcd.clear();
@@ -111,9 +122,21 @@ void TurnLEDRing(bool mode, String type) {
 		}
 	}
 }
-
+*/
 void TurnPump(int dur, String type) {
-	//
+
+	if (type=="A"){
+		// Active low relay
+		digitalWrite(WATER_PUMP_RELAY_PIN_A, LOW);
+		delay(dur);
+		digitalWrite(WATER_PUMP_RELAY_PIN_A, HIGH);
+	}
+	else if (type=="B"){
+		// Active low relay
+		digitalWrite(WATER_PUMP_RELAY_PIN_B, LOW);
+		delay(dur);
+		digitalWrite(WATER_PUMP_RELAY_PIN_B, HIGH);
+	}
 }
 
 void int GetMoisture(String type) {
@@ -123,17 +146,23 @@ void int GetMoisture(String type) {
 	else if (type== "B")
 		val = analogRead(MOISTURE_PIN_A);
 
+
 	return val;
 }
 
+/*
 void int GetLightSensor(String type) {
 	//
 	return 1;
 }
-
+*/
 
 void loop() {
+	TurnPump(3000, "A");
+	delay(109900000);
 
+
+/*
   if (Serial.available() > 0){
     String msg = Serial.readStringUntil('\n');
 
@@ -175,5 +204,6 @@ void loop() {
     {
         Serial.print("ERROR" + msg);
     }
-  }
+  }*/
+
 }
