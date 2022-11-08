@@ -9,34 +9,31 @@ class db_users:
     A class that handles sql connection to users data base.
     Database contains:
     - id
-    - username
+    - name
     - password
-    -
+    - email
+    - is_admin
+    - plants_id []
     """
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    file_name = "users.db"
-    db_path = os.path.join(BASE_DIR, file_name)
 
-    def __init__(self, db_path=db_path):
+
+    def __init__(self, db_path=None, file_name="users.db"):
         """
         Initializes the class
         """
+        if not db_path:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            file_name = file_name
+            db_path = os.path.join(base_dir, file_name)
         self.db_path = db_path
         self.conn = lite.connect(self.db_path)
         self.cur = self.conn.cursor()
-
-    def connect(self):
-        """
-        Connects to the database
-        """
-        self.con = lite.connect(self.db_path)
-        self.cur = self.con.cursor()
 
     def disconnect(self):
         """
         Disconnects from the database
         """
-        self.con.close()
+        self.conn.close()
 
     def db_query(self, query):
         """
@@ -127,7 +124,6 @@ class db_users:
                                        , pickle.dumps(us.rated_apartments)))
         self.conn.commit()
         return 1
-
 
     def query_to_user(self, query):
         """
