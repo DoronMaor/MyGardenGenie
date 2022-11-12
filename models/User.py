@@ -1,38 +1,38 @@
+import random
 
 
 class User:
     """
-    username : str
-    password: str
-    is_admin: bool
-    email: str
-    plant_id: str
-    plant_key: str
-
+    - id_num : str
+    - name : str
+    - password : str
+    - email : str
+    - is_admin : bool
+    - plants_id [] : lst
     """
 
-    def __init__(self, username: str, password: str, is_admin: bool, email: str, plant_id=None, plant_key=None):
-        self.username = username
+    def __init__(self, id_num: str, name: str, password: str, email: str, is_admin: str, plants_id: list, new=False):
+        if new:
+            id_num = str(random.randint(0, 99999999))
+        self.id_num = id_num
+        self.name = name
         self.password = password
-        self.is_admin = is_admin
         self.email = email
-        self.plant_id = plant_id
-        self.plant_key = plant_key
+        self.is_admin = is_admin
+        self.plants_id = plants_id
 
-    def get_username(self):
-        return self.username
+    def __str__(self):
+        return '%s(%s)' % (
+            type(self).__name__,
+            ', '.join('%s=%s' % item for item in vars(self).items())
+        )
+
+
+    def get_name(self):
+        return self.name
 
     def get_password(self):
         return self.password
 
     def get_plant_id(self):
-        return self.plant_id
-
-    def get_plant_key(self):
-        return self.plant_key
-
-    def set_plant_id(self, p_id):
-        self.plant_id = p_id
-
-    def set_plant_key(self, p_key):
-        self.plant_key = p_key
+        return self.plants_id

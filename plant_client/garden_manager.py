@@ -24,7 +24,9 @@ def remote_mode():
             # a[1]: (action, variables)
             sub = analyzed[1]
             r = garden_genie.do_action(sub)
-            server_handler.send_and_receive(("remote_data", (r)))
+            if r:
+                server_handler.send_and_receive(("remote_data", (r, "DATA")))
+                print("SENT!")
             print("Done action", msg)
         elif analyzed[0] == "stop_remote":
             print("stopped", analyzed)

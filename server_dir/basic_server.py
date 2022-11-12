@@ -2,8 +2,8 @@ import datetime
 from socket import *
 import select
 import pickle
-from db_users import *
-#from Dbs.db_apartments import *
+import sql_dir.db_users as db_users
+import sql_dir.db_plants as db_plants
 import fuckit as fit
 
 
@@ -24,7 +24,7 @@ def get_free_port(HOST):
     sock.bind((HOST, 0))
     port = sock.getsockname()[1]
     sock.close()
-    return 7777 #port
+    return 7777  # port
 
 
 def start_server(HOST, PORT):
@@ -48,9 +48,10 @@ def start_server(HOST, PORT):
     print("Server is running on:", HOST, PORT)
     while True:
         # Get the list sockets which are ready to be read through select
-        read_sockets, write_sockets, exceptional = select.select(open_client_socket + [serversock], write_sockets, exceptional)
+        read_sockets, write_sockets, exceptional = select.select(open_client_socket + [serversock], write_sockets,
+                                                                 exceptional)
 
-        #region Welcome
+        # region Welcome
         for sock in read_sockets:
             # New connection
             if sock == serversock:
@@ -80,9 +81,9 @@ def start_server(HOST, PORT):
                             del active_plants[sock]
                     elif data[0] == "client_type":
                         if data[1] == "plant":
-                            active_plants["test_plant"] = sock #####################
+                            active_plants["test_plant"] = sock  #####################
                         elif data[1] == "user":
-                            active_users["test_user"] = sock #####################
+                            active_users["test_user"] = sock  #####################
                     elif data[0] == "set_plant":
                         active_plants[data[1]] = sock
                     elif data[0] == "set_user":
@@ -93,7 +94,7 @@ def start_server(HOST, PORT):
         for ex in exceptional:
             open_client_socket.remove(ex)
             ex.close()
-        #endregion
+        # endregion
 
         # Send the messages
         if to_send:
@@ -113,23 +114,25 @@ def send_waiting_messages(open_client_socket, to_send):
     for mes in to_send:
         # Send the message to the user
         sock, data = mes
-        #try:
-
+        # try:
+        print(active_remotes)
         print(data)
 
+        # region REMOTE
         if data[0] == 'remote_action':
             # data: action, plant_id, action [tuple]: (action_type, (details))
             active_remotes[sock].send(pickle.dumps(("remote_action", data[1])))
 
         elif data[0] == 'remote_data':
             # data: da data
-            list(active_remotes.keys())[list(active_remotes.values()).index(sock)].send(pickle.dumps(("remote_data", data[1])))
-            sock.send(pickle.dumps(("done", None)))
+            list(active_remotes.keys())[list(active_remotes.values()).index(sock)].send(
+                pickle.dumps(("remote_data", data[1])))
+            #sock.send(pickle.dumps(("done", None)))
 
         elif data[0] == 'start_remote_control':
             # data: start_remote, plant_id
             active_plants[data[1]].send(pickle.dumps(("remote_start", data[1])))
-            active_remotes[sock] = active_plants[data[1]] # {user_sock: plant_sock}
+            active_remotes[sock] = active_plants[data[1]]  # {user_sock: plant_sock}
             sock.send(pickle.dumps("remote_started", None))
 
         elif data[0] == 'stop_remote_control':
@@ -137,13 +140,38 @@ def send_waiting_messages(open_client_socket, to_send):
             active_plants[sock].send(pickle.dumps("remote_stop", data[1]))
             del active_remotes[sock]
             sock.send(pickle.dumps("remote_stopped", None))
+        # endregion
+
+        # region SQL - USERS
+        if data[0] == 'sign_up_user':
+            print(data[1])
+            user_sql.sign_up(data[1])
+
+        elif data[0] == 'login_user':
+            user_sql.login(data[1], data[2])
+
+        # endregion
+
+        # region SQL - PLANTS
+        if data[0] == 'add_plant':
+            # (user_id, Plant)
+            print(data[1])
+            user_sql.add_plant(data[1], data[2].id_num)
+            plants_sql.add_plant(data[2])
+
+        elif data[0] == 'login_user':
+            user_sql.login(data[1], data[2])
+        # endregion
+
+
 
         else:
             sock.send(pickle.dumps(None, None))
+
         to_send.remove((sock, data))
         if sock not in open_client_socket:
             to_send.remove((sock, data))
-        #except:
+        # except:
         #    pass
 
     return to_send
@@ -152,17 +180,17 @@ def send_waiting_messages(open_client_socket, to_send):
 # Global variables
 HOST = get_ip()
 PORT = get_free_port(HOST)
-BUFFSIZE = 2**13
+BUFFSIZE = 2 ** 13
 ADDR = (HOST, PORT)
 
-
-open_client_socket = [] # [sock1, sock2, ...]
-to_send = [] # [(sock, message), (sock, message), ...]
-active_plants = {} # {plant_id: sock, ...}
-active_users = {} # {user_id: sock, ...}
-active_remotes = {} # {sock_user: sock:plant, ...}
+open_client_socket = []  # [sock1, sock2, ...]
+to_send = []  # [(sock, message), (sock, message), ...]
+active_plants = {}  # {plant_id: sock, ...}
+active_users = {}  # {user_id: sock, ...}
+active_remotes = {}  # {sock_user: sock:plant, ...}
 
 # SQL
-userdb
+user_sql = db_users.db_users("sql_dir/dbs/")
+plants_sql = db_plants.db_plants("sql_dir/dbs/")
 
 start_server(HOST, PORT)

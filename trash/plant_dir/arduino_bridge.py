@@ -1,7 +1,6 @@
 import time
 
 import data_transformer as dt
-from pyfirmata import Arduino, util
 import serial
 
 class ArduinoBridge:

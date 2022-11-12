@@ -1,7 +1,8 @@
+import time
 from socket import *
 import pickle
 import select
-
+from models.User import User
 
 class ServerHandler:
 
@@ -23,10 +24,21 @@ class ServerHandler:
         s.connect((self.server_ip, self.port))
         return s
 
-    def send_and_receive(self, mes: tuple):
+    def set_id(self, user: object):
+        mes = ("set_"+self.client_type, user.id_num)
+        self.send_and_receive(mes, False)
+
+    def send_and_receive(self, mes: tuple, rec=True, data_rec=False):
         pickled_mes = pickle.dumps(mes)
         self.client_socket.send(pickled_mes)
-        return pickle.loads(self.client_socket.recv(self.buffer_size))
+        if rec:
+            m = pickle.loads(self.client_socket.recv(self.buffer_size))
+            if data_rec:
+                while m is None:
+                    m = pickle.loads(self.client_socket.recv(self.buffer_size))
+                return m[1][0]
+            else:
+                return m
 
     def disconnect(self):
         self.send_and_receive(("disconnect", None))

@@ -15,6 +15,8 @@ def remote_message(m):
             action = "get_moisture", (action_details[1])
         elif action_details[0] == "add_water":
             action = "add_water", (action_details[1])
+        elif action_details[0] == "get_light_level":
+            action = "get_light_level", (action_details[1])
         else:
             action = None, None
         return "garden_action", action
@@ -30,8 +32,8 @@ def remote_message(m):
 
 
 def analyze_message(mes):
+    print(mes)
     if "remote_" in mes[0]:
         return remote_message(mes)
-    else:
-        return None
+
 

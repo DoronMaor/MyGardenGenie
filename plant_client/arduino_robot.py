@@ -55,14 +55,15 @@ class ArduinoRobot:
         m = flag + plant
         l = self.send_and_receive(m, rec).replace(flag, "")
         print("Got light level")
+        return l
         if transformed:
             return dt.raw_light_to_scale(int(l))
-        return l
 
-    def add_water(self, plant: str, dur: int, rec=False):
+    def add_water(self, plant: str, dur: str, rec=False):
+
         m = "#T_PUMP#" + str(dur) + ";" + plant
         self.send_and_receive(m, rec)
-        print("Water was added in Arduino for %d seconds" % dur)
+        print(m)
 
     def set_light(self, plant: str, mode: bool, rec=False):
         m = "#T_LEDRING#" + ("1" if mode else "0") + ";" + plant

@@ -1,37 +1,34 @@
 import random
 import string
-from trash.plant_dir.arduino_bridge import ArduinoBridge
 
 
 class Plant:
     """
+    id_num: str
     name: str
     plant_type: str
-    plant_id: int
-    key: str
-    values: dictionary {"light_lvl": int, "light_hours": (natural, LED), "moisture_lvl": int}
-    optimal_values: dictionary {}
-    mode: int [0 = automatic, 1 = manual]
+    owner_id: str
     """
 
-    def __init__(self, name: str, plant_type: str, plant_id=None, key=None, values=None, optimal_values=None, mode=0):
+    def __init__(self, id_num: str, name: str, plant_type: str, owner_id: str, new=False):
         self.name = name
-        self.plant_type = plant_type.capitalize()
-        self.plant_id = plant_id
-        self.key = key
-        self.values = values
-        self.optimal_values = optimal_values
-        self.mode = mode
-        self.arduino = ArduinoBridge()
-        self.fix_values()
+        if new:
+            self.id_num = self.key_generator(5)
+        else:
+            self.id_num = id_num
+        self.plant_type = plant_type
+        self.owner_id = owner_id
 
     def __str__(self):
         attrs = vars(self)
         return ', '.join("%s: %s" % item for item in attrs.items())
 
+    def key_generator(self, n: int):
+        return self.name + "_" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=n))
+
+
     def set_LCD(self, txt: str):
         self.arduino.set_text_display(txt)
-
 
     def get_optimal_values(self):
         ######### use type from server csv
@@ -39,11 +36,10 @@ class Plant:
         #########
         return {"light_lvl": 30, "light_hours": 16, "moisture_lvl": 25}
 
+
     def get_values(self):
         return self.values
 
-    def key_generator(self, n: int):
-        return self.name + "_" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=n))
 
     def fix_values(self):
         if self.plant_id is None:
