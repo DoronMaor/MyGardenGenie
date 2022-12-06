@@ -12,7 +12,7 @@ class ArduinoRobot:
         """
         for i in range(24):
             try:
-                self.ser = serial.Serial('COM%d' % i, baud, timeout=timeout)
+                self.ser = serial.Serial('COM%d' % 4, baud, timeout=timeout)
                 break
             except:
                 pass
@@ -30,7 +30,6 @@ class ArduinoRobot:
         self.ser.write(bytes(msg, 'utf-8'))
         if rec:
             m = self.ser.readline().decode("utf-8")
-            print(m)
             return m
         return None
 
@@ -41,25 +40,22 @@ class ArduinoRobot:
         m = "#LCD#" + msg
         return self.send_and_receive(m, rec)
 
-    def get_moisture_level(self, plant: str, transformed=True, rec=True):
+    def get_moisture_level(self, plant: str, rec=True):
         flag = "#MOISTURE#"
         m = flag + plant
         mois = self.send_and_receive(m, rec).replace(flag, "")
-        print("Got moisture level")
-        if transformed:
-            return dt.raw_moisture_to_scale(int(mois))
+
         return mois
 
-    def get_light_level(self, plant: str, transformed=True, rec=True):
+    def get_light_level(self, plant: str, rec=True):
         flag = "#LIGHT#"
         m = flag + plant
         l = self.send_and_receive(m, rec).replace(flag, "")
-        print("Got light level")
         return l
-        if transformed:
-            return dt.raw_light_to_scale(int(l))
 
     def add_water(self, plant: str, dur: str, rec=False):
+
+        dur = dur.ljust(4, '0')
 
         m = "#T_PUMP#" + str(dur) + ";" + plant
         self.send_and_receive(m, rec)
@@ -73,8 +69,7 @@ class ArduinoRobot:
         else:
             print("Light has turned off from Arduino")
 
-
-    #region POC
+    # region POC
     def get_joystick_cords(self, rec=False):
         """
         #For POC# gets the cords of the joystick.
@@ -91,4 +86,4 @@ class ArduinoRobot:
         m = "#T_LED#" + ("1" if mode else "0")
         return self.send_and_receive(m, rec)
 
-    #endregion
+    # endregion

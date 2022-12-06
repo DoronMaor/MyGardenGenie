@@ -15,24 +15,25 @@ class Gardener:
             }
 
     def do_action(self, action: tuple):
-        # the action(values)
+        # action: ("action_name", (args))
         print(action)
         return self.commands_dict[action[0]](*action[1])
 
     def set_text_display(self, txt: str):
         self.arduino_robot.set_text_display(msg=txt, rec=False)
 
-    def set_led_ring(self, plant: str, mode: bool, rec=False):
-        self.arduino_robot.set_light(plant=plant, mode=mode, rec=rec)
+    def set_led_ring(self, plant: str, mode: bool):
+        self.arduino_robot.set_light(plant=plant, mode=mode, rec=False)
 
-    def get_moisture(self, plant: str, transformed=True, rec=True):
-        return self.arduino_robot.get_moisture_level(plant=plant, transformed=transformed, rec=rec)
+    def add_water(self, plant: str, dur: str):
+        self.arduino_robot.add_water(plant=plant, dur=dur, rec=False)
 
-    def get_light_level(self, plant: str, transformed=True, rec=True):
-        return self.arduino_robot.get_light_level(plant=plant, transformed=transformed, rec=rec)
+    def get_moisture(self, plant: str, rec=True):
+        return self.arduino_robot.get_moisture_level(plant=plant, rec=rec)
 
-    def add_water(self, plant: str, dur: str, rec=False):
-        self.arduino_robot.add_water(plant=plant, dur=dur, rec=rec)
+    def get_light_level(self, plant: str, rec=True):
+        return self.arduino_robot.get_light_level(plant=plant, rec=rec)
+
 
 
     #region POC

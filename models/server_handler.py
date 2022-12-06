@@ -12,7 +12,8 @@ class ServerHandler:
         self.port = port
         self.client_type = client_type
         self.client_socket = self.connect_to_server()
-        print(self.send_and_receive(("client_type", self.client_type)))
+        self.client_id = -1
+        print(self.send_and_receive(("client_type", self.client_type, self.client_id)))
 
     def connect_to_server(self):
         """
@@ -24,9 +25,20 @@ class ServerHandler:
         return s
 
     def send_and_receive(self, mes: tuple):
-        pickled_mes = pickle.dumps(mes)
+        pickled_mes = pickle.dumps(mes + (self.client_id, ))
         self.client_socket.send(pickled_mes)
         return pickle.loads(self.client_socket.recv(self.buffer_size))
+
+    def send(self, mes: tuple):
+        pickled_mes = pickle.dumps(mes + (self.client_id, ))
+        self.client_socket.send(pickled_mes)
+        return None
+
+    def send_data(self, data: tuple):
+        mes = (data, self.client_id)
+        pickled_mes = pickle.dumps(mes)
+        self.client_socket.send(pickled_mes)
+        return None
 
     def disconnect(self):
         self.send_and_receive(("disconnect", None))
@@ -34,6 +46,5 @@ class ServerHandler:
     def listen(self):
         return pickle.loads(self.client_socket.recv(self.buffer_size))
 
-
-
-
+    def set_client_id(self, id: int):
+        self.client_id = id
