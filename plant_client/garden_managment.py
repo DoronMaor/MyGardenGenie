@@ -19,16 +19,19 @@ def get_message():
 
 
 server_handler = ServerHandler()
+server_handler.send_client_id()
+
 gardener = Gardener()
 active = True
 
 # waits for a message to come
 while active:
     mes = get_message()
+    print(mes)
     analyzed_msg = analyze_message(mes)
 
     if analyzed_msg[0] == "garden_action":
-        action = analyzed_msg[0]
+        action = analyzed_msg[1]
         ret = gardener.do_action(action)
         if ret is not None:
             server_handler.send_data(ret)

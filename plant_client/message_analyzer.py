@@ -6,7 +6,7 @@ def remote_message(m):
         indx = int(action_details[0])
         actions = ["display_text", "get_moisture", "led_ring", "add_water", "get_light_level"]
 
-        des_action = actions[indx], (action_details[1])
+        des_action = actions[indx], (action_details[1:])
         return "garden_action", des_action
 
     elif m[0] == "remote_stop":

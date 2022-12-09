@@ -12,8 +12,8 @@ class ServerHandler:
         self.port = port
         self.client_type = client_type
         self.client_socket = self.connect_to_server()
-        self.client_id = -1
-        print(self.send_and_receive(("client_type", self.client_type, self.client_id)))
+        self.client_id = 4
+        #print(self.send_and_receive(("client_type", self.client_type, self.client_id)))
 
     def connect_to_server(self):
         """
@@ -48,3 +48,9 @@ class ServerHandler:
 
     def set_client_id(self, id: int):
         self.client_id = id
+
+    def send_client_id(self, id=None):
+        if id is not None:
+            self.client_id = id
+
+        print(self.send_and_receive(("client_type", self.client_type, self.client_id)))

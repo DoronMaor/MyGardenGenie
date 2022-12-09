@@ -1,6 +1,5 @@
 import sys
 import time
-import data_transformer as dt
 import serial
 
 
@@ -19,7 +18,7 @@ class ArduinoRobot:
 
             if i == 24:
                 print("No Arduino board is connected, please try again.")
-                sys.exit(-1)
+                #sys.exit(-1)
         print("Connected to Arduino!")
         time.sleep(4)
 

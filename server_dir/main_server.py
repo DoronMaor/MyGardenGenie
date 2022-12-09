@@ -3,7 +3,7 @@ from socket import *
 import select
 import pickle
 import fuckit as fit
-
+from models.PlantUserList import PlantUserList
 
 def get_ip():
     """
@@ -77,9 +77,9 @@ def start_server(HOST, PORT):
                             del active_plants[sock]
                             active_plants.pop(sock)
                             del active_plants[sock]
-                    elif data[0] == "client_type":
+                    if data[0] == "client_type":
                         # data: "client_type", type, id
-                        active_clients[data[-1]][data[2]] = sock
+                        plant_user_table.add_con(data, sock)
                 except:
                     pass
 
@@ -106,7 +106,7 @@ def send_waiting_messages(open_client_socket, to_send):
     for mes in to_send:
         # Send the message to the user
         sock, data = mes
-        # try:
+
         print(active_remotes)
         print(data)
 
@@ -114,12 +114,13 @@ def send_waiting_messages(open_client_socket, to_send):
         if data[0] == 'remote_action':
             # data[1:]: action[tuple] - (action_type, (details)), id
             # active_remotes[sock].send(pickle.dumps(("remote_action", data[1])))
-            active_clients[data[-1]]["plant"].send(pickle.dumps(("remote_action", data[1])))
+            s = plant_user_table.get_sock("plant", data[-1])
+            s.send(pickle.dumps(("remote_action", data[1])))
 
         elif data[0] == 'remote_data':
             # data: data, id
-            active_clients[data[-1]]["client"].send(pickle.dumps(("remote_data", data[1])))
-
+            s = plant_user_table.get_sock("client", data[-1])
+            s.send(pickle.dumps(("remote_data", data[1])))
 
         elif data[0] == 'start_remote_control':
             # data: start_remote, plant_id
@@ -134,15 +135,13 @@ def send_waiting_messages(open_client_socket, to_send):
             sock.send(pickle.dumps("remote_stopped", None))
         # endregion
 
-
         else:
             sock.send(pickle.dumps(None, None))
 
         to_send.remove((sock, data))
         if sock not in open_client_socket:
             to_send.remove((sock, data))
-        # except:
-        #    pass
+
 
     return to_send
 
@@ -159,6 +158,8 @@ to_send = []  # [(sock, message), (sock, message), ...]
 active_clients = {
     # "id": {"client": "sock1", "plant": "sock2"},
 }
+plant_user_table = PlantUserList()
+
 
 active_plants = {}  # {plant_id: sock, ...}
 active_users = {}  # {user_id: sock, ...}
