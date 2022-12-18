@@ -12,6 +12,9 @@ in order for the gardener to understand whawt to do, he needs a translator - mes
 from gardener import Gardener
 from message_analyzer import analyze_message
 from models.server_handler import ServerHandler
+from client_models.EventLogger import EventLogger
+import datetime
+
 
 
 def get_message():
@@ -20,6 +23,7 @@ def get_message():
 
 server_handler = ServerHandler()
 server_handler.send_client_id()
+event_logger = EventLogger(server_handler)
 
 gardener = Gardener()
 active = True
@@ -33,5 +37,6 @@ while active:
     if analyzed_msg[0] == "garden_action":
         action = analyzed_msg[1]
         ret = gardener.do_action(action)
+        event_logger.manage_event("3", "User", action)
         if ret is not None:
             server_handler.send_data(ret)

@@ -40,6 +40,12 @@ class ServerHandler:
         self.client_socket.send(pickled_mes)
         return None
 
+    def send_event(self, event):
+        mes = ("log_event", event)
+        pickled_mes = pickle.dumps(mes)
+        self.client_socket.send(pickled_mes)
+        return None
+
     def disconnect(self):
         self.send_and_receive(("disconnect", None))
 

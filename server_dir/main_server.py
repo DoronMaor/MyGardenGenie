@@ -4,6 +4,8 @@ import select
 import pickle
 import fuckit as fit
 from models.PlantUserList import PlantUserList
+from models.LogDatabase import LogDatabase
+
 
 def get_ip():
     """
@@ -135,13 +137,19 @@ def send_waiting_messages(open_client_socket, to_send):
             sock.send(pickle.dumps("remote_stopped", None))
         # endregion
 
+        # region LOGS
+        elif data[0] == 'log_event':
+            # data[1]: (user_id, time. level, action)
+            log_db.add_action(*data[1])
+
+        # endregion
+
         else:
             sock.send(pickle.dumps(None, None))
 
         to_send.remove((sock, data))
         if sock not in open_client_socket:
             to_send.remove((sock, data))
-
 
     return to_send
 
@@ -158,8 +166,9 @@ to_send = []  # [(sock, message), (sock, message), ...]
 active_clients = {
     # "id": {"client": "sock1", "plant": "sock2"},
 }
-plant_user_table = PlantUserList()
 
+plant_user_table = PlantUserList()
+log_db = LogDatabase()
 
 active_plants = {}  # {plant_id: sock, ...}
 active_users = {}  # {user_id: sock, ...}
