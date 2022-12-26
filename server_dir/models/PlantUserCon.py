@@ -20,7 +20,7 @@ class PlantUserCon:
         if c_type == "plant":
             self.plant = sock
         elif c_type == "user":
-            self.plant = sock
+            self.user = sock
 
     def get_id(self):
         return self.id_num

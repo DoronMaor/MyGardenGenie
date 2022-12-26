@@ -18,14 +18,22 @@ class LogDatabase:
         # Find log events that match the given query
         return self.events.find(query)
 
-    def add_action(self, user_id, time: str, level: str, action: str):
-        user_events = self.events[str(user_id)]
-        cevent = {
-            "time": time,
-            "level": level,
-            "action": action,
-        }
-        user_events.insert_one(cevent)
+    def add_action_args(self, user_id, time: str, level: str, action: str):
+        try:
+            user_events = self.events[str(user_id)]
+
+            cevent = {
+                "time": time,
+                "level": level,
+                "action": action,
+            }
+
+            user_events.insert_one(cevent)
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
 
     def get_events_for_user(self, user_id):
         user_events = self.events[str(user_id)]

@@ -10,37 +10,39 @@ in order for the gardener to understand whawt to do, he needs a translator - mes
     transforms the message to a language it can understand
 """
 from gardener import Gardener
-from plant_client.message_analyzer import analyze_message
+from message_analyzer import analyze_message
 from models.server_handler import ServerHandler
 from client_models.EventLogger import EventLogger
-from client_models.RemoteControlHandler import RemoteControlHandler
 import models.UserSQLManagment as usm
+import datetime
 
 
 def get_message():
     return server_handler.listen()
 
-
-def normal_check_up(plant: str):
-    moisture_lvl = gardener.get_moisture(plant)
-    light_lvl = gardener.get_light_level(plant)
-
-
 gardener = Gardener()
-server_handler = ServerHandler(client_type="plant")
-# usm.sign_up(server_handler)
-usr = usm.login(server_handler)
-event_logger = EventLogger(server_handler)
-remote_handler = RemoteControlHandler(server_handler, gardener, usr, event_logger)
 
-# da loop - getting_messages, doing tasks
-while True:
+server_handler = ServerHandler(client_type="plant")
+
+# usm.sign_up(server_handler)
+usr = usm.login(server_handler, "doron", "maor")
+
+# server_handler.send_client_id()
+event_logger = EventLogger(server_handler)
+
+active = True
+
+print("active")
+# waits for a message to come
+while active:
+    print("getmes")
     mes = get_message()
     print(mes)
     analyzed_msg = analyze_message(mes)
-    if analyzed_msg[0] == "remote_start":
-        remote_handler.start_remote_loop()
-    else:
-        print("NOPE !")
-        print(analyzed_msg)
-
+    print(analyzed_msg)
+    if analyzed_msg[0] == "garden_action":
+        action = analyzed_msg[1]
+        ret = gardener.do_action(action)
+        event_logger.add_auto_action_event(usr.id, "Manual", action, True)
+        if ret is not None:
+            server_handler.send_data(ret)

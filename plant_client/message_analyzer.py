@@ -1,3 +1,4 @@
+import global_mgg_functions as gmf
 
 def remote_message(m):
     if m[0] == "remote_action":
@@ -19,7 +20,15 @@ def remote_message(m):
         return None, None
 
 
+def set_message(m):
+    if m[0] == "set_auto_mode":
+        gmf.set_mode("plant"+m[-1], m[1])
+
+
 def analyze_message(mes):
     # message type
     if "remote_" in mes[0]:
         return remote_message(mes)
+    elif "set_" in mes[0]:
+        set_message(mes)
+

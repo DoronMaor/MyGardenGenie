@@ -1,9 +1,11 @@
 from models.server_handler import ServerHandler
+import models.UserSQLManagment as usm
 import time
+
 
 def display_text(indx: int, plant: str):
     inp = input("Text: ")
-    m = ("remote_action", (indx, plant, inp))
+    m = ("remote_action", (indx, inp))
     server_handler.send(m)
 
 
@@ -30,11 +32,24 @@ def get_light_level(indx: int, plant: str):
     print(light)
 
 
-actions_txt = ["display_text", "get_moisture", "led_ring", "add_water", "get_light_level"]
-actions = [display_text, get_moisture, led_ring, add_water, get_light_level]
+def change_automatic():
+    automatic = True if input("mode") == "1" else False
+    server_handler.send_automatic_mode(automatic, "A")
+
 
 server_handler = ServerHandler(client_type="user")
-server_handler.send_client_id()
+usm.sign_up(server_handler)
+usr = usm.login(server_handler)
+
+
+actions_txt = ["display_text", "get_moisture", "led_ring", "add_water", "get_light_level", "change_automatic"]
+actions = [display_text, get_moisture, led_ring, add_water, get_light_level, change_automatic]
+
+# server_handler.send_client_id()
+
+a = input("press to start remote")
+server_handler.start_remote_mode()
+
 
 i = 0
 for a in actions_txt:

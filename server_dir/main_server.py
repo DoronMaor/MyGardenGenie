@@ -5,6 +5,8 @@ import pickle
 import fuckit as fit
 from models.PlantUserList import PlantUserList
 from models.LogDatabase import LogDatabase
+from models.SQLUserManager import SQLUserManager
+import threading
 
 
 def get_ip():
@@ -100,6 +102,10 @@ def start_server(HOST, PORT):
                 write_sockets.remove(sock)
 
 
+def send_message(sck, opener, data):
+    sck.send(pickle.dumps((opener, data)))
+
+
 def send_waiting_messages(open_client_socket, to_send):
     """
     At the end of each loop in the 'start_server' function, this function runs.
@@ -108,39 +114,69 @@ def send_waiting_messages(open_client_socket, to_send):
     for mes in to_send:
         # Send the message to the user
         sock, data = mes
+        m_type, m_data = data[0], data[1:]
 
         print(active_remotes)
         print(data)
 
         # region REMOTE
-        if data[0] == 'remote_action':
-            # data[1:]: action[tuple] - (action_type, (details)), id
+        if m_type == 'remote_action':
+            # m_data: action[tuple] - (action_type, (details)), id
             # active_remotes[sock].send(pickle.dumps(("remote_action", data[1])))
-            s = plant_user_table.get_sock("plant", data[-1])
-            s.send(pickle.dumps(("remote_action", data[1])))
+            s = plant_user_table.get_sock("plant", m_data[-1])
+            send_message(s, "remote_action", m_data[0])
 
-        elif data[0] == 'remote_data':
-            # data: data, id
-            s = plant_user_table.get_sock("client", data[-1])
-            s.send(pickle.dumps(("remote_data", data[1])))
+        elif m_type == 'remote_data':
+            # m_data: data, id
+            s = plant_user_table.get_sock("client", m_data[-1])
+            send_message(s, "remote_data", m_data[0])
 
-        elif data[0] == 'start_remote_control':
-            # data: start_remote, plant_id
-            active_plants[data[1]].send(pickle.dumps(("remote_start", data[1])))
-            active_remotes[sock] = active_plants[data[1]]  # {user_sock: plant_sock}
-            sock.send(pickle.dumps("remote_started", None))
+        elif m_type == 'remote_start':
+            # m_data: start_remote, plant_id
+            # active_plants[data[1]].send(pickle.dumps(("remote_start", data[1])))
+            # active_remotes[sock] = active_plants[data[1]]  # {user_sock: plant_sock}
+            # sock.send(pickle.dumps("remote_started", None))
+            s = plant_user_table.get_sock("plant", m_data[-1])
+            send_message(s, "remote_start", None)
 
-        elif data[0] == 'stop_remote_control':
-            # data: stop_remote, plant_id
-            active_plants[sock].send(pickle.dumps("remote_stop", data[1]))
-            del active_remotes[sock]
-            sock.send(pickle.dumps("remote_stopped", None))
+        elif m_type == 'remote_stop':
+            # m_data: stop_remote, plant_id
+            s = plant_user_table.get_sock("plant", m_data[-1])
+            send_message(s, "remote_stop", None)
         # endregion
 
+        # region COMMANDS
+        elif m_type == 'set_auto_mode':
+            # m_data: mode
+            s = plant_user_table.get_sock("plant", m_data[-1])
+            send_message(s, "set_auto_mode", m_data[0])
+
+        # endregion
+
+
         # region LOGS
-        elif data[0] == 'log_event':
-            # data[1]: (user_id, time. level, action)
-            log_db.add_action(*data[1])
+        elif m_type == 'log_event':
+            # m_data: (user_id, time, level, action)
+            state = log_db.add_action_args(*m_data[0])
+            sock.send(pickle.dumps("log_event", state))
+
+        # endregion
+
+        # region USER SQL
+        elif m_type == 'sign_up':
+            # m_data: username, password
+            user_db.sign_up(m_data[0], m_data[1])
+
+        elif m_type == 'login':
+            # m_data: username, password
+            res = user_db.login(m_data[0], m_data[1])
+            send_message(sock, "login", res)
+
+        elif m_type == 'add_plant':
+            # m_data: plant_type
+            id_num = plant_user_table.get_id_by_sock(sock)
+            plant = [-1, m_data[0]]
+            user_db.add_plant(id_num, plant)
 
         # endregion
 
@@ -169,6 +205,7 @@ active_clients = {
 
 plant_user_table = PlantUserList()
 log_db = LogDatabase()
+user_db = SQLUserManager("dbs/")
 
 active_plants = {}  # {plant_id: sock, ...}
 active_users = {}  # {user_id: sock, ...}

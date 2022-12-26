@@ -1,7 +1,7 @@
 from socket import *
 import pickle
 import select
-
+from models.User import User
 
 class ServerHandler:
 
@@ -24,6 +24,11 @@ class ServerHandler:
         s.connect((self.server_ip, self.port))
         return s
 
+    # region General Functions
+
+    def listen(self):
+        return pickle.loads(self.client_socket.recv(self.buffer_size))
+
     def send_and_receive(self, mes: tuple):
         pickled_mes = pickle.dumps(mes + (self.client_id, ))
         self.client_socket.send(pickled_mes)
@@ -32,7 +37,22 @@ class ServerHandler:
     def send(self, mes: tuple):
         pickled_mes = pickle.dumps(mes + (self.client_id, ))
         self.client_socket.send(pickled_mes)
-        return None
+
+    # endregion
+
+    # region userSQL
+    def sign_up(self, username, password):
+        mes = ("sign_up", username, password)
+        self.send(mes)
+
+    def login(self, username, password):
+        mes = ("login", username, password)
+        r = self.send_and_receive(mes)
+        self.set_client_id(r[1][0])
+        self.send_client_id()
+        return r
+
+    # endregion
 
     def send_data(self, data: tuple):
         mes = (data, self.client_id)
@@ -40,17 +60,22 @@ class ServerHandler:
         self.client_socket.send(pickled_mes)
         return None
 
+    def start_remote_mode(self):
+        mes = ("remote_start", None)
+        self.send(mes)
+
     def send_event(self, event):
         mes = ("log_event", event)
-        pickled_mes = pickle.dumps(mes)
-        self.client_socket.send(pickled_mes)
-        return None
+        state = self.send_and_receive(mes)
+        return state
+
+    def send_automatic_mode(self, mode: bool, plant: str):
+        mes = ("set_auto_mode", mode, plant)
+        self.send(mes)
+
 
     def disconnect(self):
         self.send_and_receive(("disconnect", None))
-
-    def listen(self):
-        return pickle.loads(self.client_socket.recv(self.buffer_size))
 
     def set_client_id(self, id: int):
         self.client_id = id
@@ -60,3 +85,4 @@ class ServerHandler:
             self.client_id = id
 
         print(self.send_and_receive(("client_type", self.client_type, self.client_id)))
+

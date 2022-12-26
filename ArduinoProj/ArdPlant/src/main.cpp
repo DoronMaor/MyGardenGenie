@@ -179,7 +179,7 @@ float GetLightSensor() {
   return lux;
 }
 
-const bool testingMode = true;
+const bool testingMode = false;
 
 void loop() {
 
@@ -191,19 +191,19 @@ void loop() {
     WriteToLCD("MoisA: " + String(ma) + "|" + "MoisB: " + String(mb)+ "|" + "Light: " + String(l));
 
     TurnPump(800, 'A');
-    TurnPump(800, 'B');  
-    
+    TurnPump(800, 'B');
+
     TurnLEDRing(true, 'A');
     TurnLEDRing(true, 'B');
 
-    
-      
+
+
     if (false)
     {
       float l = GetLightSensor();
       WriteToLCD("Light: " + String(l));
       TurnPump(800, 'A');
-      TurnPump(800, 'B');  
+      TurnPump(800, 'B');
       TurnLEDRing(true, 'A');
       TurnLEDRing(true, 'B');
     }
