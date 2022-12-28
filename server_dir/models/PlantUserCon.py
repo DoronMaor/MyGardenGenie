@@ -8,7 +8,7 @@ class PlantUserCon:
         if c_type == "plant":
             self.plant = sock
         elif c_type == "user":
-            self.plant = sock
+            self.user = sock
 
     def set_plant(self, sock):
         self.plant = sock

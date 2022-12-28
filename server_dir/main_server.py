@@ -103,7 +103,8 @@ def start_server(HOST, PORT):
 
 
 def send_message(sck, opener, data):
-    sck.send(pickle.dumps((opener, data)))
+    if sck is not None:
+        sck.send(pickle.dumps((opener, data)))
 
 
 def send_waiting_messages(open_client_socket, to_send):
@@ -128,7 +129,7 @@ def send_waiting_messages(open_client_socket, to_send):
 
         elif m_type == 'remote_data':
             # m_data: data, id
-            s = plant_user_table.get_sock("client", m_data[-1])
+            s = plant_user_table.get_sock("user", m_data[-1])
             send_message(s, "remote_data", m_data[0])
 
         elif m_type == 'remote_start':
@@ -147,9 +148,9 @@ def send_waiting_messages(open_client_socket, to_send):
 
         # region COMMANDS
         elif m_type == 'set_auto_mode':
-            # m_data: mode
+            # m_data: mode, plant
             s = plant_user_table.get_sock("plant", m_data[-1])
-            send_message(s, "set_auto_mode", m_data[0])
+            send_message(s, "set_auto_mode", (m_data[0], m_data[1]))
 
         # endregion
 

@@ -32,14 +32,14 @@ def get_light_level(indx: int, plant: str):
     print(light)
 
 
-def change_automatic():
+def change_automatic(indx: int, plant: str):
     automatic = True if input("mode") == "1" else False
-    server_handler.send_automatic_mode(automatic, "A")
+    server_handler.send_automatic_mode(automatic, plant)
 
 
 server_handler = ServerHandler(client_type="user")
-usm.sign_up(server_handler)
-usr = usm.login(server_handler)
+#usm.sign_up(server_handler)
+usr = usm.login(server_handler, "doron", "maor")
 
 
 actions_txt = ["display_text", "get_moisture", "led_ring", "add_water", "get_light_level", "change_automatic"]

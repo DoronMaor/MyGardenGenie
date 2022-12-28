@@ -3,17 +3,19 @@ import pickle
 import select
 from models.User import User
 
+
 class ServerHandler:
 
-    def __init__(self, buffer_size=2048, server_ip="localhost", port=7777, client_type="plant"):
+    def __init__(self, buffer_size=2048, server_ip="localhost", port=7777, client_type="plant", time_out=0):
         # sockets
         self.buffer_size = buffer_size
         self.server_ip = server_ip
         self.port = port
         self.client_type = client_type
         self.client_socket = self.connect_to_server()
-        self.client_id = 4
-        #print(self.send_and_receive(("client_type", self.client_type, self.client_id)))
+        self.client_socket.settimeout(time_out)
+        self.client_id = None
+        # print(self.send_and_receive(("client_type", self.client_type, self.client_id)))
 
     def connect_to_server(self):
         """
@@ -27,15 +29,18 @@ class ServerHandler:
     # region General Functions
 
     def listen(self):
-        return pickle.loads(self.client_socket.recv(self.buffer_size))
+        try:
+            return pickle.loads(self.client_socket.recv(self.buffer_size))
+        except:
+            return None
 
     def send_and_receive(self, mes: tuple):
-        pickled_mes = pickle.dumps(mes + (self.client_id, ))
+        pickled_mes = pickle.dumps(mes + (self.client_id,))
         self.client_socket.send(pickled_mes)
         return pickle.loads(self.client_socket.recv(self.buffer_size))
 
     def send(self, mes: tuple):
-        pickled_mes = pickle.dumps(mes + (self.client_id, ))
+        pickled_mes = pickle.dumps(mes + (self.client_id,))
         self.client_socket.send(pickled_mes)
 
     # endregion
@@ -55,7 +60,10 @@ class ServerHandler:
     # endregion
 
     def send_data(self, data: tuple):
-        mes = (data, self.client_id)
+        mes = ("remote_data", data)
+
+        self.send(mes)
+        return None
         pickled_mes = pickle.dumps(mes)
         self.client_socket.send(pickled_mes)
         return None
@@ -73,7 +81,6 @@ class ServerHandler:
         mes = ("set_auto_mode", mode, plant)
         self.send(mes)
 
-
     def disconnect(self):
         self.send_and_receive(("disconnect", None))
 
@@ -85,4 +92,3 @@ class ServerHandler:
             self.client_id = id
 
         print(self.send_and_receive(("client_type", self.client_type, self.client_id)))
-

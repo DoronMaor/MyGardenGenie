@@ -21,7 +21,7 @@ class ArduinoRobot:
 
             if i == 24:
                 print("No Arduino board is connected, please try again.")
-                sys.exit(-1)
+                #sys.exit(-1)
         time.sleep(4)
 
     def send_and_receive(self, msg: str, rec=False):
@@ -42,6 +42,8 @@ class ArduinoRobot:
         return self.send_and_receive(m, rec)
 
     def get_moisture_level(self, plant: str, rec=True):
+        print("GOT DA MOISTURE")
+        return "MOSITEREE"
         flag = "#MOISTURE#"
         m = flag + plant
         mois = self.send_and_receive(m, rec).replace(flag, "")

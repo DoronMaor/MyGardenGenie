@@ -1,8 +1,9 @@
 class User:
-    def __init__(self, user_id, username, password, plants):
+    def __init__(self, user_id, username, password, plants, admin=False):
         self.id = user_id
         self.username = username
         self.password = password
+        self.admin = admin
         self.plants = plants  # [[plant_id, plant_type], ...]
 
     @classmethod
