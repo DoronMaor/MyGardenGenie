@@ -27,7 +27,7 @@ class PlantUserCon:
         return self.id_num
 
     def get_user_sock(self, letter):
-        print("users", self.users)
+        print("users get", self.users)
         return self.users[0 if letter == 'A' else 1]
 
     def get_plant_sock(self):

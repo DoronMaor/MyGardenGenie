@@ -52,10 +52,13 @@ class EventLogger:
 
     def write_event(self, event, send_now=False):
         """ Writes the event as a pickle file to the events folder"""
-        with open(os.path.join(self.dir, 'event_%s.pickle' % (random_str())), 'wb') as f:
-            pickle.dump(event, f)
-        if send_now:
-            self.send_all_events()
+        try:
+            with open(os.path.join(self.dir, 'event_%s.pickle' % (random_str())), 'wb') as f:
+                pickle.dump(event, f)
+            if send_now:
+                self.send_all_events()
+        except:
+            pass
 
     def send_all_events(self, times=2):
         """ Sends all the events in the folder to the server"""

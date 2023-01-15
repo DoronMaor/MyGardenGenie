@@ -15,7 +15,7 @@ def get_ip():
     """
     host_name = gethostname()
     ip = gethostbyname(host_name)
-    return "localhost"
+    return "172.16.2.175"  # "localhost"
 
 
 def get_free_port(HOST):
@@ -26,7 +26,7 @@ def get_free_port(HOST):
     sock.bind((HOST, 0))
     port = sock.getsockname()[1]
     sock.close()
-    return 7777  # port
+    return 60218  # port
 
 
 def start_server(HOST, PORT):

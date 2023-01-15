@@ -6,7 +6,7 @@ from models.User import User
 
 class ServerHandler:
 
-    def __init__(self, buffer_size=2048, server_ip="localhost", port=7777, client_type="plant", time_out=0):
+    def __init__(self, buffer_size=2048, server_ip="localhost", port=60218, client_type="plant", time_out=0):
         self.buffer_size = buffer_size
         self.server_ip = server_ip
         self.port = port

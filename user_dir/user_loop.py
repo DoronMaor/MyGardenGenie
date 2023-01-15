@@ -42,10 +42,10 @@ def remote_stop(indx: int, plant: str):
     server_handler.send(m)
 
 
-server_handler = ServerHandler(client_type="user")
+server_handler = ServerHandler(server_ip="172.16.2.175", client_type="user")
 usm.sign_up(server_handler)
-user = "2" if input(" >> User type [1/2]: ") == "2" else ""
-usr = usm.login(server_handler, "b", "b"+user)
+# user = "2" if input(" >> User type [1/2]: ") == "2" else ""
+usr = usm.login(server_handler)
 
 actions_txt = ["display_text", "get_moisture", "led_ring", "add_water", "get_light_level", "change_automatic",
                "remote_stop"]
