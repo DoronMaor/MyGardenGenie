@@ -6,8 +6,7 @@ import uuid
 
 def generate_uid():
     """Generate a unique ID"""
-    uid = uuid.uuid4()
-    return uid.hex
+    return uuid.uuid4().hex[:-1]
 
 
 class SQLUserManager:
@@ -25,9 +24,18 @@ class SQLUserManager:
         self.conn = sqlite3.connect(self.db_path)
         self.cursor = self.conn.cursor()
 
-    def sign_up(self, username, password):
+    def sign_up(self, username, password, code=None):
+        if code is not None:
+            idn = self.get_id_by_code(code)
+            if idn is None:
+                print("ERORR, idn is NONE!")
+                return None
+            idn = idn[:-1] + "B"
+        else:
+            idn = generate_uid() + "A"
+
         query = 'INSERT INTO users (id, username, password, plants) VALUES (?, ?, ?, ?)'
-        self.cursor.execute(query, (generate_uid(), username, password, pickle.dumps([])))
+        self.cursor.execute(query, (idn, username, password, pickle.dumps([])))
         self.conn.commit()
 
     def login(self, username, password):
@@ -61,6 +69,17 @@ class SQLUserManager:
                 plant_lst = pickle.loads(plant_lst) + [plant]
 
             self.update_user(idnum, plant_lst)
+
+    def get_id_by_code(self, code):
+        try:
+            query = "SELECT id FROM users WHERE id LIKE ?"
+            self.cursor.execute(query, (code + '%',))
+            result = self.cursor.fetchone()
+            if result is not None:
+                return result[0]
+        except sqlite3.Error as e:
+            print(f"An error occurred: {e}")
+        return None
 
     def get_user(self, id):
         query = 'SELECT * FROM users WHERE id = ?'

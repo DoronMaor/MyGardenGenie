@@ -116,65 +116,47 @@ def send_waiting_messages(open_client_socket, to_send):
         # Send the message to the user
         sock, data = mes
         m_type, m_data = data[0], data[1:]
-
-        print(active_remotes)
-        print(data)
+        print("data: ", data)
 
         # region REMOTE
         if m_type == 'remote_action':
-            # m_data: action[tuple] - (action_type, (details)), id
-            # active_remotes[sock].send(pickle.dumps(("remote_action", data[1])))
             s = plant_user_table.get_sock("plant", m_data[-1])
             send_message(s, "remote_action", m_data[0])
 
         elif m_type == 'remote_data':
-            # m_data: data, id
-            s = plant_user_table.get_sock("user", m_data[-1])
+            s = plant_user_table.get_sock("user", m_data[0][1])
             send_message(s, "remote_data", m_data[0])
 
         elif m_type == 'remote_start':
-            # m_data: start_remote, plant_id
-            # active_plants[data[1]].send(pickle.dumps(("remote_start", data[1])))
-            # active_remotes[sock] = active_plants[data[1]]  # {user_sock: plant_sock}
-            # sock.send(pickle.dumps("remote_started", None))
             s = plant_user_table.get_sock("plant", m_data[-1])
-            send_message(s, "remote_start", None)
+            send_message(s, "remote_start", m_data[-1])
 
         elif m_type == 'remote_stop':
-            # m_data: stop_remote, plant_id
             s = plant_user_table.get_sock("plant", m_data[-1])
             send_message(s, "remote_stop", None)
         # endregion
 
         # region COMMANDS
         elif m_type == 'set_auto_mode':
-            # m_data: mode, plant
             s = plant_user_table.get_sock("plant", m_data[-1])
             send_message(s, "set_auto_mode", (m_data[0], m_data[1]))
-
         # endregion
-
 
         # region LOGS
         elif m_type == 'log_event':
-            # m_data: (user_id, time, level, action)
             state = log_db.add_action_args(*m_data[0])
             sock.send(pickle.dumps("log_event", state))
-
         # endregion
 
         # region USER SQL
         elif m_type == 'sign_up':
-            # m_data: username, password
-            user_db.sign_up(m_data[0], m_data[1])
+            user_db.sign_up(m_data[0], m_data[1], m_data[2])
 
         elif m_type == 'login':
-            # m_data: username, password
             res = user_db.login(m_data[0], m_data[1])
             send_message(sock, "login", res)
 
         elif m_type == 'add_plant':
-            # m_data: plant_type
             id_num = plant_user_table.get_id_by_sock(sock)
             plant = [-1, m_data[0]]
             user_db.add_plant(id_num, plant)

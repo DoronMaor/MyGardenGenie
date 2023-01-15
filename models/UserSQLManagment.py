@@ -43,10 +43,12 @@ def sign_up(server_handler, u=None, p=None):
     if password is None:
         password = input("PASSWORD: ")
 
+    user_code = input("CODE: ")[:4]
+
     sha_username = string_to_hash(username)
     sha_password = string_to_hash(password)
 
-    server_handler.sign_up(sha_username, sha_password)
+    server_handler.sign_up(sha_username, sha_password, user_code if user_code != "" else None)
 
 
 def login(server_handler, u=None, p=None):

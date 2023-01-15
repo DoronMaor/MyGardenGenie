@@ -20,9 +20,10 @@ class LogDatabase:
 
     def add_action_args(self, user_id, time: str, level: str, action: str):
         try:
-            user_events = self.events[str(user_id)]
+            user_events = self.events[str(user_id[:-1])]
 
             cevent = {
+                "by": user_id,
                 "time": time,
                 "level": level,
                 "action": action,
@@ -34,15 +35,11 @@ class LogDatabase:
             print(e)
             return False
 
-
     def get_events_for_user(self, user_id):
-        user_events = self.events[str(user_id)]
+        user_events = self.events[str(user_id)[:-1]]
 
         # Find all events in the sub-collection
         cursor = user_events.find()
 
         # Return the events as a list
         return list(cursor)
-
-
-

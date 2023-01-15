@@ -15,8 +15,11 @@ class Gardener:
             }
 
     def do_action(self, action: tuple):
-        # action: ("action_name", (args))
-        print(action)
+        """
+        Does an action based on the action parameter:
+        action: ("action_name", (args))
+        """
+        print("Doing: ", action)
         return self.commands_dict[action[0]](*action[1])
 
     def set_text_display(self, txt: str):

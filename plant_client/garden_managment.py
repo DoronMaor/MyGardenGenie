@@ -26,9 +26,18 @@ def get_message():
     return server_handler.listen()
 
 
-def normal_check_up(plant: str):
-    moisture_lvl = gardener.get_moisture(plant)
-    light_lvl = gardener.get_light_level(plant)
+def listen_for_messages():
+    while True:
+        message = get_message()
+        if message is None:
+            continue
+        action_type, action_data = analyze_message(message)
+        if action_type == "remote_start":
+            mgf.set_remote_connection(True)
+            remote_handler.start_remote_loop(action_data)
+            mgf.set_remote_connection(False)
+        else:
+            print("Couldn't analyze this message: ", message)
 
 
 def timer_thread(duration):
@@ -36,48 +45,46 @@ def timer_thread(duration):
     return True
 
 
+# region setup
 gardener = Gardener()
 server_handler = ServerHandler(client_type="plant", time_out=3)
+
 # usm.sign_up(server_handler)
-usr = usm.login(server_handler, "doron", "maor")
+usr = usm.login(server_handler, "b", "b")
+
 event_logger = EventLogger(server_handler)
 remote_handler = RemoteControlHandler(server_handler, gardener, usr, event_logger)
 
 plantA_state = mgf.get_automatic_mode("plantA.mgg")
 plantB_state = mgf.get_automatic_mode("plantB.mgg")
 
-t = threading.Thread(target=timer_thread, args=(mgf.get_routine_interval("global.mgg")* 0 + 2,))
-t.start()
+
+# endregion
 
 
+# Main loop
+def main_loop():
+    t = threading.Thread(target=timer_thread, args=(mgf.get_routine_interval(),))
+    t.start()
 
-# da loop - getting_messages, doing tasks
-while True:
-    mes = get_message()
-    print(mes)
-    analyzed_msg = analyze_message(mes)
-    print(analyzed_msg)
-    if analyzed_msg[0] == "remote_start":
-        remote_handler.start_remote_loop()
-    else:
-        print("NOPE !")
+    # Create a thread for message listening
+    listen_thread = threading.Thread(target=listen_for_messages)
+    listen_thread.start()
 
-    if not t.is_alive():
-        print("Timer is finished", mgf.get_automatic_mode("plantA.mgg"), mgf.get_automatic_mode("plantB.mgg"))
-        plantA_state = mgf.get_automatic_mode("plantA.mgg")
-        plantB_state = mgf.get_automatic_mode("plantB.mgg")
+    # Start an infinite loop to continuously listen for messages
+    while True:
+        if not t.is_alive() and not mgf.get_remote_connection():
+            print("Time for check up")
+            # Get the automatic mode of both plants
+            plantA_state = mgf.get_automatic_mode("plantA.mgg")
+            plantB_state = mgf.get_automatic_mode("plantB.mgg")
+            # Do the check up routine for both plants
+            pcr.full_routine_checkup(plantA_state, plantB_state)
+            # Start the hourly routine thread
+            t = threading.Thread(target=timer_thread, args=(mgf.get_routine_interval(),))
+            t.start()
 
-        if plantA_state == "AUTOMATIC":
-            print("PLANTA IS AUTOMATIC")
-            pcr.routine("A")
-
-        if plantB_state == "AUTOMATIC":
-            print("PLANTB IS AUTOMATIC")
-            pcr.routine("B")
-
-        t = threading.Thread(target=timer_thread, args=(mgf.get_routine_interval("global.mgg")* 0 + 2,))
-        t.start()
+    listen_thread.join()
 
 
-
-
+main_loop()
