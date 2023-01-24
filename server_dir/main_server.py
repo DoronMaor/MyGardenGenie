@@ -15,7 +15,7 @@ def get_ip():
     """
     host_name = gethostname()
     ip = gethostbyname(host_name)
-    return "172.16.2.175"  # "localhost"
+    return "localhost"
 
 
 def get_free_port(HOST):
@@ -160,6 +160,13 @@ def send_waiting_messages(open_client_socket, to_send):
             id_num = plant_user_table.get_id_by_sock(sock)
             plant = [-1, m_data[0]]
             user_db.add_plant(id_num, plant)
+
+        # endregion
+
+        # region VIDEO STREAMING
+        elif m_type == 'video_start':
+            s = plant_user_table.get_sock("plant", m_data[-1])
+            send_message(s, m_type, m_data)
 
         # endregion
 

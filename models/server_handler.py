@@ -15,7 +15,7 @@ class ServerHandler:
         self.time_out = time_out
         self.client_id = None
 
-    # region General Functions - listen, send, receive
+    # region GENERAL
     def connect_to_server(self):
         """
         Connects to the server.
@@ -47,7 +47,7 @@ class ServerHandler:
 
     # endregion
 
-    # region userSQL - signup, login
+    # region USERSQL
     def sign_up(self, username, password, user_code=None):
         mes = ("sign_up", username, password, user_code)
         self.send(mes)
@@ -61,7 +61,7 @@ class ServerHandler:
 
     # endregion
 
-    # region Remote Function - set timeout, send data, start remote
+    #region REMOTE
     def set_time_out(self, time=None):
         time = time if time is not None else self.time_out
         self.client_socket.settimeout(time)
@@ -76,6 +76,13 @@ class ServerHandler:
         self.send(mes)
 
     # endregion
+
+    # region VIDEO
+    def video_start(self, ip: str, port: int):
+        mes = ("video_start", ip, port)
+        self.send(mes)
+    # endregion
+
 
     # region Events - send event
     def send_event(self, event):

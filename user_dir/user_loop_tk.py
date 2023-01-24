@@ -1,3 +1,6 @@
+import threading
+import tkinter as tk
+from tkinter import ttk
 from models.server_handler import ServerHandler
 import models.UserSQLManagment as usm
 from VideoStreaming import VideoStreamReceiver
@@ -46,7 +49,9 @@ def stream_start(indx: int, plant: str):
     ip = "localhost"
     port = 52222
     video_rec = VideoStreamReceiver.VideoStreamReceiver(ip, port)
-    video_rec.start_receiving()
+    t = threading.Thread(target=video_rec.start_receiving)
+    t.start()
+
 
 
 server_handler = ServerHandler(server_ip="localhost", client_type="user")
@@ -60,20 +65,30 @@ video_actions_txt = ["stream_start", ]
 remote_actions = [display_text, get_moisture, led_ring, add_water, get_light_level, change_automatic, remote_stop]
 video_actions = [stream_start, ]
 
-while True:
-    print("Press 1 to start remote mode")
-    input()
+def remote_mode():
     server_handler.start_remote_mode()
+    actions = tk.Toplevel()
+    actions.title("Remote Actions")
 
-    while True:
-        for i, action in enumerate(remote_actions_txt):
-            print(f"{i}. {action}")
-        user_input = input("Enter the number of the action you want to perform: ")
-        try:
-            action_index = int(user_input)
-            remote_actions[action_index](action_index, "A")
-            if action_index == remote_actions_txt.index('remote_stop'):
-                break
-        except ValueError:
-            print("Invalid input. Please enter a number.")
+    for i, action in enumerate(remote_actions_txt):
+        if action != 'remote_stop':
+            ttk.Button(actions, text=action, command=lambda i=i: remote_actions[i](i, "A")).pack()
 
+    ttk.Button(actions, text="Remote Stop", command=actions.destroy).pack()
+
+
+def video_mode():
+    server_handler.video_start("localhost", 52222)
+    actions = tk.Toplevel()
+    actions.title("Video Actions")
+
+    for i, action in enumerate(video_actions_txt):
+        ttk.Button(actions, text=action, command=lambda i=i: video_actions[i](i, "A")).pack()
+
+    ttk.Button(actions, text="Video Stop", command=actions.destroy).pack()
+
+
+root = tk.Tk()
+ttk.Button(root, text="Start Remote Mode", command=remote_mode).pack()
+ttk.Button(root, text="Start Video Mode", command=video_mode).pack()
+root.mainloop()

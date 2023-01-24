@@ -27,6 +27,7 @@ def get_message():
 
 
 def listen_for_messages():
+    streaming_threads = []
     while True:
         message = get_message()
         if message is None:
@@ -36,6 +37,13 @@ def listen_for_messages():
             mgf.set_remote_connection(True)
             remote_handler.start_remote_loop(action_data)
             mgf.set_remote_connection(False)
+        elif action_type == "video_start":
+            streaming_threads.append((action_data[0], action_data[1]))
+            action_data[0].start()
+            print("2222222222222222222222222222222")
+        elif action_type == "video_stop":
+            for streaming_thread in streaming_threads:
+                streaming_thread[0].join() if streaming_thread[1] == action_data else None
         else:
             print("Couldn't analyze this message: ", message)
 
@@ -45,12 +53,12 @@ def timer_thread(duration):
     return True
 
 
-# region setup
+# region SETUP
 gardener = Gardener()
-server_handler = ServerHandler(server_ip="172.16.2.175", client_type="plant", time_out=3)
+server_handler = ServerHandler(server_ip="localhost", client_type="plant", time_out=3)
 
 # usm.sign_up(server_handler)
-usr = usm.login(server_handler)
+usr = usm.login(server_handler, "1", "1")
 
 event_logger = EventLogger(server_handler)
 remote_handler = RemoteControlHandler(server_handler, gardener, usr, event_logger)
@@ -58,6 +66,7 @@ remote_handler = RemoteControlHandler(server_handler, gardener, usr, event_logge
 plantA_state = mgf.get_automatic_mode("plantA.mgg")
 plantB_state = mgf.get_automatic_mode("plantB.mgg")
 
+mgf.set_remote_connection(False)
 
 # endregion
 
