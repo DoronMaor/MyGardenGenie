@@ -11,6 +11,7 @@ class ArduinoRobot:
                 i=5
                 self.ser = serial.Serial(f'COM{i}', baud, timeout=timeout)
                 print("Connected to Arduino!")
+                time.sleep(4)
                 break
             except Exception as e:
                 print(e)
@@ -18,7 +19,6 @@ class ArduinoRobot:
             if i == 24:
                 print("No Arduino board is connected, please try again.")
                 #sys.exit(-1)
-        time.sleep(4)
 
     def send_and_receive(self, msg: str, rec=False):
         """Send msg to Arduino, with an option of receiving one back."""

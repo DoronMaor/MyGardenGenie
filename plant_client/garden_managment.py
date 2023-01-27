@@ -11,6 +11,7 @@ in order for the gardener to understand whawt to do, he needs a translator - mes
 """
 import threading
 
+from VideoStreaming.VideoStream import VideoStream
 from gardener import Gardener
 from plant_client.message_analyzer import analyze_message
 from models.server_handler import ServerHandler
@@ -26,24 +27,29 @@ def get_message():
     return server_handler.listen()
 
 
-def listen_for_messages():
-    streaming_threads = []
+def listen_for_messages(mes=None):
+    remote_message_headers = ["garden_action", "remote_stop"]
+
     while True:
-        message = get_message()
+        message = get_message() if mes is None else mes
         if message is None:
             continue
-        action_type, action_data = analyze_message(message)
-        if action_type == "remote_start":
+        action_header, action_data = analyze_message(message)
+
+        if action_header in remote_message_headers:
+            remote_handler.set_current_message(message)
+            if action_header == "remote_stop":
+                mgf.set_remote_connection(False)
+            continue
+
+        if action_header == "remote_start":
             mgf.set_remote_connection(True)
             remote_handler.start_remote_loop(action_data)
-            mgf.set_remote_connection(False)
-        elif action_type == "video_start":
-            streaming_threads.append((action_data[0], action_data[1]))
-            action_data[0].start()
-            print("2222222222222222222222222222222")
-        elif action_type == "video_stop":
-            for streaming_thread in streaming_threads:
-                streaming_thread[0].join() if streaming_thread[1] == action_data else None
+        elif action_header == "video_start":
+            print("Starting video...")
+            video_streamer.start_stream(action_data[0], action_data[1])
+        elif action_header == "video_stop":
+            video_streamer.remove_user(action_data[0], action_data[1])
         else:
             print("Couldn't analyze this message: ", message)
 
@@ -57,11 +63,13 @@ def timer_thread(duration):
 gardener = Gardener()
 server_handler = ServerHandler(server_ip="localhost", client_type="plant", time_out=3)
 
+
 # usm.sign_up(server_handler)
 usr = usm.login(server_handler, "1", "1")
 
 event_logger = EventLogger(server_handler)
 remote_handler = RemoteControlHandler(server_handler, gardener, usr, event_logger)
+video_streamer = VideoStream()
 
 plantA_state = mgf.get_automatic_mode("plantA.mgg")
 plantB_state = mgf.get_automatic_mode("plantB.mgg")

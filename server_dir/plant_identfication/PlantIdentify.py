@@ -2,7 +2,7 @@ import base64
 import requests
 import os
 import pickle
-from PlantStatLocator import PlantStatLocator
+from plant_identfication.PlantStatLocator import PlantStatLocator
 
 class PlantIdentify:
     def __init__(self, api_key):
@@ -60,7 +60,8 @@ class PlantIdentify:
         plant = self.PlantLocator.search_plants(names)
         return plant
 
-p = PlantIdentify("fLBl0xbtSnB4UPyp6Qtblo"+"apUFJbQRAbxyAZMrM048ZYTvWw94")
-nms = p.identify_plant("image.jpg")
+if __name__ == '__main__':
+    p = PlantIdentify("fLBl0xbtSnB4UPyp6Qtblo"+"apUFJbQRAbxyAZMrM048ZYTvWw94")
+    nms = p.identify_plant("image.jpg")
 
-p.search_for_plant(nms)
+    p.search_for_plant(nms)

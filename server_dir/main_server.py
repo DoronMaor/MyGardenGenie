@@ -7,7 +7,7 @@ from models.PlantUserList import PlantUserList
 from models.LogDatabase import LogDatabase
 from models.SQLUserManager import SQLUserManager
 import threading
-
+from plant_identfication.PlantIdentify import PlantIdentify
 
 def get_ip():
     """
@@ -168,7 +168,18 @@ def send_waiting_messages(open_client_socket, to_send):
             s = plant_user_table.get_sock("plant", m_data[-1])
             send_message(s, m_type, m_data)
 
+        elif m_type == 'video_stop':
+            s = plant_user_table.get_sock("plant", m_data[-1])
+            send_message(s, m_type, m_data)
+
         # endregion
+
+        # region RECOGNITION
+        elif m_type == 'plant_recognition':
+            res = plant_identifier.identify_plant(b64_image=m_data[0])
+            send_message(sock, "plant_recognition", res)
+        # endregion
+
 
         else:
             sock.send(pickle.dumps(None, None))
@@ -196,6 +207,7 @@ active_clients = {
 plant_user_table = PlantUserList()
 log_db = LogDatabase()
 user_db = SQLUserManager("dbs/")
+plant_identifier = PlantIdentify("fLBl0xbtSnB4UPyp6Qtblo"+"apUFJbQRAbxyAZMrM048ZYTvWw94")
 
 active_plants = {}  # {plant_id: sock, ...}
 active_users = {}  # {user_id: sock, ...}

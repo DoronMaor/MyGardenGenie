@@ -1,6 +1,19 @@
 import mgg_functions as gmf
 import VideoStreaming.VideoStream as VideoStream
 import threading
+import functools
+
+
+def monitor_results(func):
+    @functools.wraps(func)
+    def wrapper(*func_args, **func_kwargs):
+        print('function call ' + func.__name__ + '()')
+        retval = func(*func_args, **func_kwargs)
+        print('function ' + func.__name__ + '() returns ' + repr(retval))
+        return retval
+
+    return wrapper
+
 
 def remote_message(m):
     """ Handles the messages that are related to the remote handling """
@@ -34,15 +47,13 @@ def set_message(m):
 def video_message(m):
     header, data = m
     if header == "video_start":
-        video_streamer = VideoStream.VideoStream(data[0], data[1])
-        t = threading.Thread(target=video_streamer.start_streaming)
-        return header, (t, data[-1])
+        return header, data[0]
     elif header == "video_stop":
-        return header, data[-1]
+        return header, data[0]
 
     return None, None
 
-
+@monitor_results
 def analyze_message(mes):
     print("Raw message: ", mes)
     if mes is not None:
@@ -53,6 +64,5 @@ def analyze_message(mes):
             return set_message(mes)
         elif "video_" in header:
             return video_message(mes)
-
     else:
         return None, None

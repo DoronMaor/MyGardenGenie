@@ -5,6 +5,7 @@ from models.server_handler import ServerHandler
 import models.UserSQLManagment as usm
 from VideoStreaming import VideoStreamReceiver
 
+
 def display_text(indx: int, plant: str):
     inp = input("Enter the text you want to display: ")
     m = ("remote_action", (indx, inp))
@@ -46,24 +47,29 @@ def remote_stop(indx: int, plant: str):
 
 
 def stream_start(indx: int, plant: str):
-    ip = "localhost"
-    port = 52222
-    video_rec = VideoStreamReceiver.VideoStreamReceiver(ip, port)
-    t = threading.Thread(target=video_rec.start_receiving)
-    t.start()
+    server_handler.video_start("localhost", 52222)
+    video_handler.start_receiving()
 
+
+def stream_stop(indx: int, plant: str):
+    server_handler.stop_receiving("localhost", 52222)
+    video_handler.stop_receiving()
 
 
 server_handler = ServerHandler(server_ip="localhost", client_type="user")
-#usm.sign_up(server_handler)
+video_handler = VideoStreamReceiver.VideoStreamReceiver("localhost", 52222)
+
+# usm.sign_up(server_handler)
 # user = "2" if input(" >> User type [1/2]: ") == "2" else ""
 usr = usm.login(server_handler, "1", "1")
 
+
 remote_actions_txt = ["display_text", "get_moisture", "led_ring", "add_water", "get_light_level", "change_automatic",
-               "remote_stop"]
-video_actions_txt = ["stream_start", ]
+                      "remote_stop"]
+video_actions_txt = ["stream_start", "stream_stop"]
 remote_actions = [display_text, get_moisture, led_ring, add_water, get_light_level, change_automatic, remote_stop]
-video_actions = [stream_start, ]
+video_actions = [stream_start, stream_stop, ]
+
 
 def remote_mode():
     server_handler.start_remote_mode()
@@ -71,21 +77,15 @@ def remote_mode():
     actions.title("Remote Actions")
 
     for i, action in enumerate(remote_actions_txt):
-        if action != 'remote_stop':
-            ttk.Button(actions, text=action, command=lambda i=i: remote_actions[i](i, "A")).pack()
-
-    ttk.Button(actions, text="Remote Stop", command=actions.destroy).pack()
+        ttk.Button(actions, text=action, command=lambda i=i: remote_actions[i](i, "A")).pack()
 
 
 def video_mode():
-    server_handler.video_start("localhost", 52222)
     actions = tk.Toplevel()
     actions.title("Video Actions")
 
     for i, action in enumerate(video_actions_txt):
         ttk.Button(actions, text=action, command=lambda i=i: video_actions[i](i, "A")).pack()
-
-    ttk.Button(actions, text="Video Stop", command=actions.destroy).pack()
 
 
 root = tk.Tk()

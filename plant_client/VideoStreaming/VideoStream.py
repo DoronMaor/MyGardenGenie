@@ -1,31 +1,51 @@
 import cv2,socket,pickle,os
 import numpy as np
+import threading
 
 class VideoStream:
-	def __init__(self, ip="localhost", port=52222):
-		self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-		self.s.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1000000)
-		self.server_ip = ip
-		self.server_port = port
-		self.cap = None
+    def __init__(self):
+        self.cap = None
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1000000)
+        self.user_sockets = []
+        self.current_thread = None
+        self.is_streaming = False
 
-	def start_streaming(self):
-		print("Streaming!")
-		self.cap = cv2.VideoCapture(0)
-		while True:
-			ret, photo = self.cap.read()
+    def add_user(self, u_ip: str, u_port: int):
+        self.user_sockets.append((u_ip, u_port))
 
-			if photo is None:
-				continue
+    def remove_user(self, u_ip: str, u_port: int):
+        t = (u_ip, u_port)
+        self.user_sockets.remove(t)
+        self.stop_streaming()
 
-			cv2.imshow('streaming', photo)
-			ret, buffer = cv2.imencode(".jpg", photo, [int(cv2.IMWRITE_JPEG_QUALITY), 30])
-			x_as_bytes = pickle.dumps(buffer)
-			self.s.sendto((x_as_bytes), (self.server_ip, self.server_port))
-			if cv2.waitKey(10) == 13:
-				self.stop_streaming()
-				break
+    def video_streaming(self):
+        print("Streaming!")
+        self.is_streaming = True
+        self.cap = cv2.VideoCapture(0)
+        while self.is_streaming:
+            ret, photo = self.cap.read()
 
-	def stop_streaming(self):
-		cv2.destroyAllWindows()
-		self.cap.release()
+            if photo is None:
+                continue
+            ret, buffer = cv2.imencode(".jpg", photo, [int(cv2.IMWRITE_JPEG_QUALITY), 30])
+            x_as_bytes = pickle.dumps(buffer)
+            for u_ip, u_port in self.user_sockets:
+                self.s.sendto((x_as_bytes), (u_ip, u_port))
+
+    def start_stream(self, u_ip: str, u_port: int):
+        if not self.user_sockets:
+            self.current_thread = threading.Thread(target=self.video_streaming)
+            self.current_thread.start()
+
+        self.add_user(u_ip, u_port)
+
+    def stop_streaming(self, force=False):
+        if force or not self.user_sockets:
+            self.is_streaming = False
+            self.cap.release()
+            print("stopped streaming from class")
+
+
+
+

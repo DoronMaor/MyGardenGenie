@@ -79,12 +79,23 @@ class ServerHandler:
 
     # region VIDEO
     def video_start(self, ip: str, port: int):
-        mes = ("video_start", ip, port)
+        mes = ("video_start", (ip, port))
+        self.send(mes)
+
+    def stop_receiving(self, ip: str, port: int):
+        mes = ("video_stop", (ip, port))
         self.send(mes)
     # endregion
 
+    # region IMAGE
+    def send_image_recognition(self, b64_image):
+        mes = ("plant_recognition", b64_image)
+        data = self.send_and_receive(mes)
+        return data
 
-    # region Events - send event
+    # endregion
+
+    # region EVENTS
     def send_event(self, event):
         mes = ("log_event", event)
         state = self.send_and_receive(mes)
