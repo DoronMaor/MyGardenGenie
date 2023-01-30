@@ -141,6 +141,10 @@ def send_waiting_messages(open_client_socket, to_send):
         elif m_type == 'set_auto_mode':
             s = plant_user_table.get_sock("plant", m_data[-1])
             send_message(s, "set_auto_mode", (m_data[0], m_data[1]))
+
+        elif m_type == 'get_plant_dict':
+            s = plant_user_table.get_sock("plant", m_data[-1])
+            send_message(s, "get_plant_dict", (m_data[-1], ))
         # endregion
 
         # region LOGS

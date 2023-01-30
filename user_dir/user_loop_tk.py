@@ -6,6 +6,17 @@ import models.UserSQLManagment as usm
 from VideoStreaming import VideoStreamReceiver
 
 
+def get_plant_dict():
+    m = ("get_plant_dict", )
+    return server_handler.send_and_receive(m)
+
+
+def switch_plant():
+    global current_plant
+    current_plant = "A" if current_plant == "B" else "A"
+    print("==========CURRENT PLANT: %s ==========" % get_plant_dict()[current_plant])
+
+
 def display_text(indx: int, plant: str):
     inp = input("Enter the text you want to display: ")
     m = ("remote_action", (indx, inp))
@@ -70,6 +81,8 @@ video_actions_txt = ["stream_start", "stream_stop"]
 remote_actions = [display_text, get_moisture, led_ring, add_water, get_light_level, change_automatic, remote_stop]
 video_actions = [stream_start, stream_stop, ]
 
+current_plant = "A"
+
 
 def remote_mode():
     server_handler.start_remote_mode()
@@ -77,7 +90,7 @@ def remote_mode():
     actions.title("Remote Actions")
 
     for i, action in enumerate(remote_actions_txt):
-        ttk.Button(actions, text=action, command=lambda i=i: remote_actions[i](i, "A")).pack()
+        ttk.Button(actions, text=action, command=lambda i=i: remote_actions[i](i, current_plant)).pack()
 
 
 def video_mode():
@@ -91,4 +104,5 @@ def video_mode():
 root = tk.Tk()
 ttk.Button(root, text="Start Remote Mode", command=remote_mode).pack()
 ttk.Button(root, text="Start Video Mode", command=video_mode).pack()
+ttk.Button(root, text="Switch Plant", command=switch_plant).pack()
 root.mainloop()

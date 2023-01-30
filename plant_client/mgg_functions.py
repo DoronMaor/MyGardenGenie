@@ -61,6 +61,29 @@ def set_mode(filename, new_mode: str):
         f.write(contents)
 
 
+def get_plant_name(filename):
+    if not os.path.isfile(filename):
+        return None
+    with open(filename, 'r') as f:
+        contents = f.read()
+        match = re.search(r'PLANT_NAME:(.*)', contents)
+        if match:
+            plant_name = match.group(1).strip()
+            return plant_name
+    return None
+
+
+def get_letter_plant_dict():
+    plant_dict = {}
+    directory = "."  # current directory
+    for filename in os.listdir(directory):
+        if filename.startswith("plant_"):
+            plant_name = get_plant_name(filename)
+            plant_dict[plant_name] = filename.replace(".mgg", "")[-1]
+    print(plant_dict)
+    return plant_dict
+
+
 # endregion
 
 # region GLOBAL

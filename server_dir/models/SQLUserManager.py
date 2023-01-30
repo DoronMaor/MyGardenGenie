@@ -66,9 +66,12 @@ class SQLUserManager:
             plants = [plant_dict, None]
         else:
             for idx, result in enumerate(results):
-                if not result:
-                    plants[idx] = plant_dict
-                    break
+                try:
+                    if not result:
+                        plants[idx] = plant_dict
+                        break
+                except:
+                    plants.append(plant_dict)
 
         self.update_user(id_num, pickle.dumps(plants))
 

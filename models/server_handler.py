@@ -114,6 +114,10 @@ class ServerHandler:
         mes = ("set_auto_mode", mode, plant)
         self.send(mes)
 
+    def send_plants_names(self, plant_dict: dict):
+        mes = ("plant_dict", plant_dict)
+        self.send(mes)
+
     def disconnect(self):
         self.send_and_receive(("disconnect", None))
 

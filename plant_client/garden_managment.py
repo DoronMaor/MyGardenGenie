@@ -43,6 +43,8 @@ def listen_for_messages(mes=None):
             video_streamer.start_stream(action_data[0], action_data[1])
         elif action_header == "video_stop":
             video_streamer.remove_user(action_data[0], action_data[1])
+        elif action_header == "get_plant_dict":
+            server_handler.send_plants_names(plant_dict=mgf.get_letter_plant_dict())
         else:
             print("Couldn't analyze this message: ", message)
 
@@ -66,6 +68,7 @@ video_streamer = VideoStream()
 plant_recognition_manager = PlantRecognitionManager(server_handler)
 
 plant_recognition_manager.plant_recognition_process()
+
 
 plantA_state = mgf.get_automatic_mode("plantA.mgg")
 plantB_state = mgf.get_automatic_mode("plantB.mgg")

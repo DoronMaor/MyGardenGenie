@@ -44,6 +44,13 @@ def set_message(m):
         return None, None
 
 
+def get_message(m):
+    if m[0] == "get_plant_dict":
+        return "get_plant_dict", None
+
+    return None, None
+
+
 def video_message(m):
     header, data = m
     if header == "video_start":
@@ -62,6 +69,8 @@ def analyze_message(mes):
             return remote_message(mes)
         elif "set_" in header:
             return set_message(mes)
+        elif "get_" in header:
+            return get_message(mes)
         elif "video_" in header:
             return video_message(mes)
     else:

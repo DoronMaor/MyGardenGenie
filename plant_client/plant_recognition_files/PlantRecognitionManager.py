@@ -1,5 +1,5 @@
 import zlib
-from PictureGrabber import PictureGrabber
+from plant_recognition_files.PictureGrabber import PictureGrabber
 from plant_client.mgg_functions import *
 
 import base64
@@ -37,7 +37,7 @@ class PlantRecognitionManager:
 
         #register in server
         self.server_handler.register_plant(plant_dict)
-t
+
 if __name__ == '__main__':
     from models.server_handler import ServerHandler
     import models.UserSQLManagment as usm
