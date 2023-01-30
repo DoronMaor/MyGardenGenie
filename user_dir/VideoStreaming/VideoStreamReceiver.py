@@ -1,6 +1,7 @@
 import cv2, socket, pickle
 import threading
 
+
 class VideoStreamReceiver:
     def __init__(self, ip: str, port: int):
         self.receiving = True
@@ -10,7 +11,11 @@ class VideoStreamReceiver:
         self.current_thread = None
 
     def rec_video(self):
-        self.s.bind((self.ip, self.port))
+        try:
+            self.s.bind((self.ip, self.port))
+        except:
+            self.ip += 1
+            self.s.bind((self.ip, self.port))
         print("Receiving!")
         while self.receiving:
             x = self.s.recvfrom(1000000)
@@ -25,7 +30,7 @@ class VideoStreamReceiver:
     def start_receiving(self):
         self.current_thread = threading.Thread(target=self.rec_video)
         self.current_thread.start()
-        self.receiving = False
+        self.receiving = True
 
     def stop_receiving(self):
         self.receiving = False

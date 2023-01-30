@@ -1,9 +1,10 @@
 from models.server_handler import ServerHandler
 from models.User import User
 import hashlib
+from pathlib import Path
 
 
-def extract_credentials(filename="../plant_client/creds.c"):
+def extract_credentials(filename="creds.c"):
     f = open(filename, 'r')
     contents = f.read()
     lines = contents.split('\n')
@@ -18,11 +19,13 @@ def extract_credentials(filename="../plant_client/creds.c"):
     return u_value, p_value
 
 
-def write_credentials(u_value, p_value, filename="../plant_client/creds.c"):
-    f = open(filename, 'w')
-    f.write('U: ' + u_value + '\n')
-    f.write('P: ' + p_value + '\n')
-    f.close()
+def write_credentials(u_value, p_value, filename="creds.c"):
+    myfile = Path(filename)
+    myfile.touch(exist_ok=True)
+    with open(myfile, 'w') as f:
+        f.write('U: ' + u_value + '\n')
+        f.write('P: ' + p_value + '\n')
+        f.close()
 
 
 def string_to_hash(s):

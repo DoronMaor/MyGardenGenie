@@ -47,21 +47,21 @@ def remote_stop(indx: int, plant: str):
 
 
 def stream_start(indx: int, plant: str):
-    server_handler.video_start("localhost", 52222)
+    server_handler.video_start(video_handler.ip, video_handler.port)
     video_handler.start_receiving()
 
 
 def stream_stop(indx: int, plant: str):
-    server_handler.stop_receiving("localhost", 52222)
+    server_handler.stop_receiving(video_handler.ip, video_handler.port)
     video_handler.stop_receiving()
 
 
 server_handler = ServerHandler(server_ip="localhost", client_type="user")
-video_handler = VideoStreamReceiver.VideoStreamReceiver("localhost", 52222)
+video_handler = VideoStreamReceiver.VideoStreamReceiver("localhost", 52223)
 
 # usm.sign_up(server_handler)
 # user = "2" if input(" >> User type [1/2]: ") == "2" else ""
-usr = usm.login(server_handler, "1", "1")
+usr = usm.login(server_handler, "1", "2")
 
 
 remote_actions_txt = ["display_text", "get_moisture", "led_ring", "add_water", "get_light_level", "change_automatic",

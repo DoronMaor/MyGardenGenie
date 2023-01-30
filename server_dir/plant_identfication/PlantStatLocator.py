@@ -26,5 +26,12 @@ class PlantStatLocator:
             if result:
                 results.append(result)
                 break
-        print(result)
-        return results
+        print(results)
+        results_dict = {
+            "PLANT_TYPE": results[0][0],
+            "LIGHT_LVL": results[0][1],
+            "LIGHT_HOURS": results[0][2],
+            "MOISTURE_LVL": results[0][3],
+        }
+        return results_dict
+    

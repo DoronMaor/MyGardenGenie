@@ -102,9 +102,10 @@ def start_server(HOST, PORT):
                 write_sockets.remove(sock)
 
 
-def send_message(sck, opener, data):
+def send_message(sck, header, data):
     if sck is not None:
-        sck.send(pickle.dumps((opener, data)))
+        print("sent data:", header, data)
+        sck.send(pickle.dumps((header, data)))
 
 
 def send_waiting_messages(open_client_socket, to_send):
@@ -161,6 +162,9 @@ def send_waiting_messages(open_client_socket, to_send):
             plant = [-1, m_data[0]]
             user_db.add_plant(id_num, plant)
 
+        elif m_type == 'register_plant':
+            user_db.add_plant(m_data[-1], m_data[0])
+
         # endregion
 
         # region VIDEO STREAMING
@@ -176,10 +180,11 @@ def send_waiting_messages(open_client_socket, to_send):
 
         # region RECOGNITION
         elif m_type == 'plant_recognition':
-            res = plant_identifier.identify_plant(b64_image=m_data[0])
-            send_message(sock, "plant_recognition", res)
-        # endregion
+            recognition = plant_identifier.identify_plant(zipped_b64_image=m_data[0])
+            gardening = plant_identifier.search_for_plant(recognition)
 
+            send_message(sock, "plant_recognition", (recognition, gardening))
+        # endregion
 
         else:
             sock.send(pickle.dumps(None, None))
@@ -194,7 +199,7 @@ def send_waiting_messages(open_client_socket, to_send):
 # Global variables
 HOST = get_ip()
 PORT = get_free_port(HOST)
-BUFFSIZE = 2 ** 13
+BUFFSIZE = 2 ** 15
 ADDR = (HOST, PORT)
 
 open_client_socket = []  # [sock1, sock2, ...]

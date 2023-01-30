@@ -54,21 +54,23 @@ class SQLUserManager:
 
         return result
 
-    def add_plant(self, idnum, plant):
+    def add_plant(self, id_num, plant_dict):
+        # plants : (dict1, dict2)
 
-        plant[0] = generate_uid()
         query = 'SELECT * FROM users WHERE id = ?'
-        self.cursor.execute(query, (id,))
-        result = self.cursor.fetchone()
+        self.cursor.execute(query, (id_num,))
+        pickled_result = self.cursor.fetchone()[3]
+        results = pickle.loads(pickled_result)
+        plants = []
+        if not results:
+            plants = [plant_dict, None]
+        else:
+            for idx, result in enumerate(results):
+                if not result:
+                    plants[idx] = plant_dict
+                    break
 
-        if result is not None:
-            # result is a tuple, so we can access its elements by index
-            plant_lst = result[-1]
-            if isinstance(plant_lst, bytes):
-                # last_element is a pickled object, so we need to unpickle it
-                plant_lst = pickle.loads(plant_lst) + [plant]
-
-            self.update_user(idnum, plant_lst)
+        self.update_user(id_num, pickle.dumps(plants))
 
     def get_id_by_code(self, code):
         try:
@@ -97,9 +99,9 @@ class SQLUserManager:
 
         return result
 
-    def update_user(self, id, plants):
-        query = 'UPDATE users SET plants = ? WHERE id = ?'
-        self.cursor.execute(query, (pickle.dumps(plants), id))
+    def update_user(self, id_num, pickled_plants):
+        query = 'UPDATE users SET plants = ? WHERE id LIKE ?'
+        self.cursor.execute(query, (pickled_plants, id_num[:7] + '%'))
         self.conn.commit()
 
     def delete_user(self, id):

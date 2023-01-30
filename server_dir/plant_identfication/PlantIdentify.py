@@ -1,8 +1,11 @@
 import base64
+import zlib
+
 import requests
 import os
 import pickle
 from plant_identfication.PlantStatLocator import PlantStatLocator
+
 
 class PlantIdentify:
     def __init__(self, api_key):
@@ -13,7 +16,7 @@ class PlantIdentify:
         }
         self.PlantLocator = PlantStatLocator()
 
-    def identify_plant(self, image_path=None, b64_image=None, Testing=True):
+    def identify_plant(self, image=None, zipped_b64_image=None, Testing=True):
         if Testing:
             if os.path.isfile("test_plant"):
                 with open("test_plant", "rb") as f:
@@ -21,18 +24,17 @@ class PlantIdentify:
                     print("test file")
                     return response["suggestions"][0]
 
-        if image_path:
-            with open(image_path, "rb") as file:
-                images = [base64.b64encode(file.read()).decode("ascii")]
-        elif b64_image:
-            images = b64_image
+        if image:
+            b64_image = [base64.b64encode(image).decode("ascii")]
+        elif zipped_b64_image:
+            b64_image = [zlib.decompress(zipped_b64_image).decode()]
         else:
             return
 
         response = requests.post(
-            "https://api.pl"+"ant.id/v2/identify",
+            "https://api.plant.id/v2/identify",
             json={
-                "images": images,
+                "images": b64_image,
                 "modifiers": ["similar_images"],
                 "plant_details": ["common_names", "url"],
             },
@@ -60,8 +62,9 @@ class PlantIdentify:
         plant = self.PlantLocator.search_plants(names)
         return plant
 
+
 if __name__ == '__main__':
-    p = PlantIdentify("fLBl0xbtSnB4UPyp6Qtblo"+"apUFJbQRAbxyAZMrM048ZYTvWw94")
-    nms = p.identify_plant("image.jpg")
+    p = PlantIdentify("fLBl0xbtSnB4UPyp6Qtblo" + "apUFJbQRAbxyAZMrM048ZYTvWw94")
+    nms = p.identify_plant()
 
     p.search_for_plant(nms)

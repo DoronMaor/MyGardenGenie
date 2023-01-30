@@ -1,8 +1,43 @@
 import re
+import os
+
+
+# region PLANTS
+
+def free_plant_letter():
+    file_names = ["plantA.mgg", "plantB.mgg"]
+    for file in file_names:
+        if not os.path.isfile(file):
+            return file
+    return file_names[0]
+
+
+def add_plant(plant_name: str, plant_type: str, light_hours, moisture: str, num=None):
+    headers = ["PLANT_NAME: ", "LIGHT_LVL: ", "LIGHT_HOURS: ", "MOISTURE_LVL: ", "MODE: "]
+    content = [plant_name, plant_type, str(light_hours), moisture, "AUTOMATIC"]
+    filename = free_plant_letter() if num is None else "plant%s.mgg" % num.upper()
+
+    with open(filename, "x") as f:
+        for idx, header in enumerate(headers):
+            f.write(header + content[idx] + "\n")
+
+
+def add_plant_dict(plant_dict: dict, num=None):
+    filename = free_plant_letter() if num is None else "plant%s.mgg" % num.upper()
+    try:
+        with open(filename, "x") as f:
+            for header, content in plant_dict.items():
+                f.write(str(header) + ":" + str(content) + "\n")
+    except:
+        with open(filename, "w") as f:
+            for header, content in plant_dict.items():
+                f.write(str(header) + ":" + str(content) + "\n")
 
 
 def get_automatic_mode(filename):
     """ Get the automatic mode of a plant """
+    if not os.path.isfile(filename):
+        return None
     with open(filename, 'r') as f:
         contents = f.read()
         match = re.search(r'MODE:(.*)', contents)
@@ -26,6 +61,9 @@ def set_mode(filename, new_mode: str):
         f.write(contents)
 
 
+# endregion
+
+# region GLOBAL
 def get_routine_interval(filename="global.mgg"):
     """ Gets the time interval of a plant check up routine """
     with open(filename, 'r') as f:
@@ -62,3 +100,4 @@ def set_remote_connection(mode: bool, filename="global.mgg"):
     # Write the updated contents back to the file
     with open(filename, 'w') as f:
         f.write(contents)
+# endregion

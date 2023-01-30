@@ -34,6 +34,8 @@ class ServerHandler:
     def send_and_receive(self, mes: tuple):
         """ Sends a message and waits for a respond """
         pickled_mes = pickle.dumps(mes + (self.client_id,))
+        print("sent data:", mes, self.client_id)
+        print("sent pickled data:", pickled_mes)
         self.client_socket.send(pickled_mes)
         return pickle.loads(self.client_socket.recv(self.buffer_size))
 
@@ -58,6 +60,10 @@ class ServerHandler:
         self.set_client_id(r[1][0])
         self.send_client_id()
         return r
+
+    def register_plant(self, plant_dict):
+        mes = ("register_plant", plant_dict)
+        self.send(mes)
 
     # endregion
 
@@ -88,8 +94,8 @@ class ServerHandler:
     # endregion
 
     # region IMAGE
-    def send_image_recognition(self, b64_image):
-        mes = ("plant_recognition", b64_image)
+    def send_image_recognition(self, zipped_b64_image):
+        mes = ("plant_recognition", zipped_b64_image)
         data = self.send_and_receive(mes)
         return data
 

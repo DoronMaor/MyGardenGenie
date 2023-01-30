@@ -1,14 +1,3 @@
-"""
-Manages the loop:
-    * receiving messages
-    * sending orders to arduino
-    * doing orders from server
-
-The garden_managment is like a company which tells the worker what to do
-worker = gardener - dumb interface which does what the management asks him to do
-in order for the gardener to understand whawt to do, he needs a translator - message analyzer:
-    transforms the message to a language it can understand
-"""
 import threading
 
 from VideoStreaming.VideoStream import VideoStream
@@ -21,6 +10,7 @@ import models.UserSQLManagment as usm
 import mgg_functions as mgf
 import plant_care_routine as pcr
 import time
+from plant_recognition_files.PlantRecognitionManager import PlantRecognitionManager
 
 
 def get_message():
@@ -34,7 +24,10 @@ def listen_for_messages(mes=None):
         message = get_message() if mes is None else mes
         if message is None:
             continue
-        action_header, action_data = analyze_message(message)
+        try:
+            action_header, action_data = analyze_message(message)
+        except:
+            continue
 
         if action_header in remote_message_headers:
             remote_handler.set_current_message(message)
@@ -70,10 +63,12 @@ usr = usm.login(server_handler, "1", "1")
 event_logger = EventLogger(server_handler)
 remote_handler = RemoteControlHandler(server_handler, gardener, usr, event_logger)
 video_streamer = VideoStream()
+plant_recognition_manager = PlantRecognitionManager(server_handler)
+
+plant_recognition_manager.plant_recognition_process()
 
 plantA_state = mgf.get_automatic_mode("plantA.mgg")
 plantB_state = mgf.get_automatic_mode("plantB.mgg")
-
 mgf.set_remote_connection(False)
 
 # endregion
