@@ -115,7 +115,7 @@ class ServerHandler:
         self.send(mes)
 
     def send_plants_names(self, plant_dict: dict):
-        mes = ("plant_dict", plant_dict)
+        mes = ("response_plant_dict", plant_dict)
         self.send(mes)
 
     def disconnect(self):

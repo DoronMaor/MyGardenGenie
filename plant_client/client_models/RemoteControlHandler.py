@@ -33,8 +33,8 @@ class RemoteControlHandler:
                 # Invoke the action and get the response
                 response = self.gardener.do_action(action_data)
                 # Add an event to the event logger
-                self.event_logger.add_auto_action_event(user_id=user_id, level="Manual", action=action_data,
-                                                        send_now=True)
+                #self.event_logger.add_auto_action_event(user_id=user_id, level="Manual", action=action_data,
+                 #                                       send_now=True)
                 if response is not None:
                     self.server_handler.send_data((response, user_id), add_id=False)
             elif action_type == "remote_stop":

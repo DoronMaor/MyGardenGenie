@@ -116,12 +116,12 @@ def send_waiting_messages(open_client_socket, to_send):
     for mes in to_send:
         # Send the message to the user
         sock, data = mes
-        m_type, m_data = data[0], data[1:]
+        m_type, m_data, user_id = data[0], data[1:], data[1:][-1]
         print("data: ", data)
 
         # region REMOTE
         if m_type == 'remote_action':
-            s = plant_user_table.get_sock("plant", m_data[-1])
+            s = plant_user_table.get_sock("plant", user_id)
             send_message(s, "remote_action", m_data[0])
 
         elif m_type == 'remote_data':
@@ -129,22 +129,25 @@ def send_waiting_messages(open_client_socket, to_send):
             send_message(s, "remote_data", m_data[0])
 
         elif m_type == 'remote_start':
-            s = plant_user_table.get_sock("plant", m_data[-1])
-            send_message(s, "remote_start", m_data[-1])
+            s = plant_user_table.get_sock("plant", user_id)
+            send_message(s, "remote_start", user_id)
 
         elif m_type == 'remote_stop':
-            s = plant_user_table.get_sock("plant", m_data[-1])
+            s = plant_user_table.get_sock("plant", user_id)
             send_message(s, "remote_stop", None)
         # endregion
 
         # region COMMANDS
         elif m_type == 'set_auto_mode':
-            s = plant_user_table.get_sock("plant", m_data[-1])
+            s = plant_user_table.get_sock("plant", user_id)
             send_message(s, "set_auto_mode", (m_data[0], m_data[1]))
 
         elif m_type == 'get_plant_dict':
-            s = plant_user_table.get_sock("plant", m_data[-1])
-            send_message(s, "get_plant_dict", (m_data[-1], ))
+            s = plant_user_table.get_sock("plant", user_id)
+            send_message(s, "get_plant_dict", (user_id, ))
+        elif m_type == 'response_plant_dict':
+            s = plant_user_table.get_sock("user", user_id)
+            send_message(s, "response_plant_dict", (m_data[0], user_id, ))
         # endregion
 
         # region LOGS
@@ -167,24 +170,24 @@ def send_waiting_messages(open_client_socket, to_send):
             user_db.add_plant(id_num, plant)
 
         elif m_type == 'register_plant':
-            user_db.add_plant(m_data[-1], m_data[0])
+            user_db.add_plant(user_id, m_data[0])
 
         # endregion
 
         # region VIDEO STREAMING
         elif m_type == 'video_start':
-            s = plant_user_table.get_sock("plant", m_data[-1])
+            s = plant_user_table.get_sock("plant", user_id)
             send_message(s, m_type, m_data)
 
         elif m_type == 'video_stop':
-            s = plant_user_table.get_sock("plant", m_data[-1])
+            s = plant_user_table.get_sock("plant", user_id)
             send_message(s, m_type, m_data)
 
         # endregion
 
         # region RECOGNITION
         elif m_type == 'plant_recognition':
-            recognition = plant_identifier.identify_plant(zipped_b64_image=m_data[0])
+            recognition = plant_identifier.identify_plant(zipped_b64_image=m_data[0], testing=True)
             gardening = plant_identifier.search_for_plant(recognition)
 
             send_message(sock, "plant_recognition", (recognition, gardening))

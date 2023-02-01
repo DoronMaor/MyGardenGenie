@@ -58,8 +58,8 @@ gardener = Gardener()
 server_handler = ServerHandler(server_ip="localhost", client_type="plant", time_out=3)
 
 
-# usm.sign_up(server_handler)
-usr = usm.login(server_handler, "1", "1")
+usm.sign_up(server_handler)
+usr = usm.login(server_handler)
 
 event_logger = EventLogger(server_handler)
 remote_handler = RemoteControlHandler(server_handler, gardener, usr, event_logger)

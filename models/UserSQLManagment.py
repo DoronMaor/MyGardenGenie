@@ -39,6 +39,7 @@ def string_to_hash(s):
 
 
 def sign_up(server_handler, u=None, p=None):
+    print("== Sign Up ==")
     username = u
     password = p
     if username is None:
@@ -55,6 +56,8 @@ def sign_up(server_handler, u=None, p=None):
 
 
 def login(server_handler, u=None, p=None):
+    print("== Log In ==")
+
     username = u
     password = p
     if username is None:

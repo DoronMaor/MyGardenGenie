@@ -26,6 +26,14 @@ class PlantStatLocator:
             if result:
                 results.append(result)
                 break
+        if results == []:
+            results_dict = {
+                "PLANT_TYPE": "DEFAULT",
+                "LIGHT_LVL": "HIGH",
+                "LIGHT_HOURS": "14",
+                "MOISTURE_LVL": "MOIST",
+            }
+            return results_dict
         print(results)
         results_dict = {
             "PLANT_TYPE": results[0][0],

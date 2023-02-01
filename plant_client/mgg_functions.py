@@ -77,9 +77,9 @@ def get_letter_plant_dict():
     plant_dict = {}
     directory = "."  # current directory
     for filename in os.listdir(directory):
-        if filename.startswith("plant_"):
+        if filename.startswith("plant") and filename.endswith(".mgg"):
             plant_name = get_plant_name(filename)
-            plant_dict[plant_name] = filename.replace(".mgg", "")[-1]
+            plant_dict[filename.replace(".mgg", "")[-1]] = plant_name
     print(plant_dict)
     return plant_dict
 

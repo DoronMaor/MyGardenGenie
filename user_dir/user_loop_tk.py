@@ -8,13 +8,16 @@ from VideoStreaming import VideoStreamReceiver
 
 def get_plant_dict():
     m = ("get_plant_dict", )
-    return server_handler.send_and_receive(m)
+    res = server_handler.send_and_receive(m)
+    return res[1][0]
 
 
 def switch_plant():
     global current_plant
-    current_plant = "A" if current_plant == "B" else "A"
-    print("==========CURRENT PLANT: %s ==========" % get_plant_dict()[current_plant])
+    current_plant = "A" if current_plant == "B" else "B"
+    d = get_plant_dict()
+    print(d)
+    print("==========CURRENT PLANT: %s ==========" % d[current_plant])
 
 
 def display_text(indx: int, plant: str):
@@ -70,9 +73,9 @@ def stream_stop(indx: int, plant: str):
 server_handler = ServerHandler(server_ip="localhost", client_type="user")
 video_handler = VideoStreamReceiver.VideoStreamReceiver("localhost", 52223)
 
-# usm.sign_up(server_handler)
+usm.sign_up(server_handler)
 # user = "2" if input(" >> User type [1/2]: ") == "2" else ""
-usr = usm.login(server_handler, "1", "2")
+usr = usm.login(server_handler)
 
 
 remote_actions_txt = ["display_text", "get_moisture", "led_ring", "add_water", "get_light_level", "change_automatic",

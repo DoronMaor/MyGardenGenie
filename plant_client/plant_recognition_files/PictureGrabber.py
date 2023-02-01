@@ -1,9 +1,11 @@
 import os
+import time
+
 import cv2
 from PIL import Image
 from datetime import datetime
 
-def compress_image(image_file="all_plants.jpg"):
+def compress_image(image_file="plant_recognition_files\\all_plants.jpg"):
     filepath = os.path.join(os.getcwd(), image_file)
 
     image = Image.open(filepath)
@@ -16,7 +18,7 @@ def compress_image(image_file="all_plants.jpg"):
 
 
 class PictureGrabber:
-    def __init__(self, file_name="all_plants.jpg"):
+    def __init__(self, file_name="plant_recognition_files\\all_plants.jpg"):
         self.cap = None
         self.file_name = file_name
 
@@ -35,6 +37,7 @@ class PictureGrabber:
 
             if photo is not None:
                 cv2.imwrite(self.get_file_name(path), photo)
+                time.sleep(.2)
                 compress_image()
                 break
         self.cap.release()

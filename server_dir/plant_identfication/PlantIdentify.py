@@ -16,8 +16,8 @@ class PlantIdentify:
         }
         self.PlantLocator = PlantStatLocator()
 
-    def identify_plant(self, image=None, zipped_b64_image=None, Testing=True):
-        if Testing:
+    def identify_plant(self, image=None, zipped_b64_image=None, testing=True):
+        if testing:
             if os.path.isfile("test_plant"):
                 with open("test_plant", "rb") as f:
                     response = pickle.load(f)
@@ -42,7 +42,7 @@ class PlantIdentify:
         ).json()
         print(response)
 
-        if Testing:
+        if testing:
             with open("test_plant", "wb") as f:
                 pickle.dump(response, f)
 

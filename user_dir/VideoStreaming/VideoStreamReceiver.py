@@ -14,7 +14,7 @@ class VideoStreamReceiver:
         try:
             self.s.bind((self.ip, self.port))
         except:
-            self.ip += 1
+            self.port += 1
             self.s.bind((self.ip, self.port))
         print("Receiving!")
         while self.receiving:
@@ -24,7 +24,6 @@ class VideoStreamReceiver:
             data = pickle.loads(data)
             data = cv2.imdecode(data, cv2.IMREAD_COLOR)
             cv2.imshow('Rec', data)
-            print(data)
             cv2.waitKey(20)
 
     def start_receiving(self):
