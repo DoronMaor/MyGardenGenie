@@ -1,6 +1,7 @@
 import zlib
 from plant_recognition_files.PictureGrabber import PictureGrabber
 from plant_client.mgg_functions import *
+from plant_recognition_files.PlantDetector import PlantDetector
 
 import base64
 import os
@@ -19,24 +20,52 @@ class PlantRecognitionManager:
     def __init__(self, server_handler):
         self.server_handler = server_handler
         self.picture_grabber = PictureGrabber()
+        self.plant_detector = PlantDetector()
 
-    def plant_recognition_process(self):
-        self.picture_grabber.take_a_picture()
+    def download_resnet_model(self):
+        try:
+            from urllib.request import urlretrieve
+        except ImportError:
+            from urllib import urlretrieve
 
+        urlretrieve(
+            'https://github.com/OlafenwaMoses/ImageAI/releases/download/3.0.0-pretrained/retinanet_resnet50_fpn_coco-eeacb38b.pth/',
+            'retinanet_resnet50_fpn_coco-eeacb38b.pth')
 
-        # MISSING - 2 PLANTS
-        with open('all_plants.jpg', 'rb') as image_file:
-            base64_image = base64.b64encode(image_file.read()).decode('ascii')
-        #os.remove("all_plants.jpg")
-        print("Sent image")
-        response = self.server_handler.send_image_recognition(zlib.compress(base64_image.encode()))
-        print(response)
+    def take_picture(self, purpose=""):
+        if purpose == "analysis":
+            self.picture_grabber.take_a_picture("plant_analysis_pictures")
 
-        plant_dict = extract_plant_data(response)
-        add_plant_dict(plant_dict)
+    def run(self, input_image_path="", output_image_path="", num_plants=2, current_plants=0):
+        self.take_picture()
 
-        #register in server
-        self.server_handler.register_plant(plant_dict)
+        plant_num = self.plant_detector.detect_plants(input_image_path, output_image_path, num_plants)
+
+        self.process_detected_plants(plant_num == current_plants)
+
+    def process_detected_plants(self, detect=True):
+        directory = '.'  # current directory
+        counter = 0
+        for filename in os.listdir(directory):
+            if filename.startswith("detection_") and counter < 2:
+                with open(os.path.join(directory, filename), 'r') as image_file:
+                    if detect:
+                        base64_image = base64.b64encode(image_file.read()).decode('ascii')
+                        print("Sent image")
+                        response = self.server_handler.send_image_recognition(zlib.compress(base64_image.encode()))
+                        print(response)
+
+                        plant_dict = extract_plant_data(response)
+                        add_plant_dict(plant_dict)
+
+                        # register in server
+                        self.server_handler.register_plant(plant_dict)
+
+                    os.remove(filename)
+                counter += 1
+
+        os.remove("all_plants.jpg")
+
 
 if __name__ == '__main__':
     from models.server_handler import ServerHandler

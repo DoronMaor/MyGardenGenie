@@ -1,5 +1,4 @@
 import threading
-
 from VideoStreaming.VideoStream import VideoStream
 from gardener import Gardener
 from plant_client.message_analyzer import analyze_message
@@ -67,8 +66,7 @@ remote_handler = RemoteControlHandler(server_handler, gardener, usr, event_logge
 video_streamer = VideoStream()
 plant_recognition_manager = PlantRecognitionManager(server_handler)
 
-plant_recognition_manager.plant_recognition_process()
-
+plant_recognition_manager.run(current_plants=mgf.check_plant_files())
 
 plantA_state = mgf.get_automatic_mode("plantA.mgg")
 plantB_state = mgf.get_automatic_mode("plantB.mgg")
@@ -79,8 +77,11 @@ mgf.set_remote_connection(False)
 
 # Main loop
 def main_loop():
-    t = threading.Thread(target=timer_thread, args=(mgf.get_routine_interval(),))
-    t.start()
+    routine_thread = threading.Thread(target=timer_thread, args=(mgf.get_routine_interval(),))
+    routine_thread.start()
+
+    picture_thread = threading.Thread(target=timer_thread, args=(mgf.get_picture_interval(),))
+    picture_thread.start()
 
     # Create a thread for message listening
     listen_thread = threading.Thread(target=listen_for_messages)
@@ -88,7 +89,7 @@ def main_loop():
 
     # Start an infinite loop to continuously listen for messages
     while True:
-        if not t.is_alive() and not mgf.get_remote_connection():
+        if not routine_thread.is_alive() and not mgf.get_remote_connection():
             print("Time for check up")
             # Get the automatic mode of both plants
             plantA_state = mgf.get_automatic_mode("plantA.mgg")
@@ -96,8 +97,15 @@ def main_loop():
             # Do the check up routine for both plants
             pcr.full_routine_checkup(plantA_state, plantB_state)
             # Start the hourly routine thread
-            t = threading.Thread(target=timer_thread, args=(mgf.get_routine_interval(),))
-            t.start()
+            routine_thread = threading.Thread(target=timer_thread, args=(mgf.get_routine_interval(),))
+            routine_thread.start()
+
+        if not picture_thread.is_alive():
+            print("Taking picture for later analysis")
+            plant_recognition_manager.take_picture("analysis")
+
+            picture_thread = threading.Thread(target=timer_thread, args=(mgf.get_picture_interval(),))
+            picture_thread.start()
 
     listen_thread.join()
 

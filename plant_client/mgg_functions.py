@@ -84,6 +84,13 @@ def get_letter_plant_dict():
     return plant_dict
 
 
+def check_plant_files():
+    directory = '.'  # current directory
+    plant_files = [file for file in os.listdir(directory) if file.startswith("plant") and file.endswith(".mgg")]
+
+    return len(plant_files)
+
+
 # endregion
 
 # region GLOBAL
@@ -92,6 +99,18 @@ def get_routine_interval(filename="global.mgg"):
     with open(filename, 'r') as f:
         contents = f.read()
         match = re.search(r'ROUTINE_INTER:(.*)', contents)
+        if match:
+            try:
+                return int(match.group(1))
+            except ValueError:
+                pass
+    return 7
+
+def get_picture_interval(filename="global.mgg"):
+    """ Gets the time interval of a plant check up routine """
+    with open(filename, 'r') as f:
+        contents = f.read()
+        match = re.search(r'PICTURE_INTER:(.*)', contents)
         if match:
             try:
                 return int(match.group(1))
