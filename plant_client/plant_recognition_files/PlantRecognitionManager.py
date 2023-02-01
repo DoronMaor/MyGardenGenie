@@ -2,7 +2,6 @@ import zlib
 from plant_recognition_files.PictureGrabber import PictureGrabber
 from plant_client.mgg_functions import *
 from plant_recognition_files.PlantDetector import PlantDetector
-
 import base64
 import os
 
@@ -28,9 +27,11 @@ class PlantRecognitionManager:
         except ImportError:
             from urllib import urlretrieve
 
-        urlretrieve(
-            'https://github.com/OlafenwaMoses/ImageAI/releases/download/3.0.0-pretrained/retinanet_resnet50_fpn_coco-eeacb38b.pth/',
-            'retinanet_resnet50_fpn_coco-eeacb38b.pth')
+        fname = "plant_recognition_files\\Models\\retinanet_resnet50_fpn_coco-eeacb38b.pth"
+        if not os.path.isfile(fname):
+            urlretrieve(
+                'https://github.com/OlafenwaMoses/ImageAI/releases/download/3.0.0-pretrained/retinanet_resnet50_fpn_coco-eeacb38b.pth/',
+                fname)
 
     def take_picture(self, purpose=""):
         if purpose == "analysis":
