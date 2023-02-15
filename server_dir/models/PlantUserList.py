@@ -12,6 +12,12 @@ class PlantUserList:
         except:
             self.dict[id_num[:-1]] = PlantUserCon(c_type=data[1], full_id=id_num, sock=sock)
 
+    def add_con_web(self, c_type, id_num, sock):
+        try:
+            self.dict[id_num[:-1]].auto_set(c_type=c_type, full_id=id_num, sock=sock)
+        except:
+            self.dict[id_num[:-1]] = PlantUserCon(c_type=c_type, full_id=id_num, sock=sock)
+
     def get_sock(self, c_type, full_id_num):
         for i in self.dict:
             pc = self.dict[i]

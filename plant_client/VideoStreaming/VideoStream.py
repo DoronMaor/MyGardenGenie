@@ -1,3 +1,5 @@
+import time
+
 import cv2,socket,pickle,os
 import numpy as np
 import threading
@@ -41,6 +43,7 @@ class VideoStream:
         self.add_user(u_ip, u_port)
 
     def stop_streaming(self, force=False):
+        time.sleep(0.1)
         if force or not self.user_sockets:
             self.is_streaming = False
             self.cap.release()

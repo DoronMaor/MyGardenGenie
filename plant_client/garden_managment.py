@@ -58,7 +58,7 @@ gardener = Gardener()
 server_handler = ServerHandler(server_ip="localhost", client_type="plant", time_out=3)
 
 
-usm.sign_up(server_handler)
+# usm.sign_up(server_handler)
 usr = usm.login(server_handler)
 
 event_logger = EventLogger(server_handler)
@@ -66,7 +66,7 @@ remote_handler = RemoteControlHandler(server_handler, gardener, usr, event_logge
 video_streamer = VideoStream()
 plant_recognition_manager = PlantRecognitionManager(server_handler)
 
-plant_recognition_manager.run(current_plants=mgf.check_plant_files())
+#plant_recognition_manager.run(current_plants=mgf.check_plant_files())
 
 plantA_state = mgf.get_automatic_mode("plantA.mgg")
 plantB_state = mgf.get_automatic_mode("plantB.mgg")

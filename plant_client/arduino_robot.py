@@ -8,7 +8,7 @@ class ArduinoRobot:
         """Initialize the Arduino connection."""
         for i in range(24):
             try:
-                i=5
+                i = i if i != 3 else 4
                 self.ser = serial.Serial(f'COM{i}', baud, timeout=timeout)
                 print("Connected to Arduino!")
                 time.sleep(4)

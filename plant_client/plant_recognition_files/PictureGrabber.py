@@ -27,7 +27,7 @@ class PictureGrabber:
 
     def get_file_name(self, path=""):
         if path == "plant_analysis_pictures":
-            return "plant_analysis_pictures/" + datetime.now().strftime("%m/%d/%Y, %H:%M:%S") + ".jpg"
+            return "plant_analysis_pictures/" + datetime.now().strftime("%m_%d_%Y-%H_%M_%S") + ".jpg"
         return self.file_name
 
     def take_a_picture(self, path=""):
@@ -36,8 +36,11 @@ class PictureGrabber:
             ret, photo = self.cap.read()
 
             if photo is not None:
-                cv2.imwrite(self.get_file_name(path), photo)
-                time.sleep(.2)
-                compress_image()
+                try:
+                    cv2.imwrite(self.get_file_name(path), photo)
+                    time.sleep(0.5)
+                    compress_image(self.get_file_name(path))
+                except:
+                    pass
                 break
         self.cap.release()

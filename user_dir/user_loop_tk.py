@@ -25,8 +25,10 @@ def display_text(indx: int, plant: str):
     m = ("remote_action", (indx, inp))
     server_handler.send(m)
 
-
+l = True
 def led_ring(indx: int, plant: str):
+    global l
+    l = not l
     m = ("remote_action", (indx, plant, True))
     server_handler.send(m)
 
@@ -70,10 +72,10 @@ def stream_stop(indx: int, plant: str):
     video_handler.stop_receiving()
 
 
-server_handler = ServerHandler(server_ip="localhost", client_type="user")
-video_handler = VideoStreamReceiver.VideoStreamReceiver("localhost", 52223)
+server_handler = ServerHandler(server_ip="172.16.2.175", client_type="user")
+video_handler = VideoStreamReceiver.VideoStreamReceiver("172.16.2.173", 52223)
 
-usm.sign_up(server_handler)
+# usm.sign_up(server_handler)
 # user = "2" if input(" >> User type [1/2]: ") == "2" else ""
 usr = usm.login(server_handler)
 

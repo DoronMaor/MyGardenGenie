@@ -187,7 +187,7 @@ def send_waiting_messages(open_client_socket, to_send):
 
         # region RECOGNITION
         elif m_type == 'plant_recognition':
-            recognition = plant_identifier.identify_plant(zipped_b64_image=m_data[0], testing=True)
+            recognition = plant_identifier.identify_plant(zipped_b64_image=m_data[0], testing=False)
             gardening = plant_identifier.search_for_plant(recognition)
 
             send_message(sock, "plant_recognition", (recognition, gardening))

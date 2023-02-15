@@ -1,6 +1,5 @@
 import base64
 import zlib
-
 import requests
 import os
 import pickle

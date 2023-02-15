@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="{{url_for('static', filename='server_handler.js')}}"></script>
+    <meta charset="utf-8">
+    <title>Plant Monitoring</title>
+  </head>
+  <body>
+    <h1>Plant Monitoring</h1>
+    <button id="remote-mode">Start Remote Mode</button>
+    <button id="video-mode">Start Video Mode</button>
+    <button id="switch-plant">Switch Plant</button>
+
+    <div id="remote-actions" style="display: none;">
+      <h2>Remote Actions</h2>
+      <button id="display-text">display_text</button>
+      <button id="get-moisture">get_moisture</button>
+      <button id="led-ring">led_ring</button>
+      <button id="add-water">add_water</button>
+      <button id="get-light-level">get_light_level</button>
+      <button id="change-automatic">change_automatic</button>
+      <button id="remote-stop">remote_stop</button>
+    </div>
+    <div id="video-actions" style="display: none;">
+      <h2>Video Actions</h2>
+      <button id="stream-start">stream_start</button>
+      <button id="stream-stop">stream_stop</button>
+    </div>
+  </body>
+  <script>
+    const remoteModeBtn = document.querySelector("#remote-mode");
+    const videoModeBtn = document.querySelector("#video-mode");
+    const switchPlantBtn = document.querySelector("#switch-plant");
+    const remoteActions = document.querySelector("#remote-actions");
+    const videoActions = document.querySelector("#video-actions");
+
+    remoteModeBtn.addEventListener("click", () => {
+      remoteActions.style.display = "block";
+    });
+
+    videoModeBtn.addEventListener("click", () => {
+      videoActions.style.display = "block";
+    });
+    document.getElementById("display-text").addEventListener("click", function() {
+      display_text(current_plant);
+    });
+    /*
+    document.getElementById("get-moisture").addEventListener("click", function() {
+      get_moisture(current_plant);
+    });
+
+    document.getElementById("led-ring").addEventListener("click", function() {
+      led_ring(current_plant);
+    });
+
+    document.getElementById("add-water").addEventListener("click", function() {
+      add_water(current_plant);
+    });
+
+    document.getElementById("get-light-level").addEventListener("click", function() {
+      get_light_level(current_plant);
+    });
+
+    document.getElementById("change-automatic").addEventListener("click", function() {
+      change_automatic(current_plant);
+    });
+
+    document.getElementById("remote-stop").addEventListener("click", function() {
+      remote_stop(current_plant);
+    });*/
+  </script>
+</html>

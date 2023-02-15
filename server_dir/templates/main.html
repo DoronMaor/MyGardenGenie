@@ -1,0 +1,95 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mgg</title>
+    <style>
+      /* Navigation bar styles */
+
+      body {
+        background-color: #00b00084;
+      }
+
+      nav {
+        background-color: #333;
+        color: #fff;
+        display: flex;
+        /* justify-content: space-between;*/
+        padding: 1em;
+      }
+      nav ul {
+        list-style: none;
+        display: flex;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      nav li {
+        flex: 1;
+        text-align: center;
+      }
+      nav a {
+        color: #fff;
+        display: block;
+        padding: 1em;
+        text-decoration: none;
+      }
+
+      /* Main content styles */
+      .block {
+        height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2em;
+        transition: height 0.5s;
+        overflow: hidden;
+      }
+
+      .block:hover {
+        height: 600px;
+      }
+
+      /* Block colors */
+      .block-1 {
+        background-color: #f44336;
+      }
+      .block-2 {
+        background-color: #4caf50;
+      }
+      .block-3 {
+        background-color: #2196f3;
+      }
+      .block-4 {
+        background-color: #ffeb3b;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation bar -->
+    <nav>
+      <ul>
+        <li><a href="#block-1">Block 1</a></li>
+        <li><a href="#block-2">Block 2</a></li>
+        <li><a href="#block-3">Block 3</a></li>
+        <li><a href="#block-4">Block 4</a></li>
+      </ul>
+    </nav>
+
+    <!-- Main content -->
+    <div id="block-1" class="block block-1">Block 1</div>
+    <div id="block-2" class="block block-2">Block 2</div>
+    <div id="block-3" class="block block-3">Block 3</div>
+
+    <div class="block block-4" id="block-4">
+      <form action="/" method="post">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br><br>
+        <input type="submit" value="Submit">
+    </form>
+    </div>
+  </body>
+</html>
