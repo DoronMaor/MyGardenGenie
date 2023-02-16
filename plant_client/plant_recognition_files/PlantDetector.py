@@ -9,7 +9,8 @@ class PlantDetector:
         self.detector = ObjectDetection()
         self.detector.setModelTypeAsRetinaNet()
         self.detector.setModelPath(
-            os.path.join(self.execution_path, "plant_recognition_files\\Models\\retinanet_resnet50_fpn_coco-eeacb38b.pth"))
+            os.path.join(self.execution_path,
+                         "plant_recognition_files\\Models\\retinanet_resnet50_fpn_coco-eeacb38b.pth"))
         self.detector.loadModel()
 
     def detect_plants(self, input_image_path, output_image_path, num_plants=2):
@@ -18,7 +19,7 @@ class PlantDetector:
         original_image = Image.open(input_image_path)
         i = 0
         for eachObject in detections:
-            print(eachObject["name"], " : ", eachObject["percentage_probability"])
+            print(eachObject["name"], " : ", eachObject["percentage_probability"], "%")
             if "plant" not in eachObject["name"] and "vase" not in eachObject["name"]:
                 continue
 
