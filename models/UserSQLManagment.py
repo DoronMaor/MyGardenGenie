@@ -65,8 +65,8 @@ def login(server_handler, u=None, p=None):
     if password is None:
         password = input("PASSWORD: ")
 
-    sha_username = string_to_hash(username)
-    sha_password = string_to_hash(password)
+    sha_username = username #string_to_hash(username)
+    sha_password = password#string_to_hash(password)
 
     usr_tuple = server_handler.login(sha_username, sha_password)[1]
     write_credentials(username, password)

@@ -8,6 +8,15 @@ def generate_uid():
     """Generate a unique ID"""
     return uuid.uuid4().hex[:-1]
 
+def normalize_input(input):
+    lower_input = input.lower()
+    new_input = ""
+    for let in lower_input:
+        new_input += let
+
+    return new_input
+
+
 
 class SQLUserManager:
     def __init__(self, db_path=None, file_name="users.db"):
@@ -39,6 +48,9 @@ class SQLUserManager:
         self.conn.commit()
 
     def login(self, username, password):
+        username = normalize_input(username)
+        password = normalize_input(password)
+        print("LOGIN:", username, password)
         query = "SELECT * FROM users WHERE username=? AND password=?"
         self.cursor.execute(query, (username, password))
         result = self.cursor.fetchone()

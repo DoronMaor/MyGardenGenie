@@ -24,7 +24,8 @@ class VideoStream:
     def video_streaming(self):
         print("Streaming!")
         self.is_streaming = True
-        self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+        # self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+        self.cap = cv2.VideoCapture(0)
         while self.is_streaming:
             ret, photo = self.cap.read()
 

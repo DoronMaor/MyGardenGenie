@@ -1,24 +1,44 @@
-import datetime
-import socket as rsocket
+from flask import Flask, request, redirect, render_template, g, url_for, session
+from flask_socketio import SocketIO, emit
+import select
 import pickle
-import time
-
 import fuckit as fit
 from models.PlantUserList import PlantUserList
 from models.LogDatabase import LogDatabase
 from models.SQLUserManager import SQLUserManager
 import threading
 from plant_identfication.PlantIdentify import PlantIdentify
-from flask import Flask, request, redirect, render_template, g, url_for, session
-import flask_socketio
-import select
-import pickle
-from models.PlantUserList import PlantUserList
-from models.LogDatabase import LogDatabase
-from models.SQLUserManager import SQLUserManager
-import threading
-from plant_identfication.PlantIdentify import PlantIdentify
 import hashlib
+import json
+
+app = Flask(__name__)
+app.secret_key = "MGG_KEY"
+socketio = SocketIO(app)
+
+plant_user_table = PlantUserList()
+db = SQLUserManager("dbs/")
+log_db = LogDatabase()
+plant_identifier = PlantIdentify("fLBl0xbtSnB4UPyp6Qtblo" + "apUFJbQRAbxyAZMrM048ZYTvWw94")
+
+# region gets
+def get_db():
+    if "db" not in g:
+        g.db = SQLUserManager("dbs/")
+    return g.db
+
+
+def get_log_db():
+    if "log_db" not in g:
+        g.log_db = LogDatabase()
+    return g.log_db
+
+
+def get_plant_identifier():
+    if "plant_identifier" not in g:
+        g.plant_identifier = PlantIdentify("fLBl0xbtSnB4UPyp6Qtblo" + "apUFJbQRAbxyAZMrM048ZYTvWw94")
+    return g.plant_identifier
+
+# endregion
 
 
 def string_to_hash(s):
@@ -31,268 +51,39 @@ def string_to_hash(s):
     return sha_s
 
 
-# region gets
-def get_db():
-    if "db" not in g:
-        g.db = SQLUserManager("dbs/")
-    return g.db
-def get_plant_user_table():
-    if "plant_user_table" not in g:
-        g.plant_user_table = PlantUserList()
-    return g.plant_user_table
-def get_log_db():
-    if "log_db" not in g:
-        g.log_db = LogDatabase()
-    return g.log_db
-def get_plant_identifier():
-    if "plant_identifier" not in g:
-        g.plant_identifier = PlantIdentify("fLBl0xbtSnB4UPyp6Qtblo"+"apUFJbQRAbxyAZMrM048ZYTvWw94")
-    return g.plant_identifier
-def get_active_plants():
-    if "active_plants" not in g:
-        g.active_plants = {}
-    return g.active_plants
-def get_active_users():
-    if "active_users" not in g:
-        g.active_users = {}
-    return g.active_users
-def get_active_remotes():
-    if "active_remotes" not in g:
-        g.active_remotes = {}
-    return g.active_remotes
-# endregion
+def pickle_to_data(data):
+    try:
+        return pickle.loads(data)[1:]
+    except:
+        return json.loads(data)[1:]
 
 
-
-def get_ip():
-    """
-    Returns machine's IP.
-    """
-    host_name = rsocket.gethostname()
-    ip = rsocket.gethostbyname(host_name)
-    return "localhost"
+def send_message(client_sid, m_type, m_data):
+    print("Sent:", 'response', (m_type, m_data), "to", client_sid)
+    if session["client_type"] == "user":
+        emit('response', pickle.dumps((m_type, m_data)), room=client_sid)
+    else:
+        emit('response', json.dumps((m_type, m_data)), room=client_sid)
 
 
-def get_free_port(HOST):
-    """
-    Returns the first free port for a host.
-    """
-    sock = rsocket.socket()
-    sock.bind((HOST, 0))
-    port = sock.getsockname()[1]
-    sock.close()
-    return 60218  # port
-
-
-def start_server(HOST, PORT):
-    """
-       Using Select, the function locates the users that sent a message, ready to receive a message and the
-           exceptional ones.
-       It handles the send queue for out-going messages.
-    """
-    global open_client_socket, to_send
-    serversock = rsocket.socket(rsocket.AF_INET, rsocket.SOCK_STREAM)
-    serversock.bind((HOST, PORT))
-    serversock.listen(5)
-
-    # List of sockets that are ready to be read from
-    read_sockets = []
-    # List of sockets that are ready to be written to
-    write_sockets = []
-    # List of sockets that are ready to be closed
-    exceptional = []
-
-    print("Server is running on:", HOST, PORT)
-    while True:
-        # Get the list sockets which are ready to be read through select
-        read_sockets, write_sockets, exceptional = select.select(open_client_socket + [serversock], write_sockets,
-                                                                 exceptional)
-
-        # region Welcome
-        for sock in read_sockets:
-            # New connection
-            if sock == serversock:
-                # Handle the new connection
-                nsock, addr = serversock.accept()
-                open_client_socket.append(nsock)
-            # Data from a client
-            else:
-                # Receive data from the socket
-                try:
-                    data = pickle.loads(sock.recv(BUFFSIZE))
-                    if data:
-                        # Add to the list of messages
-                        to_send.append((sock, data))
-                    if data[0] == "close":
-                        sock.close()
-                        # Remove from the list of sockets
-                        with fit:
-                            open_client_socket.remove(sock)
-                            write_sockets.remove(sock)
-                            to_send.remove((sock, data))
-                            active_remotes.pop(sock)
-                            del active_remotes[sock]
-                            active_plants.pop(sock)
-                            del active_plants[sock]
-                            active_plants.pop(sock)
-                            del active_plants[sock]
-                    if data[0] == "client_type":
-                        # data: "client_type", type, id
-                        plant_user_table.add_con(data, sock)
-                except:
-                    pass
-
-        for ex in exceptional:
-            open_client_socket.remove(ex)
-            ex.close()
-        # endregion
-
-        # Send the messages
-        if to_send:
-            to_send = send_waiting_messages(open_client_socket, to_send)
-
-        # if the user closed the connection, remove it from the list
-        for sock in write_sockets:
-            if sock not in open_client_socket:
-                write_sockets.remove(sock)
-
-
-def send_message(sck, header, data):
-    if sck is not None:
-        print("sent data:", header, data)
-        sck.send(pickle.dumps((header, data)))
-
-
-def send_waiting_messages(open_client_socket, to_send):
-    """
-    At the end of each loop in the 'start_server' function, this function runs.
-    It sends the awaiting messages using pickle to the user.
-    """
-    for mes in to_send:
-        # Send the message to the user
-        sock, data = mes
-        m_type, m_data, user_id = data[0], data[1:], data[1:][-1]
-        print("data: ", data)
-
-        # region REMOTE
-        if m_type == 'remote_action':
-            s = plant_user_table.get_sock("plant", user_id)
-            send_message(s, "remote_action", m_data[0])
-
-        elif m_type == 'remote_data':
-            s = plant_user_table.get_sock("user", m_data[0][1])
-            send_message(s, "remote_data", m_data[0])
-
-        elif m_type == 'remote_start':
-            s = plant_user_table.get_sock("plant", user_id)
-            send_message(s, "remote_start", user_id)
-
-        elif m_type == 'remote_stop':
-            s = plant_user_table.get_sock("plant", user_id)
-            send_message(s, "remote_stop", None)
-        # endregion
-
-        # region COMMANDS
-        elif m_type == 'set_auto_mode':
-            s = plant_user_table.get_sock("plant", user_id)
-            send_message(s, "set_auto_mode", (m_data[0], m_data[1]))
-
-        elif m_type == 'get_plant_dict':
-            s = plant_user_table.get_sock("plant", user_id)
-            send_message(s, "get_plant_dict", (user_id, ))
-        elif m_type == 'response_plant_dict':
-            s = plant_user_table.get_sock("user", user_id)
-            send_message(s, "response_plant_dict", (m_data[0], user_id, ))
-        # endregion
-
-        # region LOGS
-        elif m_type == 'log_event':
-            state = log_db.add_action_args(*m_data[0])
-            sock.send(pickle.dumps("log_event", state))
-        # endregion
-
-        # region USER SQL
-        elif m_type == 'sign_up':
-            user_db.sign_up(m_data[0], m_data[1], m_data[2])
-
-        elif m_type == 'login':
-            res = user_db.login(m_data[0], m_data[1])
-            send_message(sock, "login", res)
-
-        elif m_type == 'add_plant':
-            id_num = plant_user_table.get_id_by_sock(sock)
-            plant = [-1, m_data[0]]
-            user_db.add_plant(id_num, plant)
-
-        elif m_type == 'register_plant':
-            user_db.add_plant(user_id, m_data[0])
-
-        # endregion
-
-        # region VIDEO STREAMING
-        elif m_type == 'video_start':
-            s = plant_user_table.get_sock("plant", user_id)
-            send_message(s, m_type, m_data)
-
-        elif m_type == 'video_stop':
-            s = plant_user_table.get_sock("plant", user_id)
-            send_message(s, m_type, m_data)
-
-        # endregion
-
-        # region RECOGNITION
-        elif m_type == 'plant_recognition':
-            recognition = plant_identifier.identify_plant(zipped_b64_image=m_data[0], testing=False)
-            gardening = plant_identifier.search_for_plant(recognition)
-
-            send_message(sock, "plant_recognition", (recognition, gardening))
-        # endregion
-
-        else:
-            sock.send(pickle.dumps(None, None))
-
-        to_send.remove((sock, data))
-        if sock not in open_client_socket:
-            to_send.remove((sock, data))
-
-    return to_send
-
-
-# Global variables
-HOST = get_ip()
-PORT = get_free_port(HOST)
-BUFFSIZE = 2 ** 15
-ADDR = (HOST, PORT)
-
-open_client_socket = []  # [sock1, sock2, ...]
-to_send = []  # [(sock, message), (sock, message), ...]
-
-active_clients = {
-    # "id": {"client": "sock1", "plant": "sock2"},
-}
-
-plant_user_table = PlantUserList()
-log_db = LogDatabase()
-user_db = SQLUserManager("dbs/")
-plant_identifier = PlantIdentify("fLBl0xbtSnB4UPyp6Qtblo"+"apUFJbQRAbxyAZMrM048ZYTvWw94")
-
-active_plants = {}  # {plant_id: sock, ...}
-active_users = {}  # {user_id: sock, ...}
-active_remotes = {}  # {sock_user: sock:plant, ...}
-
-app = Flask(__name__)
-app.secret_key = "MGG_KEY"
-socket = flask_socketio.SocketIO(app)
+def send_response(m_type, m_data):
+    print("Sent back:", 'response', (m_type, m_data))
+    try:
+        if session["client_type"] == "user":
+            emit('response', json.dumps((m_type, m_data)))
+    except:
+        emit('response', pickle.dumps((m_type, m_data)))
 
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    db = get_db()
     if request.method == 'POST':
 
         username = string_to_hash(request.form['username'])
         password = string_to_hash(request.form['password'])
 
-        result = user_db.login(username, password)
+        result = db.login(username, password)
 
         if result is not None:
             session['username'] = request.form['username']
@@ -307,38 +98,147 @@ def index():
 
 @app.route('/remote_actions', methods=['GET', 'POST'])
 def remote_actions():
+    session["client_type"] = "user"
     return render_template("test.html")
 
 
-@socket.on('message')
-def handle_message(m_type, m_data):
-    print(m_type, m_data)
-    if m_type == 'client_type':
-        plant_user_table.add_con_web(session['id'], m_data, socket)
+@socketio.on('connect')
+def handle_connection():
+    print("Connected")
+    # send_response("connected", "ok")
 
-    if m_type == 'remote_action':
-        s = get_plant_user_table().get_sock("plant", session["id"])
-        send_message(s, "remote_action", m_data)
 
-    elif m_type == 'remote_data':
-        # s = get_plant_user_table().get_sock("user", session["id"])
-        #send_message(s, "remote_data", m_data[0])
-        pass
+@socketio.on('client_type')
+def handle_client_type(pickled_data):
+    data = pickle_to_data(pickled_data)
+    print("Connected:", data, request.sid)
+    plant_user_table.add_con_web(data[0], data[1], request.sid)
+    send_response("client_type", "ok")
 
-    elif m_type == 'remote_start':
-        #s = plant_user_table.get_sock("plant", user_id)
-        #send_message(s, "remote_start", user_id)
-        pass
 
-    elif m_type == 'remote_stop':
-        #s = plant_user_table.get_sock("plant", user_id)
-        #send_message(s, "remote_stop", None)
-        pass
+# region REMOTE
+@socketio.on('remote_action')
+def handle_remote_action(pickled_data):
+    data = pickle_to_data(pickled_data)
+    message_data, user_id = data[0], data[1]
+    s = plant_user_table.get_sock("plant", user_id)
+    send_message(s, "remote_action", message_data)
 
-#threading.Thread(target=start_server, args=(HOST, PORT))
-#time.sleep(4)
-#socket.run(app)
-app.debug = False
-app.use_reloader=False
-threading.Thread(target=socket.run, args=(app, ))
-# start_server(HOST, PORT)
+
+@socketio.on('remote_data')
+def handle_remote_data(pickled_data):
+    data = pickle_to_data(pickled_data)
+    message_data, user_id = data[0], data[-1]
+    s = plant_user_table.get_sock("user", user_id)
+    send_message(s, "remote_data", message_data)
+
+
+@socketio.on('remote_start')
+def handle_remote_start(pickled_data):
+    data = pickle_to_data(pickled_data)
+    user_id = data[-1]
+    s = plant_user_table.get_sock("plant", user_id)
+    send_message(s, "remote_start", user_id)
+
+
+@socketio.on('remote_stop')
+def handle_remote_stop(user_id):
+    s = plant_user_table.get_sock("plant", user_id)
+    send_message(s, "remote_stop", None)
+
+
+# endregion
+
+# region COMMANDS
+@socketio.on('set_auto_mode')
+def handle_set_auto_mode(data):
+    user_id, mode_data = data[0], data[1]
+    s = plant_user_table.get_sock("plant", user_id)
+    send_message(s, "set_auto_mode", mode_data)
+
+
+@socketio.on('get_plant_dict')
+def handle_get_plant_dict(user_id):
+    s = plant_user_table.get_sock("plant", user_id)
+    send_message(s, "get_plant_dict", (user_id,))
+
+
+@socketio.on('response_plant_dict')
+def handle_response_plant_dict(data):
+    user_id, message_data = data[1], data[0]
+    s = plant_user_table.get_sock("user", user_id)
+    send_message(s, "response_plant_dict", (message_data, user_id,))
+
+
+# endregion
+
+# region LOGS
+@socketio.on('log_event')
+def handle_log_event(data):
+    state = get_log_db().add_action_args(*data[0])
+    send_response('log_event', state)
+
+
+# endregion
+
+# region USER SQL
+@socketio.on('sign_up')
+def handle_sign_up(pickled_data):
+    data = pickle_to_data(pickled_data)
+    get_db().sign_up(data[0], data[1], data[2])
+    send_response("ok", None)
+
+
+@socketio.on('login')
+def handle_login(pickled_data):
+    data = pickle_to_data(pickled_data)
+    res = get_db().login(data[0], data[1])
+    send_response("login", res)
+
+
+@socketio.on('add_plant')
+def handle_add_plant(data):
+    id_num = plant_user_table.get_id_by_sock(request.namespace.socket)
+    plant = [-1, data[0]]
+    get_db().add_plant(id_num, plant)
+    send_response("add_plant", "ok")
+
+
+@socketio.on('register_plant')
+def handle_register_plant(data):
+    user_id, plant_data = data[0], data[1]
+    get_db().add_plant(user_id, plant_data)
+    send_response("register_plant", "saul goodman")
+
+
+# endregion
+
+# region VIDEO STREAMING
+@socketio.on('video_start')
+def handle_video_start(data):
+    user_id, message_data = data[0], data[1]
+    s = plant_user_table.get_sock("plant", user_id)
+    send_message(s, "video_start", message_data)
+
+
+@socketio.on('video_stop')
+def handle_video_stop(data):
+    user_id, message_data = data[0], data[1]
+    s = plant_user_table.get_sock("plant", user_id)
+    send_message(s, "video_stop", message_data)
+
+
+# endregion
+
+# region RECOGNITION
+def plant_recognition(data):
+    recognition = get_plant_identifier().identify_plant(zipped_b64_image=data['image'], testing=False)
+    gardening = get_plant_identifier().search_for_plant(recognition)
+    send_response('plant_recognition', {'recognition': recognition, 'gardening': gardening})
+
+
+# endregion
+
+
+if __name__ == '__main__':
+    socketio.run(app, allow_unsafe_werkzeug=True)

@@ -3,6 +3,7 @@ from VideoStreaming.VideoStream import VideoStream
 from gardener import Gardener
 from plant_client.message_analyzer import analyze_message
 from models.server_handler import ServerHandler
+from models.ServerHandlerSockIO import ServerHandlerSockIO
 from client_models.EventLogger import EventLogger
 from client_models.RemoteControlHandler import RemoteControlHandler
 import models.UserSQLManagment as usm
@@ -55,11 +56,12 @@ def timer_thread(duration):
 
 # region SETUP
 gardener = Gardener()
-server_handler = ServerHandler(server_ip="localhost", client_type="plant", time_out=3)
+# server_handler = ServerHandler(server_ip="localhost", client_type="plant", time_out=3)
+server_handler = ServerHandlerSockIO(server_ip="127.0.0.1", port=5000, client_type="plant", time_out=3)
 
 
 # usm.sign_up(server_handler)
-usr = usm.login(server_handler)
+usr = usm.login(server_handler, "2", "2")
 
 event_logger = EventLogger(server_handler)
 remote_handler = RemoteControlHandler(server_handler, gardener, usr, event_logger)
