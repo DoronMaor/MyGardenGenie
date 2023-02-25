@@ -1,4 +1,6 @@
-from flask import Flask, request, redirect, render_template, g, url_for, session
+import base64
+import cv2
+from flask import Flask, request, redirect, render_template, g, url_for, session, Response
 from flask_socketio import SocketIO, emit
 import select
 import pickle
@@ -41,6 +43,25 @@ def get_plant_identifier():
 # endregion
 
 
+"""def generate_frames():
+    camera = cv2.VideoCapture(0)
+    while True:
+        # read the camera frame
+        success, frame = camera.read()
+        if not success:
+            break
+        else:
+            ret, buffer = cv2.imencode('.jpg', frame)
+            frame = buffer.tobytes()
+
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+
+@app.route('/video')
+def video():
+    return Response(generate_frames(),mimetype='multipart/x-mixed-replace; boundary=frame')"""
+
 def string_to_hash(s):
     # Create a hash object
     hash_obj = hashlib.sha256()
@@ -60,9 +81,12 @@ def pickle_to_data(data):
 
 def send_message(client_sid, m_type, m_data):
     print("Sent:", 'response', (m_type, m_data), "to", client_sid)
-    if session["client_type"] == "user":
-        emit('response', pickle.dumps((m_type, m_data)), room=client_sid)
-    else:
+    try:
+        if session["client_type"] == "user":
+            emit('response', pickle.dumps((m_type, m_data)), room=client_sid)
+        else:
+            emit('response', json.dumps((m_type, m_data)), room=client_sid)
+    except:
         emit('response', json.dumps((m_type, m_data)), room=client_sid)
 
 
@@ -112,7 +136,7 @@ def handle_connection():
 def handle_client_type(pickled_data):
     data = pickle_to_data(pickled_data)
     print("Connected:", data, request.sid)
-    plant_user_table.add_con_web(data[0], data[1], request.sid)
+    plant_user_table.add_con_web(c_type=(data[0], data[1]), id_num=data[-1], sock=request.sid)
     send_response("client_type", "ok")
 
 
@@ -172,15 +196,6 @@ def handle_response_plant_dict(data):
 
 # endregion
 
-# region LOGS
-@socketio.on('log_event')
-def handle_log_event(data):
-    state = get_log_db().add_action_args(*data[0])
-    send_response('log_event', state)
-
-
-# endregion
-
 # region USER SQL
 @socketio.on('sign_up')
 def handle_sign_up(pickled_data):
@@ -215,15 +230,17 @@ def handle_register_plant(data):
 
 # region VIDEO STREAMING
 @socketio.on('video_start')
-def handle_video_start(data):
+def handle_video_start(pickled_data):
+    data = pickle_to_data(pickled_data)
     user_id, message_data = data[0], data[1]
     s = plant_user_table.get_sock("plant", user_id)
     send_message(s, "video_start", message_data)
 
 
 @socketio.on('video_stop')
-def handle_video_stop(data):
-    user_id, message_data = data[0], data[1]
+def handle_video_stop(pickled_data):
+    data = pickle_to_data(pickled_data)
+    user_id, message_data = data[-1], data[0]
     s = plant_user_table.get_sock("plant", user_id)
     send_message(s, "video_stop", message_data)
 
@@ -241,4 +258,5 @@ def plant_recognition(data):
 
 
 if __name__ == '__main__':
+    # socketio.start_background_task(target=generate_frames)
     socketio.run(app, allow_unsafe_werkzeug=True)

@@ -1,5 +1,5 @@
 import mgg_functions as gmf
-import VideoStreaming.VideoStream as VideoStream
+import VideoStreaming.VideoStreamer as VideoStreamer
 import threading
 import functools
 

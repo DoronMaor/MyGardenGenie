@@ -34,6 +34,8 @@ class ServerHandlerSockIO {
     } else {
       pickled_mes = JSON.stringify(mes);
     }
+    console.log("sent data:", mes, this.client_id);
+    console.log("sent pickled data:", pickled_mes);
     this.sio.emit(mes[0], pickled_mes);
   }
 
@@ -43,7 +45,7 @@ class ServerHandlerSockIO {
 
   async wait_for_response() {
     while (!this.hasOwnProperty("response")) {
-      await new Promise(r => setTimeout(r, 10));
+      await new Promise((r) => setTimeout(r, 10));
     }
     if (this.response) {
       const response = this.response;
@@ -96,10 +98,41 @@ class ServerHandlerSockIO {
     this.send(mes);
   }
 
+  set_text(text) {
+    var m = ["remote_action", [0, text]];
+    this.send_and_receive(m);
+  }
+
   get_moisture(plant) {
     var m = ["remote_action", [1, plant]];
     var moisture = this.send_and_receive(m);
     console.log("Moisture level: ", moisture);
+  }
+
+  led_ring(plant, mode) {
+    var m = ["remote_action", [2, plant, mode]];
+    this.send_and_receive(m);
+  }
+
+  add_water(plant, duration) {
+    var m = ["remote_action", [3, plant, duration]];
+    this.send_and_receive(m);
+  }
+
+  get_light_level(plant) {
+    var m = ["remote_action", [4, plant]];
+    var light_level = this.send_and_receive(m);
+    console.log("Light level: ", light_level);
+  }
+
+  change_automatic(plant, mode) {
+    var automatic = mode == "1" ? true : false;
+    this.send_automatic_mode(automatic, plant);
+  }
+
+  stop_remote_mode() {
+    const mes = ["remote_stop", null];
+    this.send(mes);
   }
 
   // endregion

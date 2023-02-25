@@ -1,0 +1,80 @@
+/* Reset default browser styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Set a consistent font and background color for the whole document */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f8f8f8;
+}
+
+/* Style the page header */
+h1 {
+  font-size: 2em;
+  font-weight: bold;
+  text-align: center;
+  margin: 20px 0;
+}
+
+/* Style the buttons */
+button {
+  display: block;
+  margin: 10px auto;
+  padding: 10px 20px;
+  font-size: 1.2em;
+  font-weight: bold;
+  background-color: #333;
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Style the hidden input */
+input[type="text"][hidden] {
+  display: none;
+}
+
+/* Style the container divs */
+#remote-actions,
+#video-actions {
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* Style the headings inside the container divs */
+#remote-actions h2,
+#video-actions h2 {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+/* Style the buttons inside the container divs */
+#remote-actions button,
+#video-actions button {
+  display: block;
+  margin: 10px auto;
+  padding: 10px 20px;
+  font-size: 1.2em;
+  font-weight: bold;
+  background-color: #eee;
+  color: #333;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Style the active state of the buttons */
+button:focus,
+button:hover {
+  background-color: #555;
+}

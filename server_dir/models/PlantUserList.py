@@ -14,9 +14,13 @@ class PlantUserList:
 
     def add_con_web(self, c_type, id_num, sock):
         try:
-            self.dict[id_num[:-1]].auto_set(c_type=c_type, full_id=id_num, sock=sock)
+            c_type, stream_ip = c_type
         except:
-            self.dict[id_num[:-1]] = PlantUserCon(c_type=c_type, full_id=id_num, sock=sock)
+            c_type, stream_ip = c_type, None
+        try:
+            self.dict[id_num[:-1]].auto_set(c_type=c_type, full_id=id_num, sock=sock, stream_addr=stream_ip)
+        except:
+            self.dict[id_num[:-1]] = PlantUserCon(c_type=c_type, full_id=id_num, sock=sock, stream_addr=stream_ip)
 
     def get_sock(self, c_type, full_id_num):
         for i in self.dict:
@@ -41,3 +45,14 @@ class PlantUserList:
                 return i
         return -1
 
+    def get_stream_ip_by_sock(self, sck):
+        for i in self.dict:
+            pc = self.dict[i]
+            usock = pc.get_user_sock()
+            psock1 = pc.get_plant_sock('A')
+            psock2 = pc.get_plant_sock('B')
+
+            if usock == sck or psock1 == sck or psock2 == sck:
+                return pc.get_stream_ip()
+
+        return "127.0.0.1"

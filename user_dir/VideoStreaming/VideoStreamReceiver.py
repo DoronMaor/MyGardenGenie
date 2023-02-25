@@ -1,5 +1,4 @@
 import random
-
 import cv2, socket, pickle
 import threading
 

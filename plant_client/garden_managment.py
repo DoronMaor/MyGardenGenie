@@ -1,5 +1,5 @@
 import threading
-from VideoStreaming.VideoStream import VideoStream
+from VideoStreaming.VideoStreamer import VideoStreamer
 from gardener import Gardener
 from plant_client.message_analyzer import analyze_message
 from models.server_handler import ServerHandler
@@ -40,9 +40,9 @@ def listen_for_messages(mes=None):
             remote_handler.start_remote_loop(action_data)
         elif action_header == "video_start":
             print("Starting video...")
-            video_streamer.start_stream(action_data[0], action_data[1])
+            video_streamer.start()
         elif action_header == "video_stop":
-            video_streamer.remove_user(action_data[0], action_data[1])
+            video_streamer.stop()
         elif action_header == "get_plant_dict":
             server_handler.send_plants_names(plant_dict=mgf.get_letter_plant_dict())
         else:
@@ -65,7 +65,7 @@ usr = usm.login(server_handler, "2", "2")
 
 event_logger = EventLogger(server_handler)
 remote_handler = RemoteControlHandler(server_handler, gardener, usr, event_logger)
-video_streamer = VideoStream()
+video_streamer = VideoStreamer()
 plant_recognition_manager = PlantRecognitionManager(server_handler)
 
 #plant_recognition_manager.run(current_plants=mgf.check_plant_files())

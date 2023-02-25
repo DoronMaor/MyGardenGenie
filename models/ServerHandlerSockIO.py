@@ -2,6 +2,27 @@ from socketio import Client, exceptions
 import pickle
 
 
+def get_ip():
+    """
+    Returns the IP address of the computer on which this function is executed.
+    """
+    import socket
+    ip = None
+    try:
+        # Create a UDP socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        # Connect to a well-known IP address and port number
+        sock.connect(('8.8.8.8', 80))
+        # Get the socket's local address, which is the IP address of the computer
+        ip = sock.getsockname()[0]
+        # Close the socket
+        sock.close()
+    except socket.error:
+        pass
+    return ip
+
+
+
 class ServerHandlerSockIO:
 
     def __init__(self, server_ip, port, client_type="plant", time_out=0):
@@ -127,7 +148,7 @@ class ServerHandlerSockIO:
     def send_client_id(self, id=None):
         if id is not None:
             self.client_id = id
-        mes = ("client_type", self.client_type, self.client_id)
+        mes = ("client_type", self.client_type, get_ip())
         r = self.send_and_receive(mes)
     # endregion
 
