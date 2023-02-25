@@ -15,12 +15,14 @@ class PlantUserList:
     def add_con_web(self, c_type, id_num, sock):
         try:
             c_type, stream_ip = c_type
+            if c_type == 'user':
+                stream_ip = None
         except:
             c_type, stream_ip = c_type, None
         try:
-            self.dict[id_num[:-1]].auto_set(c_type=c_type, full_id=id_num, sock=sock, stream_addr=stream_ip)
+            self.dict[id_num[:-1]].auto_set(c_type=c_type, full_id=id_num, sock=sock, stream_ip=stream_ip)
         except:
-            self.dict[id_num[:-1]] = PlantUserCon(c_type=c_type, full_id=id_num, sock=sock, stream_addr=stream_ip)
+            self.dict[id_num[:-1]] = PlantUserCon(c_type=c_type, full_id=id_num, sock=sock, stream_ip=stream_ip)
 
     def get_sock(self, c_type, full_id_num):
         for i in self.dict:

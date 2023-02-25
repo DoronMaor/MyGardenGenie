@@ -41,17 +41,36 @@
       <button id="stream-start">stream_start</button>
       <button id="stream-stop">stream_stop</button>
     </div>
-     <img id="video" src="#">
+    <img id="video" src="#" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        $(function () {
-            var video = $('#video')[0];
-            var source = new EventSource('http://127.0.0.1:8080/video');
+      $(function () {
+        var video = $("#video")[0];
+        var source = new EventSource("http://127.0.0.1:8080/video");
 
-            source.onmessage = function (event) {
-                video.src = "data:image/jpeg;base64," + event.data;
-            };
-        });
+        source.onmessage = function (event) {
+          video.src = "data:image/jpeg;base64," + event.data;
+        };
+      });
+    </script>
+
+    <script>
+      setInterval(() => {
+        fetch("http://127.0.0.1:8080/video/awake", {
+          method: "POST",
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+          })
+          .catch((error) => {
+            console.error(
+              "There was a problem with the fetch operation:",
+              error
+            );
+          });
+      }, 5000); // 5000 ms
     </script>
   </body>
   <script>
@@ -77,11 +96,11 @@
       if (videoActions.style.display == "block") {
         videoModeBtn.textContent = "Start Video Mode";
         videoActions.style.display = "none";
-        server_handler.video_start("127.0.0.1", 8080);
+        server_handler.stop_receiving("127.0.0.1", 8080);
       } else {
         videoModeBtn.textContent = "Stop Video Mode";
         videoActions.style.display = "block";
-        server_handler.stop_receiving("127.0.0.1", 8080);
+        server_handler.video_start("127.0.0.1", 8080);
       }
     });
 

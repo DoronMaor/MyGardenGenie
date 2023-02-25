@@ -19,7 +19,9 @@ class PlantUserCon:
         self.users[0 if letter == 'A' else 1] = sock
         print("users", self.users)
 
-    def auto_set(self, c_type, sock, full_id):
+    def auto_set(self, c_type, sock, full_id, stream_ip):
+        if stream_ip:
+            self.stream_ip = stream_ip
         if c_type == "plant":
             self.set_plant(sock)
         elif c_type == "user":

@@ -42,7 +42,7 @@ def listen_for_messages(mes=None):
             print("Starting video...")
             video_streamer.start()
         elif action_header == "video_stop":
-            video_streamer.stop()
+            pass
         elif action_header == "get_plant_dict":
             server_handler.send_plants_names(plant_dict=mgf.get_letter_plant_dict())
         else:

@@ -232,7 +232,7 @@ def handle_register_plant(data):
 @socketio.on('video_start')
 def handle_video_start(pickled_data):
     data = pickle_to_data(pickled_data)
-    user_id, message_data = data[0], data[1]
+    message_data, user_id  = data[0], data[1]
     s = plant_user_table.get_sock("plant", user_id)
     send_message(s, "video_start", message_data)
 
