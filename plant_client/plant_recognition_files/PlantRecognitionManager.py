@@ -33,7 +33,7 @@ class PlantRecognitionManager:
         self.server_handler = server_handler
         self.picture_grabber = PictureGrabber()
         download_resnet_model()
-        self.plant_detector = PlantDetector()
+        # self.plant_detector = PlantDetector()
 
     def take_picture(self, purpose=""):
         if purpose == "analysis":
