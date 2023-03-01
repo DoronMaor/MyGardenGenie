@@ -5,7 +5,7 @@ import hashlib
 import json
 import base64
 import time
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 import cv2
 from flask import Flask, request, redirect, render_template, g, url_for, session, Response
 from flask_socketio import SocketIO, emit
@@ -42,6 +42,7 @@ class VideoStreamer:
 
     def start(self):
         @self.app.route('/video')
+        @cross_origin()
         def video():
             self.last_awake_call = datetime.datetime.now()
 
@@ -51,6 +52,7 @@ class VideoStreamer:
             self.socketio.run(self.app, allow_unsafe_werkzeug=True, port=8080)#, host="192.168.0.115")
 
         @self.app.route('/video/awake', methods=['POST'])
+        @cross_origin()
         def handle_awake_call():
             self.last_awake_call = datetime.datetime.now()
             print("Awaken!")

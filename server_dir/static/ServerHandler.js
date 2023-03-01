@@ -21,7 +21,6 @@ class ServerHandlerSockIO {
 
   async send_and_receive(mes) {
     const pickled_mes = JSON.stringify([...mes, this.client_id]);
-    console.log("sent data:", mes, this.client_id);
     console.log("sent pickled data:", pickled_mes);
     this.sio.emit(mes[0], pickled_mes);
     return this.wait_for_response();
@@ -34,7 +33,6 @@ class ServerHandlerSockIO {
     } else {
       pickled_mes = JSON.stringify(mes);
     }
-    console.log("sent data:", mes, this.client_id);
     console.log("sent pickled data:", pickled_mes);
     this.sio.emit(mes[0], pickled_mes);
   }
@@ -49,7 +47,6 @@ class ServerHandlerSockIO {
     }
     if (this.response) {
       const response = this.response;
-      console.log("Response:", response);
       delete this.response;
       return response;
     }

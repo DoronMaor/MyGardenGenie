@@ -152,7 +152,7 @@ def handle_remote_action(pickled_data):
 @socketio.on('remote_data')
 def handle_remote_data(pickled_data):
     data = pickle_to_data(pickled_data)
-    message_data, user_id = data[0], data[-1]
+    message_data, user_id = data[0], data[-1][1]
     s = plant_user_table.get_sock("user", user_id)
     send_message(s, "remote_data", message_data)
 
@@ -166,7 +166,9 @@ def handle_remote_start(pickled_data):
 
 
 @socketio.on('remote_stop')
-def handle_remote_stop(user_id):
+def handle_remote_stop(pickled_data):
+    data = pickle_to_data(pickled_data)
+    user_id = data[-1]
     s = plant_user_table.get_sock("plant", user_id)
     send_message(s, "remote_stop", None)
 
@@ -232,7 +234,7 @@ def handle_register_plant(data):
 @socketio.on('video_start')
 def handle_video_start(pickled_data):
     data = pickle_to_data(pickled_data)
-    message_data, user_id  = data[0], data[1]
+    message_data, user_id = data[0], data[1]
     s = plant_user_table.get_sock("plant", user_id)
     send_message(s, "video_start", message_data)
 
@@ -240,7 +242,7 @@ def handle_video_start(pickled_data):
 @socketio.on('video_stop')
 def handle_video_stop(pickled_data):
     data = pickle_to_data(pickled_data)
-    user_id, message_data = data[-1], data[0]
+    message_data, user_id = data[0], data[1]
     s = plant_user_table.get_sock("plant", user_id)
     send_message(s, "video_stop", message_data)
 

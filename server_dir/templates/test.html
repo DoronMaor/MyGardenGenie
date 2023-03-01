@@ -28,14 +28,26 @@
 
     <div id="remote-actions" style="display: none">
       <h2>Remote Actions</h2>
-      <button id="display-text">display_text</button>
-      <button id="get-moisture">get_moisture</button>
-      <button id="led-ring">led_ring</button>
-      <button id="add-water">add_water</button>
-      <button id="get-light-level">get_light_level</button>
-      <button id="change-automatic">change_automatic</button>
-      <button id="remote-stop">remote_stop</button>
+      <button id="display-text">Display Text</button>
+      <button id="get-moisture">Get Moisture</button>
+      <button id="led-ring">LED Ring On/Off</button>
+      <button id="add-water">Add Water (in seconds)</button>
+      <button id="get-light-level">Get Light Level</button>
+      <button id="change-automatic">Change Automatic</button>
+      <button id="remote-stop">Remote Stop</button>
+      <br><br>
+      <label for="display-text">Display Text:</label>
+      <input type="text" id="display-text_inp"><br><br>
+      <label for="get-moisture">Get Moisture:</label>
+      <input type="number" id="get-moisture_inp"><br><br>
+      <label for="led-ring">LED Ring:</label>
+      <input type="checkbox" id="led-ring_inp"><br><br>
+      <label for="add-water">Add Water (in seconds):</label>
+      <input type="number" id="add-water_inp"><br><br>
+      <label for="get-light-level">Get Light Level:</label>
+      <input type="number" id="get-light-level_inp"><br><br>
     </div>
+
     <div id="video-actions" style="display: none">
       <h2>Video Actions</h2>
       <button id="stream-start">stream_start</button>
@@ -43,7 +55,8 @@
     </div>
     <img id="video" src="#" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
+    <script>    </script>
+
       $(function () {
         var video = $("#video")[0];
         var source = new EventSource("http://127.0.0.1:8080/video");
@@ -52,9 +65,10 @@
           video.src = "data:image/jpeg;base64," + event.data;
         };
       });
-    </script>
 
-    <script>
+    <script>    </script>
+
+    /*
       setInterval(() => {
         fetch("http://127.0.0.1:8080/video/awake", {
           method: "POST",
@@ -70,8 +84,7 @@
               error
             );
           });
-      }, 5000); // 5000 ms
-    </script>
+      }, 5000); // 5000 ms*/
   </body>
   <script>
     const remoteModeBtn = document.querySelector("#remote-mode");
