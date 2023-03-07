@@ -97,7 +97,7 @@ def main_loop():
             plantA_state = mgf.get_automatic_mode("plantA.mgg")
             plantB_state = mgf.get_automatic_mode("plantB.mgg")
             # Do the check up routine for both plants
-            pcr.full_routine_checkup(plantA_state, plantB_state)
+            pcr.full_routine_checkup(plantA_state, plantB_state, gardener)
             # Start the hourly routine thread
             routine_thread = threading.Thread(target=timer_thread, args=(mgf.get_routine_interval(),))
             routine_thread.start()

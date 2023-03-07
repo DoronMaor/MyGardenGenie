@@ -46,6 +46,7 @@ class SQLUserManager:
         query = 'INSERT INTO users (id, username, password, plants) VALUES (?, ?, ?, ?)'
         self.cursor.execute(query, (idn, username, password, pickle.dumps([])))
         self.conn.commit()
+        return True
 
     def login(self, username, password):
         username = normalize_input(username)

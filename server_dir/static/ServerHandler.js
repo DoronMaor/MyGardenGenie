@@ -112,7 +112,7 @@ class ServerHandlerSockIO {
   }
 
   add_water(plant, duration) {
-    var m = ["remote_action", [3, plant, duration]];
+    var m = ["remote_action", [3, parseInt(plant, duration)]];
     this.send_and_receive(m);
   }
 
@@ -120,6 +120,7 @@ class ServerHandlerSockIO {
     var m = ["remote_action", [4, plant]];
     var light_level = this.send_and_receive(m);
     console.log("Light level: ", light_level);
+    return light_level;
   }
 
   change_automatic(plant, mode) {

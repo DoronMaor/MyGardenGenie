@@ -91,6 +91,17 @@ def check_plant_files():
     return len(plant_files)
 
 
+def get_plant_dict(plant: str):
+    file_name = "plant%s.mgg" % plant.upper()
+    plant_dict = {}
+    with open(file_name, "r") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                key, value = line.split(":")
+                plant_dict[key] = value
+    return plant_dict
+
 # endregion
 
 # region GLOBAL

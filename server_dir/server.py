@@ -103,25 +103,45 @@ def send_response(m_type, m_data):
 def index():
     db = get_db()
     if request.method == 'POST':
-
         username = string_to_hash(request.form['username'])
         password = string_to_hash(request.form['password'])
+        request_type = ""
+        try:
+            code = request.form['code']
+            request_type = "signup"
+        except:
+            code = None
+            request_type = "login"
 
-        result = db.login(username, password)
+        if request_type == "login":
+            result = db.login(username, password)
+            if result is not None:
+                session['username'] = request.form['username']
+                session['id'] = result[0]
 
-        if result is not None:
-            session['username'] = request.form['username']
-            session['id'] = result[0]
+                return redirect(url_for('remote_actions'))
+            else:
+                return "Login failed, try again"
+        elif request_type == "signup":
+            result = db.sign_up(username, password, code)
+            if result:
+                return redirect(url_for('index'))
+            else:
+                return "Sign up failed, try again"
 
-            return redirect(url_for('remote_actions'))
-        else:
-            return "Login failed, try again"
+
 
     return render_template("main.html")
 
 
 @app.route('/remote_actions', methods=['GET', 'POST'])
 def remote_actions():
+    try:
+        a = session['id']
+        print(a)
+    except:
+        return redirect(url_for('index'))
+
     session["client_type"] = "user"
     return render_template("test.html")
 

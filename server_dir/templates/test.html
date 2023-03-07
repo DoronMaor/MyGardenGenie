@@ -4,7 +4,6 @@
     <title>Server Handler SockIO Demo</title>
     <link
       rel="stylesheet"
-      href="{{url_for('static', filename='remotePage.css')}}"
     />
     <script
       src="https://cdn.socket.io/3.1.3/socket.io.min.js"
@@ -16,7 +15,7 @@
     <script>
       var server_handler = new ServerHandlerSockIO("127.0.0.1", 5000);
       var current_plant = "A";
-      server_handler.login("2", "2");
+      server_handler.login(sessionStorage.getItem("username"), sessionStorage.getItem("password"));
     </script>
   </head>
   <body>
@@ -35,56 +34,34 @@
       <button id="get-light-level">Get Light Level</button>
       <button id="change-automatic">Change Automatic</button>
       <button id="remote-stop">Remote Stop</button>
-      <br><br>
+      <br /><br />
       <label for="display-text">Display Text:</label>
-      <input type="text" id="display-text_inp"><br><br>
+      <input type="text" id="display-text_inp" /><br /><br />
       <label for="get-moisture">Get Moisture:</label>
-      <input type="number" id="get-moisture_inp"><br><br>
+      <input readonly type="text" id="get-moisture_inp" /><br /><br />
       <label for="led-ring">LED Ring:</label>
-      <input type="checkbox" id="led-ring_inp"><br><br>
+      <input type="checkbox" id="led-ring_inp" /><br /><br />
       <label for="add-water">Add Water (in seconds):</label>
-      <input type="number" id="add-water_inp"><br><br>
+      <input type="text" id="add-water_inp" /><br /><br />
       <label for="get-light-level">Get Light Level:</label>
-      <input type="number" id="get-light-level_inp"><br><br>
+      <input readonly type="text" id="get-light-level_inp" /><br /><br />
     </div>
 
     <div id="video-actions" style="display: none">
-      <h2>Video Actions</h2>
-      <button id="stream-start">stream_start</button>
-      <button id="stream-stop">stream_stop</button>
+      <h2>Video Stream</h2>
+      <img id="video" src="#" />
     </div>
-    <img id="video" src="#" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>    </script>
 
-      $(function () {
-        var video = $("#video")[0];
-        var source = new EventSource("http://127.0.0.1:8080/video");
+    <script></script>
 
-        source.onmessage = function (event) {
-          video.src = "data:image/jpeg;base64," + event.data;
-        };
-      });
+    <script></script>
 
-    <script>    </script>
-
-    /*
-      setInterval(() => {
-        fetch("http://127.0.0.1:8080/video/awake", {
-          method: "POST",
-        })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Network response was not ok");
-            }
-          })
-          .catch((error) => {
-            console.error(
-              "There was a problem with the fetch operation:",
-              error
-            );
-          });
-      }, 5000); // 5000 ms*/
+    /* setInterval(() => { fetch("http://127.0.0.1:8080/video/awake", { method:
+    "POST", }) .then((response) => { if (!response.ok) { throw new
+    Error("Network response was not ok"); } }) .catch((error) => {
+    console.error( "There was a problem with the fetch operation:", error ); });
+    }, 5000); // 5000 ms*/
   </body>
   <script>
     const remoteModeBtn = document.querySelector("#remote-mode");
@@ -114,15 +91,20 @@
         videoModeBtn.textContent = "Stop Video Mode";
         videoActions.style.display = "block";
         server_handler.video_start("127.0.0.1", 8080);
+        $(function () {
+          var video = $("#video")[0];
+          video.src = "http://127.0.0.1:8080/video";
+        });
       }
     });
 
     document.getElementById("get-moisture").addEventListener("click", () => {
-      server_handler.get_moisture(current_plant);
+      moisture = server_handler.get_moisture(current_plant);
+      document.getElementById("get-moisture_inp").value = moisture
     });
 
     document.getElementById("display-text").addEventListener("click", () => {
-      server_handler.set_text("text");
+      server_handler.set_text(document.getElementById("display-text_inp").value);
     });
 
     document.getElementById("led-ring").addEventListener("click", () => {
@@ -130,11 +112,12 @@
     });
 
     document.getElementById("add-water").addEventListener("click", () => {
-      server_handler.add_water(current_plant, 4);
+      server_handler.add_water(current_plant, document.getElementById("add-water_inp").value);
     });
 
     document.getElementById("get-light-level").addEventListener("click", () => {
-      server_handler.get_light_level(current_plant);
+      light_level = server_handler.get_light_level(current_plant);
+      document.getElementById("get-light-level_inp").value = light_level
     });
 
     document
