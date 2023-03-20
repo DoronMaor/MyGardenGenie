@@ -179,7 +179,13 @@ float GetLightSensor() {
   return lux;
 }
 
-const bool testingMode = true;
+void serialFlush() {
+  while (Serial.available() > 0) {
+    char ch = Serial.read();
+  }
+}
+
+const bool testingMode = false;
 
 void loop() {
 
@@ -196,8 +202,6 @@ void loop() {
     /*TurnLEDRing(true, 'A');
     TurnLEDRing(true, 'B');*/
 
-
-
     if (false)
     {
       float l = GetLightSensor();
@@ -212,24 +216,28 @@ void loop() {
   else {
     if (Serial.available() > 0){
       String msg = Serial.readStringUntil('\n');
+      // WriteToLCD(msg.substring(0, 9));
 
       if (msg.substring(0, 5) == "#LCD#")
       {
-      // #LCD#text
-          WriteToLCD(msg.substring(5));
+        // #LCD#text
+        WriteToLCD(msg.substring(5));
+        serialFlush();
       }
-      else if (msg.substring(0, 9) == "#MOISTURE#")
+      else if (msg.substring(0, 10) == "#MOISTURE#")
       {
         //#GET_MOISTURE#A/B
-        char plant = msg.substring(9)[0];
+        char plant = msg.substring(10)[0];
         int mois = GetMoisture(plant);
         Serial.print("#MOISTURE#" + mois);
+        delay(100);
       }
       else if (msg.substring(0, 7) == "#LIGHT#")
       {
         //#GET_LIGHT#
         int light = GetLightSensor();
         Serial.print("#LIGHT#" + light);
+        delay(100);
       }
       else if (msg.substring(0, 8) == "#T_PUMP#")
       {
@@ -238,7 +246,6 @@ void loop() {
         String t = m.substring(0, 5);
         int dur = t.toInt();
         TurnPump((dur), m[5]);
-
       }
       else if (msg.substring(0, 11) == "#T_LEDRING#")
       {
@@ -252,7 +259,7 @@ void loop() {
       }
         else
         {
-            Serial.print("ERROR" + msg);
+          Serial.print("ERROR - " + msg );
         }
     }
   }

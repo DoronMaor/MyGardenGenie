@@ -1,6 +1,7 @@
 import datetime
+import random
 import threading
-
+import fuckit as fit
 import select
 import pickle
 import hashlib
@@ -20,6 +21,13 @@ class VideoStreamer:
         self.app.secret_key = "MGG_KEY"
         self.socketio = SocketIO(self.app)
         self.last_awake_call = None
+        self.active_connections = set()
+
+    def shutdown_server(self):
+        func = request.environ.get('werkzeug.server.shutdown')
+        if func is None:
+            raise RuntimeError('Not running with the Werkzeug Server')
+        func()
 
     def generate_frames(self):
         if not hasattr(self, 'camera'):
@@ -64,7 +72,20 @@ class VideoStreamer:
         @self.app.route('/video')
         @cross_origin()
         def video():
-            return Response(self.generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+            # Add the connection to the set of active connections
+            r = request.remote_addr + str(random.randint(0, 1000))
+            self.active_connections.add(r)
+
+            # Start the video stream
+            response = Response(self.generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+            # Remove the connection from the set of active connections when the response is completed
+            @response.call_on_close
+            def remove_connection():
+                self.active_connections.remove(r)
+                print(f"Disconnected: {r}")
+
+            return response
 
         @self.app.route('/video/awake', methods=['POST'])
         @cross_origin()
@@ -77,9 +98,12 @@ class VideoStreamer:
             threading.Thread(target=self.awake_check(), args=(self, ))
 
     def stop(self):
-        self.camera.release()
-        del self.camera
-        self.last_awake_call = None
+        if len(self.active_connections) < 1:
+            with fit:
+                self.camera.release()
+                del self.camera
+                self.last_awake_call = None
+                self.shutdown_server()
 
     def awake_check(self):
         while True:
@@ -87,27 +111,3 @@ class VideoStreamer:
             if (datetime.datetime.now() - self.last_awake_call).total_seconds() > 5:
                 self.stop()
                 break
-
-
-    ############################
-    ############################
-
-    def start111(self):
-        @self.app.route('/video')
-        def video():
-            self.last_awake_call = datetime.datetime.now()
-
-            return Response(self.generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
-        if not self.last_awake_call:
-            self.socketio.run(self.app, allow_unsafe_werkzeug=True, port=8080)  # , host="192.168.0.115")
-
-        @self.app.route('/video/awake', methods=['POST'])
-        def handle_awake_call():
-            self.last_awake_call = datetime.datetime.now()
-            print("Awaken!")
-
-    def stop1111(self):
-        self.camera.release()
-        del self.camera
-        self.last_awake_call = None

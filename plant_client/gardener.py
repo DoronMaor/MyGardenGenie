@@ -1,4 +1,10 @@
+import re
+
 import arduino_robot as ar
+
+
+def clean_output(text):
+    return float(re.sub(r"[^\d.]+", "", text).strip())
 
 
 class Gardener:
@@ -13,6 +19,7 @@ class Gardener:
                 "get_light_level": self.get_light_level,
                 "add_water": self.add_water,
             }
+        self.led_state = False
 
     def do_action(self, action: tuple):
         """
@@ -25,17 +32,28 @@ class Gardener:
     def set_text_display(self, txt: str):
         self.arduino_robot.set_text_display(msg=txt, rec=False)
 
-    def set_led_ring(self, plant: str, mode: bool):
-        self.arduino_robot.set_light(plant=plant, mode=mode, rec=False)
+    def set_led_ring(self, plant: str, mode):
+        if mode is not bool:
+            self.led_state = not self.led_state
+        else:
+            self.led_state = mode
+        self.arduino_robot.set_light(plant=plant, mode=self.led_state, rec=False)
 
     def add_water(self, plant: str, dur: str):
         self.arduino_robot.add_water(plant=plant, dur=dur, rec=False)
 
     def get_moisture(self, plant: str, rec=True):
-        return self.arduino_robot.get_moisture_level(plant=plant, rec=rec)
+        print("Getting moisture:", plant, rec)
+        try:
+            return clean_output(self.arduino_robot.get_moisture_level(plant=plant, rec=rec).strip())
+        except:
+            return -12349
 
     def get_light_level(self, plant: str, rec=True):
-        return self.arduino_robot.get_light_level(plant=plant, rec=rec)
+        try:
+            return clean_output(self.arduino_robot.get_light_level(plant=plant, rec=rec))
+        except:
+            return -12349
 
 
 

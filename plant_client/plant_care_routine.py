@@ -4,8 +4,8 @@ import mgg_functions as mgf
 
 def hysteresis_water_handling(plant: str, low_threshold: int, high_threshold: int, gardener):
     def watering_process():
-        while gardener.get_moisture() < high_threshold:
-            gardener.add_water(plant, 0.5)
+        while gardener.get_moisture(plant) < high_threshold:
+            gardener.add_water(plant, 1)
             time.sleep(0.2)
 
     if gardener.get_moisture(plant) <= low_threshold:

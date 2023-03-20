@@ -19,7 +19,7 @@ class ServerHandlerSockIO {
     return this.wait_for_response();
   }
 
-  async send_and_receive(mes) {
+  send_and_receive(mes) {
     const pickled_mes = JSON.stringify([...mes, this.client_id]);
     console.log("sent pickled data:", pickled_mes);
     this.sio.emit(mes[0], pickled_mes);
@@ -104,6 +104,7 @@ class ServerHandlerSockIO {
     var m = ["remote_action", [1, plant]];
     var moisture = this.send_and_receive(m);
     console.log("Moisture level: ", moisture);
+    return moisture;
   }
 
   led_ring(plant, mode) {
@@ -112,7 +113,7 @@ class ServerHandlerSockIO {
   }
 
   add_water(plant, duration) {
-    var m = ["remote_action", [3, parseInt(plant, duration)]];
+    var m = ["remote_action", [3, plant, parseInt(duration)]];
     this.send_and_receive(m);
   }
 
@@ -156,9 +157,9 @@ class ServerHandlerSockIO {
     this.send(mes);
   }
 
-  send_plants_names(plant_dict) {
-    const mes = ["response_plant_dict", plant_dict];
-    this.send(mes);
+  get_plants_dict() {
+    const mes = ["get_plant_dict", null];
+    return this.send_and_receive(mes);
   }
 
   disconnect() {

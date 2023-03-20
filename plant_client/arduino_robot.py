@@ -22,25 +22,27 @@ class ArduinoRobot:
 
     def send_and_receive(self, msg: str, rec=False):
         """Send msg to Arduino, with an option of receiving one back."""
-        self.ser.write(bytes(msg, 'utf-8'))
+        print("send_and_receive", msg)
+        self.ser.write(bytes(msg + "\n", 'utf-8'))
         if rec:
             m = self.ser.readline().decode("utf-8")
+            print("send_and_receive - rec: ", m)
+            if "ERROR" in m:
+                return self.send_and_receive(msg, rec)
             return m
         return None
 
     def set_text_display(self, msg: str, rec=False):
         """Sets the text on the LCD display."""
-        m = "#LCD#" + msg
+        m = "#LCD#" + msg[:40]
         return self.send_and_receive(m, rec)
 
     def get_moisture_level(self, plant: str, rec=True):
         """Get the moisture level for the given plant."""
-        print("GOT DA MOISTURE")
-        return "MOSITEREE"
-
         flag = "#MOISTURE#"
         m = flag + plant
         mois = self.send_and_receive(m, rec).replace(flag, "")
+        print("Moisture: ", mois)
         return mois
 
     def get_light_level(self, plant: str, rec=True):
@@ -52,7 +54,7 @@ class ArduinoRobot:
 
     def add_water(self, plant: str, dur: str, rec=False):
         """Activate the water pump for the given duration and plant."""
-        dur = dur.ljust(4, '0')
+        dur = str(dur).ljust(4, '0')
         m = "#T_PUMP#" + str(dur) + ";" + plant
         self.send_and_receive(m, rec)
         print(m)

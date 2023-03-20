@@ -101,10 +101,14 @@ def send_response(m_type, m_data):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    db = get_db()
     if request.method == 'POST':
-        username = string_to_hash(request.form['username'])
-        password = string_to_hash(request.form['password'])
+        db = get_db()
+        try:
+            username = string_to_hash(request.form['username_n'])
+            password = string_to_hash(request.form['password_n'])
+        except:
+            username = string_to_hash(request.form['username'])
+            password = string_to_hash(request.form['password'])
         request_type = ""
         try:
             code = request.form['code']
@@ -204,13 +208,16 @@ def handle_set_auto_mode(data):
 
 
 @socketio.on('get_plant_dict')
-def handle_get_plant_dict(user_id):
+def handle_get_plant_dict(pickled_data):
+    data = pickle_to_data(pickled_data)
+    user_id = data[-1]
     s = plant_user_table.get_sock("plant", user_id)
     send_message(s, "get_plant_dict", (user_id,))
 
 
 @socketio.on('response_plant_dict')
-def handle_response_plant_dict(data):
+def handle_response_plant_dict(pickled_data):
+    data = pickle_to_data(pickled_data)
     user_id, message_data = data[1], data[0]
     s = plant_user_table.get_sock("user", user_id)
     send_message(s, "response_plant_dict", (message_data, user_id,))
@@ -229,7 +236,7 @@ def handle_sign_up(pickled_data):
 @socketio.on('login')
 def handle_login(pickled_data):
     data = pickle_to_data(pickled_data)
-    res = get_db().login(data[0], data[1])
+    res = get_db().login(string_to_hash(data[0]), string_to_hash(data[1]))
     send_response("login", res)
 
 
