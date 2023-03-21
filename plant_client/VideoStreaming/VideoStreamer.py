@@ -31,25 +31,25 @@ class VideoStreamer:
 
     def generate_frames(self):
         if not hasattr(self, 'camera'):
-            self.camera = cv2.VideoCapture(0)
+            self.camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
         while True:
             success, frame = self.camera.read()
-
+            flipped_frame = cv2.flip(frame, 1)
             if not success:
                 print("Done Videoing")
                 self.stop()
                 break
             else:
-                ret, buffer = cv2.imencode('.jpg', frame)
-                frame = buffer.tobytes()
+                ret, buffer = cv2.imencode('.jpg', flipped_frame)
+                flipped_frame = buffer.tobytes()
 
             yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+                   b'Content-Type: image/jpeg\r\n\r\n' + flipped_frame + b'\r\n')
 
     def generate_frames111(self):
         if not hasattr(self, 'camera'):
-            self.camera = cv2.VideoCapture(0)
+            self.camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
         while True:
             # read the camera frame
             success, frame = self.camera.read()

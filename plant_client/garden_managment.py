@@ -62,7 +62,7 @@ server_handler = ServerHandlerSockIO(server_ip="127.0.0.1", port=5000, client_ty
 
 
 # usm.sign_up(server_handler)
-usr = usm.login(server_handler, "doron", "ma")
+usr = usm.login(server_handler, "2", "2")
 
 event_logger = EventLogger(server_handler)
 remote_handler = RemoteControlHandler(server_handler, gardener, usr, event_logger)
