@@ -21,7 +21,12 @@ def download_resnet_model():
     except ImportError:
         from urllib import urlretrieve
 
-    fname = "plant_recognition_files\\Models\\retinanet_resnet50_fpn_coco-eeacb38b.pth"
+    folder_name = "plant_recognition_files\\Models\\"
+    fname = folder_name + "retinanet_resnet50_fpn_coco-eeacb38b.pth"
+
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+
     if not os.path.isfile(fname):
         urlretrieve(
             'https://github.com/OlafenwaMoses/ImageAI/releases/download/3.0.0-pretrained/retinanet_resnet50_fpn_coco-eeacb38b.pth/',
@@ -41,7 +46,8 @@ class PlantRecognitionManager:
         else:
             self.picture_grabber.take_a_picture()
 
-    def run(self, input_image_path="plant_recognition_files\\all_plants.jpg", output_image_path="", num_plants=2, current_plants=0):
+    def run(self, input_image_path="plant_recognition_files\\all_plants.jpg", output_image_path="", num_plants=2,
+            current_plants=0):
         self.take_picture()
 
         plant_num = self.plant_detector.detect_plants(input_image_path, output_image_path, num_plants)

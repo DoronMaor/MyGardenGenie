@@ -1,17 +1,32 @@
 import datetime
 import random
+import string
 import threading
 import fuckit as fit
-import select
-import pickle
-import hashlib
-import json
 import base64
 import time
 from flask_cors import CORS, cross_origin
 import cv2
 from flask import Flask, request, redirect, render_template, g, url_for, session, Response
 from flask_socketio import SocketIO, emit
+
+
+def get_ip():
+    """
+    Returns the IP address of the computer on which this function is executed.
+    """
+    import socket
+    ip = None
+    try:
+        # Create a UDP socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.connect(('8.8.8.8', 80))
+        ip = sock.getsockname()[0]
+        sock.close()
+    except socket.error:
+        pass
+    return ip
+
 
 
 class VideoStreamer:
@@ -22,6 +37,7 @@ class VideoStreamer:
         self.socketio = SocketIO(self.app)
         self.last_awake_call = None
         self.active_connections = set()
+        self.host = get_ip()
 
     def shutdown_server(self):
         func = request.environ.get('werkzeug.server.shutdown')
@@ -47,33 +63,13 @@ class VideoStreamer:
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + flipped_frame + b'\r\n')
 
-    def generate_frames111(self):
-        if not hasattr(self, 'camera'):
-            self.camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-        while True:
-            # read the camera frame
-            success, frame = self.camera.read()
-            print("Last time", (datetime.datetime.now() - self.last_awake_call).total_seconds())
-            if (datetime.datetime.now() - self.last_awake_call).total_seconds() > 6:
-                success = False
-
-            if not success:
-                print("Done Videoing")
-                self.stop()
-                break
-            else:
-                ret, buffer = cv2.imencode('.jpg', frame)
-                frame = buffer.tobytes()
-
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-
     def start(self):
         @self.app.route('/video')
         @cross_origin()
         def video():
             # Add the connection to the set of active connections
-            r = request.remote_addr + str(random.randint(0, 1000))
+            random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=5))
+            r = request.remote_addr + random_string
             self.active_connections.add(r)
 
             # Start the video stream
@@ -87,15 +83,9 @@ class VideoStreamer:
 
             return response
 
-        @self.app.route('/video/awake', methods=['POST'])
-        @cross_origin()
-        def handle_awake_call():
-            self.last_awake_call = datetime.datetime.now()
-            print("Awaken!")
-
         if not self.last_awake_call:
-            self.socketio.run(self.app, allow_unsafe_werkzeug=True, port=8080)  # , host="192.168.0.115")
-            threading.Thread(target=self.awake_check(), args=(self, ))
+            self.socketio.run(self.app, allow_unsafe_werkzeug=True, port=8080, host=self.host)
+            threading.Thread(target=self.awake_check(), args=(self,))
 
     def stop(self):
         if len(self.active_connections) < 1:

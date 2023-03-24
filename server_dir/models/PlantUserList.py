@@ -50,11 +50,11 @@ class PlantUserList:
     def get_stream_ip_by_sock(self, sck):
         for i in self.dict:
             pc = self.dict[i]
-            usock = pc.get_user_sock()
-            psock1 = pc.get_plant_sock('A')
-            psock2 = pc.get_plant_sock('B')
+            psock = pc.get_plant_sock()
+            usock1 = pc.get_user_sock('A')
+            usock2 = pc.get_user_sock('B')
 
-            if usock == sck or psock1 == sck or psock2 == sck:
+            if psock == sck or usock1 == sck or usock2 == sck:
                 return pc.get_stream_ip()
 
         return "127.0.0.1"

@@ -11,11 +11,8 @@ def get_ip():
     try:
         # Create a UDP socket
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        # Connect to a well-known IP address and port number
         sock.connect(('8.8.8.8', 80))
-        # Get the socket's local address, which is the IP address of the computer
         ip = sock.getsockname()[0]
-        # Close the socket
         sock.close()
     except socket.error:
         pass

@@ -264,6 +264,7 @@ def handle_video_start(pickled_data):
     message_data, user_id = data[0], data[1]
     s = plant_user_table.get_sock("plant", user_id)
     send_message(s, "video_start", message_data)
+    send_response("video_start", plant_user_table.get_stream_ip_by_sock(s))
 
 
 @socketio.on('video_stop')

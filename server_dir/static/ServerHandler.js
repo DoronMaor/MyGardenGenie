@@ -1,8 +1,4 @@
-// const io = require("socket.io-client");
 const socket = io();
-// const { promisify } = require("util");
-// const wait = promisify(setTimeout);
-// const pickle = require("picklejs");
 
 class ServerHandlerSockIO {
   constructor(server_ip, port, client_type = "user", time_out = 0) {
@@ -109,12 +105,12 @@ class ServerHandlerSockIO {
 
   led_ring(plant, mode) {
     var m = ["remote_action", [2, plant, mode]];
-    this.send_and_receive(m);
+    this.send(m);
   }
 
   add_water(plant, duration) {
     var m = ["remote_action", [3, plant, parseInt(duration)]];
-    this.send_and_receive(m);
+    this.send(m);
   }
 
   get_light_level(plant) {
@@ -140,7 +136,8 @@ class ServerHandlerSockIO {
 
   video_start(ip, port) {
     const mes = ["video_start", [ip, port]];
-    this.send(mes);
+    var stream_ip = this.send_and_receive(mes);
+    return stream_ip;
   }
 
   stop_receiving(ip, port) {
@@ -179,9 +176,3 @@ class ServerHandlerSockIO {
   }
   // endregion
 }
-
-//if (require.main === module) {
-//const server_handler = new ServerHandlerSockIO("127.0.0.1", 5000);
-// server_handler.sign_up("2", "2")
-// server_handler.login("2", "2");
-//}

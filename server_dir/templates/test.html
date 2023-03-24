@@ -23,7 +23,10 @@
     <script src="{{url_for('static', filename='ServerHandler.js')}}"></script>
 
     <script>
-      var server_handler = new ServerHandlerSockIO("127.0.0.1", 5000);
+      var server_handler = new ServerHandlerSockIO(
+        window.location.hostname,
+        5000
+      );
       var current_plant = "A";
       // server_handler.login(sessionStorage.getItem("username"), sessionStorage.getItem("password"));
       server_handler.login(
@@ -66,8 +69,9 @@
 
     <div id="video-actions" style="display: none">
       <h2>Video Stream</h2>
-      <img id="video" src="#" width="500"/>
+      <img id="video" src="#" width="670" />
     </div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   </body>
   <script>
@@ -98,10 +102,11 @@
       } else {
         videoModeBtn.textContent = "Stop Video Mode";
         videoActions.style.display = "block";
-        server_handler.video_start("127.0.0.1", 8080);
-        $(function () {
-          var video = $("#video")[0];
-          video.src = "http://127.0.0.1:8080/video";
+        server_handler.video_start("127.0.0.1", 8080).then((stream_ip) => {
+          $(function () {
+            var video = $("#video")[0];
+            video.src = `http://${stream_ip[1]}:8080/video`;
+          });
         });
       }
     });
