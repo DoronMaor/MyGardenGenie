@@ -1,5 +1,4 @@
 import re
-
 import arduino_robot as ar
 
 
@@ -19,7 +18,8 @@ class Gardener:
                 "get_light_level": self.get_light_level,
                 "add_water": self.add_water,
             }
-        self.led_state = False
+        self.led_state_A = False
+        self.led_state_B = False
 
     def do_action(self, action: tuple):
         """
@@ -33,11 +33,18 @@ class Gardener:
         self.arduino_robot.set_text_display(msg=txt, rec=False)
 
     def set_led_ring(self, plant: str, mode):
-        if mode is not bool:
-            self.led_state = not self.led_state
-        else:
-            self.led_state = mode
-        self.arduino_robot.set_light(plant=plant, mode=self.led_state, rec=False)
+        if plant == "A":
+            if mode is not bool:
+                self.led_state_A = not self.led_state_A
+            else:
+                self.led_state_A = mode
+            self.arduino_robot.set_light(plant=plant, mode=self.led_state_A, rec=False)
+        elif plant == "B":
+            if mode is not bool:
+                self.led_state_B = not self.led_state_B
+            else:
+                self.led_state_B = mode
+            self.arduino_robot.set_light(plant=plant, mode=self.led_state_B, rec=False)
 
     def add_water(self, plant: str, dur: str):
         self.arduino_robot.add_water(plant=plant, dur=dur, rec=False)
@@ -54,14 +61,3 @@ class Gardener:
             return clean_output(self.arduino_robot.get_light_level(plant=plant, rec=rec))
         except:
             return -12349
-
-
-
-    #region POC
-    def set_test_led(self, mode: bool):
-        self.arduino_robot.set_test_led(mode)
-
-    def get_joystick_cords(self, dummy):
-        return self.arduino_robot.get_joystick_cords(True)
-
-    #endregion

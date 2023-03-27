@@ -34,7 +34,8 @@ class SQLUserManager:
         self.cursor = self.conn.cursor()
 
     def sign_up(self, username, password, code=None):
-        if code is not None:
+        if code is not "":
+            print("code", code)
             idn = self.get_id_by_code(code)
             if idn is None:
                 print("ERORR, idn is NONE!")

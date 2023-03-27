@@ -33,6 +33,8 @@ class PlantUserList:
                         return pc.get_plant_sock()
                     elif c_type == "user":
                         return pc.get_user_sock(full_id_num[-1])
+                    elif c_type == "both_users":
+                        return pc.get_both_users_sock()
                     return -1
         return -1
 

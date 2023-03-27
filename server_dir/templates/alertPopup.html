@@ -1,0 +1,79 @@
+<div class="message">
+  <p id="messageText"></p>
+  <button class="close-button">&times;</button>
+</div>
+
+<style>
+  .message {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    padding: 30px;
+    background-color: #fff;
+    color: #333;
+    border: 2px solid #f44336;
+    border-radius: 15px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.2));
+    transition: transform 0.3s cubic-bezier(0.075, 0.82, 0.165, 1),
+      opacity 0.4s cubic-bezier(0.075, 0.82, 0.165, 1);
+    transform: translateY(100%);
+    opacity: 0;
+  }
+
+  .message.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .close-button {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    border: none;
+    font-size: 32px;
+    cursor: pointer;
+    color: #ff0c0c;
+    text-shadow: none;
+    border-radius: 50%;
+    background-color: #ff0c0c00;
+    padding: 12px;
+    transition: transform 0.2s ease-out;
+  }
+
+  .close-button:hover {
+    transform: scale(1.1);
+  }
+</style>
+
+<script>
+  const closeButton = document.querySelector(".close-button");
+  const message = document.querySelector(".message");
+  const messageText = document.querySelector("#messageText");
+
+  closeButton.addEventListener("click", function () {
+    message.classList.remove("show");
+    setTimeout(function () {
+      messageText.textContent = "";
+    }, 500);
+  });
+
+  function showMessage(msg) {
+    messageText.textContent = msg;
+    message.classList.add("show");
+
+    setTimeout(function () {
+      message.classList.remove("show");
+      setTimeout(function () {
+        messageText.textContent = "";
+      }, 500);
+    }, 5000);
+  }
+
+  // Example usage: update message when button is clicked
+  const updateButton = document.querySelector("#updateButton");
+  updateButton.addEventListener("click", function () {
+    showMessage("The button was clicked!");
+  });
+</script>

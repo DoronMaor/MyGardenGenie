@@ -1,6 +1,7 @@
 from plant_client.message_analyzer import analyze_message
 import threading
 
+
 class RemoteControlHandler:
     def __init__(self, server_handler, gardener, usr_obj, event_logger, current_message=None):
         self.server_handler = server_handler
@@ -10,6 +11,7 @@ class RemoteControlHandler:
         self.active = False
         self.current_message = current_message
         self.current_thread = None
+        self.connected_accounts = 0
 
     def get_message(self):
         return self.server_handler.listen()
@@ -33,14 +35,19 @@ class RemoteControlHandler:
                 # Invoke the action and get the response
                 response = self.gardener.do_action(action_data)
                 # Add an event to the event logger
-                #self.event_logger.add_auto_action_event(user_id=user_id, level="Manual", action=action_data,
-                 #                                       send_now=True)
+                # self.event_logger.add_auto_action_event(user_id=user_id, level="Manual", action=action_data,
+                #                                       send_now=True)
                 if response is not None:
                     self.server_handler.send_data((response, user_id), add_id=False)
             elif action_type == "remote_stop":
-                self.active = False
+                self.connected_accounts -= 1
+                if self.connected_accounts <= 0:
+                    self.connected_accounts = 0
+                    self.active = False
+                else:
+                    print("A user disconnected, but still connected with %d users" % self.connected_accounts)
             else:
-                print("remote caught the message, moving to do_messge")
+                print("remote caught the message, moving to do_message")
                 # self.do_message(message)
             self.current_message = None
 
@@ -48,6 +55,8 @@ class RemoteControlHandler:
         self.server_handler.set_time_out(None)
 
     def start_remote_loop(self, user_id: str):
-        self.current_thread = threading.Thread(target=self.remote_loop, args=(user_id, ))
+        self.current_thread = threading.Thread(target=self.remote_loop, args=(user_id,))
         self.current_thread.start()
+        self.connected_accounts += 1
+        self.server_handler.send_alert("Remote control started successfully")
 

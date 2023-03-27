@@ -31,7 +31,8 @@ def listen_for_messages(mes=None):
 
         if action_header in remote_message_headers:
             remote_handler.set_current_message(message)
-            if action_header == "remote_stop":
+
+            if action_header == "remote_stop" and remote_handler.connected_accounts == 0:
                 mgf.set_remote_connection(False)
             continue
 
@@ -42,6 +43,7 @@ def listen_for_messages(mes=None):
             print("Starting video...")
             t = threading.Thread(target=video_streamer.start)
             t.start()
+            server_handler.send_alert("Video streaming started successfully, video will soon be shown on screen")
         elif action_header == "video_stop":
             video_streamer.stop()
         elif action_header == "get_plant_dict":
@@ -60,20 +62,20 @@ gardener = Gardener()
 # server_handler = ServerHandler(server_ip="localhost", client_type="plant", time_out=3)
 server_handler = ServerHandlerSockIO(server_ip="127.0.0.1", port=5000, client_type="plant", time_out=3)
 
-
 # usm.sign_up(server_handler)
-usr = usm.login(server_handler, "2", "2")
+usr = usm.login(server_handler, "1", "1")
 
 event_logger = EventLogger(server_handler)
 remote_handler = RemoteControlHandler(server_handler, gardener, usr, event_logger)
 video_streamer = VideoStreamer()
 plant_recognition_manager = PlantRecognitionManager(server_handler)
 
-#plant_recognition_manager.run(current_plants=mgf.check_plant_files())
+# plant_recognition_manager.run(current_plants=mgf.check_plant_files())
 
 plantA_state = mgf.get_automatic_mode("plantA.mgg")
 plantB_state = mgf.get_automatic_mode("plantB.mgg")
 mgf.set_remote_connection(False)
+
 
 # endregion
 

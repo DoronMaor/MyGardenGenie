@@ -8,14 +8,10 @@
     <title>Signup/Login Page</title>
   </head>
   <body>
-    <body>
-      <nav>
-        <ul>
-          <li><a href="/">Home</a></li>
-          <li><a href="#">Monitoring</a></li>
-        </ul>
-      </nav>
-    </body>
+   {% include 'nav.html' %}
+
+    {% block content %}
+    {% endblock %}
     <h1>Welcome to Plant Monitoring!</h1>
     <div class="container">
       <form

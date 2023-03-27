@@ -37,5 +37,8 @@ class PlantUserCon:
         print("users get", self.users)
         return self.users[0 if letter == 'A' else 1]
 
+    def get_both_users_sock(self):
+        return self.users
+
     def get_plant_sock(self):
         return self.plant

@@ -1,14 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <body>
-      <nav>
-        <ul>
-          <li><a href="/">Home</a></li>
-          <li><a href="#">Monitoring</a></li>
-        </ul>
-      </nav>
-    </body>
+    {% include 'nav.html' %} {% block nav %} {% endblock %}
 
     <title>Server Handler SockIO Demo</title>
     <link
@@ -36,6 +29,7 @@
     </script>
   </head>
   <body>
+    {% include 'alertPopup.html' %} {% block alert %} {% endblock %}
     <h1>Plant Monitoring</h1>
     <button id="remote-mode">Start Remote Mode</button>
     <button id="video-mode">Start Video Mode</button>
@@ -80,6 +74,8 @@
     const switchPlantBtn = document.querySelector("#switch-plant");
     const remoteActions = document.querySelector("#remote-actions");
     const videoActions = document.querySelector("#video-actions");
+    var led_A = false;
+    var led_B = false;
 
     remoteModeBtn.addEventListener("click", () => {
       if (remoteActions.style.display == "block") {
@@ -125,7 +121,15 @@
     });
 
     document.getElementById("led-ring").addEventListener("click", () => {
-      server_handler.led_ring(current_plant, true);
+      var l = false;
+      if (current_plant == "A") {
+        led_A = !led_A;
+        l = led_A;
+      } else if (current_plant == "B") {
+        led_B = !led_B;
+        l = led_B;
+      }
+      server_handler.led_ring(current_plant, l);
     });
 
     document.getElementById("add-water").addEventListener("click", () => {
@@ -162,6 +166,12 @@
         document.getElementById("current_plant_tag").innerHTML =
           "Current plant:" + dict[1][0][current_plant];
       });
+    });
+
+    // Handle the 'alert' event
+    server_handler.get_socketio().on("alert", function (data) {
+      // Set the message text
+      showMessage(data.message);
     });
   </script>
 </html>

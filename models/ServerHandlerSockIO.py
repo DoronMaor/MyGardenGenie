@@ -100,6 +100,14 @@ class ServerHandlerSockIO:
 
     # endregion
 
+    # region ALERTS
+    def send_alert(self, msg):
+        mes = ('alert', msg)
+        self.send(mes)
+    # endregion
+
+
+
     # region VIDEO
     def video_start(self, ip: str, port: int):
         mes = ("video_start", (ip, port))

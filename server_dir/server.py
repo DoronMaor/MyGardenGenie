@@ -133,12 +133,10 @@ def index():
             else:
                 return "Sign up failed, try again"
 
-
-
     return render_template("main.html")
 
 
-@app.route('/remote_actions', methods=['GET', 'POST'])
+@app.route('/plant_monitoring', methods=['GET', 'POST'])
 def remote_actions():
     try:
         a = session['id']
@@ -256,6 +254,19 @@ def handle_register_plant(data):
 
 
 # endregion
+
+# region ALERTS
+@socketio.on('alert')
+def handle_alert(pickled_data):
+    data = pickle_to_data(pickled_data)
+    user_id, message_data = data[-1], data[0]
+
+    sA, sB = plant_user_table.get_sock("both_users", user_id)
+    print("Sending alerts to ", sA, sB)
+    # Emit the 'alert' event to the client
+    socketio.emit('alert', {'message': message_data}, room=sA)
+    socketio.emit('alert', {'message': message_data}, room=sB)
+
 
 # region VIDEO STREAMING
 @socketio.on('video_start')
