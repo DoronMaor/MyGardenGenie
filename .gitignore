@@ -693,3 +693,4 @@ server_dir/C/Lib/site-packages/torch/include/ATen/ops/upsample_nearest3d_meta_di
 server_dir/C/Lib/site-packages/torch/include/ATen/ops/upsample_nearest3d_meta.h
 server_dir/C/Lib/site-packages/torch/include/ATen/ops/upsample_nearest3d_cuda_dispatch.h
 server_dir/C/Lib/site-packages/torch/include/ATen/ops/upsample_nearest3d_cpu_dispatch.h
+plant_client/plant_recognition_files/Models/retinanet_resnet50_fpn_coco-eeacb38b.pth

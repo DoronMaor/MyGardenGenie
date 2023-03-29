@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='home-page.css')}}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='general.css')}}"
+    />
+    <title>Signup/Login Page</title>
+  </head>
+
+  <body>
+    {% include 'nav-template.html' %} {% block nav %} {% endblock %}
+    <!-- hero section -->
+    <section class="hero">
+      <div class="hero-content">
+        <h2>Effortlessly care for your plants with MyGardenGenie</h2>
+        <p>
+          Our IoT-based remote monitoring and care solution for home gardening
+          ensures your plants receive the optimal care they need to thrive.
+        </p>
+        <button class="cta-button">Get started</button>
+      </div>
+      <div class="hero-image">
+        <img
+          src="https://via.placeholder.com/600x400"
+          alt="MyGardenGenie in action"
+        />
+      </div>
+    </section>
+
+    <!-- features section -->
+    <section class="features">
+      <h2>Features</h2>
+      <div class="feature-list">
+        <div class="feature-item">
+          <img
+            src="https://via.placeholder.com/100x100"
+            alt="Lighting control"
+          />
+          <h3>Lighting control</h3>
+          <p>
+            Control the lighting for your plants remotely with our advanced
+            lighting system.
+          </p>
+        </div>
+        <div class="feature-item">
+          <img
+            src="https://via.placeholder.com/100x100"
+            alt="Humidity control"
+          />
+          <h3>Watering control</h3>
+          <p>
+            Never worry about over or under watering your plants again with our
+            automated watering system.
+          </p>
+        </div>
+        <div class="feature-item">
+          <img
+            src="https://via.placeholder.com/100x100"
+            alt="Watering control"
+          />
+          <h3>Remote Control</h3>
+          <p>
+            Have the ability to connect to your plants from afar whenever you
+            want including live video streaming.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- sign up section -->
+    <section class="hero">
+      <div class="signup-content">
+        <h2>Get started with MyGardenGenie today</h2>
+        <p>
+          Sign up for a free account and start caring for your plants with ease.
+        </p>
+        <div class="container">
+          <form
+            action="/"
+            method="post"
+            class="form-container active"
+            id="signup-form"
+          >
+            <h2>Signup</h2>
+            <label for="username_n">Username:</label>
+            <input type="text" id="username_n" name="username_n" /><br /><br />
+            <label for="password_n">Password:</label>
+            <input
+              type="password"
+              id="password_n"
+              name="password_n"
+            /><br /><br />
+            <label for="code">Account Code (optional):</label>
+            <input type="text" id="code" name="code" /><br /><br />
+            <input type="submit" value="Signup" class="cta-button" />
+          </form>
+          <form
+            action="/"
+            method="post"
+            class="form-container active"
+            id="login-form"
+          >
+            <h2>Login</h2>
+            <label for="username">Username:</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              required
+            /><br /><br />
+            <label for="password">Password:</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+            /><br /><br />
+            <input type="submit" value="Login" class="cta-button" />
+          </form>
+        </div>
+      </div>
+    </section>
+    {% include 'footer-template.html' %} {% block footer %} {% endblock %}
+    <script>
+      const form = document.getElementById("login-form");
+      form.addEventListener("submit", function (event) {
+        sessionStorage.clear();
+        event.preventDefault(); // prevent the form from actually submitting
+
+        username = document.getElementById("username").value;
+        password = document.getElementById("password").value;
+
+        if (!username || !password) {
+          console.log("Username and password are required.");
+          return;
+        }
+
+        sessionStorage.setItem("username", username);
+        sessionStorage.setItem("password", password);
+
+        console.log(sessionStorage);
+        // proceed with submitting the form
+        form.submit();
+      });
+    </script>
+  </body>
+</html>

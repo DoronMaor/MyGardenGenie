@@ -1,0 +1,156 @@
+/* general styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Roboto", sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* footer styles */
+footer {
+  background-color: #333;
+  color: #fff;
+  padding: 50px;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 50px;
+}
+
+.footer-section h3 {
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+.footer-section p {
+  font-size: 14px;
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+
+.footer-section ul {
+  list-style: none;
+  margin-bottom: 20px;
+}
+
+.footer-section ul li {
+  margin-bottom: 10px;
+}
+
+.footer-section ul li i {
+  margin-right: 10px;
+  color: #66c2a5;
+  font-size: 18px;
+}
+
+.footer-section.social ul li a {
+  display: inline-block;
+  background-color: #66c2a5;
+  color: #fff;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  line-height: 40px;
+}
+
+.footer-section.social ul li a:hover {
+  background-color: #4c8f76;
+}
+
+.footer-bottom {
+  border-top: 1px solid #fff;
+  padding-top: 20px;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* header styles */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.logo h1 {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+nav ul {
+  display: flex;
+}
+
+nav ul li {
+  list-style: none;
+  margin-left: 20px;
+}
+
+nav ul li a {
+  color: #333;
+  text-decoration: none;
+}
+
+nav ul li a:hover {
+  color: #66c2a5;
+}
+
+.cta-button {
+  display: inline-block;
+  background-color: #66c2a5;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.3s ease;
+}
+
+.cta-button-mini {
+  display: inline-block;
+  background-color: #2dd19d;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 14px;
+  border: none;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background-color 0.1s ease, transform 0.2s ease;
+}
+
+.cta-button:hover {
+  background-color: #4c8f76;
+  transform: translateY(-2px);
+}
+
+.cta-button-mini:hover {
+  background-color: #1e8660;
+  transform: translateY(-5px);
+}
+
+.features-content h3,
+.cta-content h3 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.centered-text {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50%;
+}

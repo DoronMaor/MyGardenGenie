@@ -2,7 +2,6 @@ import threading
 from VideoStreaming.VideoStreamer import VideoStreamer
 from gardener import Gardener
 from plant_client.message_analyzer import analyze_message
-from models.server_handler import ServerHandler
 from models.ServerHandlerSockIO import ServerHandlerSockIO
 from client_models.EventLogger import EventLogger
 from client_models.RemoteControlHandler import RemoteControlHandler

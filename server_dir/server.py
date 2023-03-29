@@ -43,25 +43,6 @@ def get_plant_identifier():
 # endregion
 
 
-"""def generate_frames():
-    camera = cv2.VideoCapture(0)
-    while True:
-        # read the camera frame
-        success, frame = camera.read()
-        if not success:
-            break
-        else:
-            ret, buffer = cv2.imencode('.jpg', frame)
-            frame = buffer.tobytes()
-
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-
-
-@app.route('/video')
-def video():
-    return Response(generate_frames(),mimetype='multipart/x-mixed-replace; boundary=frame')"""
-
 def string_to_hash(s):
     # Create a hash object
     hash_obj = hashlib.sha256()
@@ -133,7 +114,7 @@ def index():
             else:
                 return "Sign up failed, try again"
 
-    return render_template("main.html")
+    return render_template("home-page.html")
 
 
 @app.route('/plant_monitoring', methods=['GET', 'POST'])
@@ -145,7 +126,7 @@ def remote_actions():
         return redirect(url_for('index'))
 
     session["client_type"] = "user"
-    return render_template("test.html")
+    return render_template("plant-monitoring-page.html")
 
 
 @socketio.on('connect')
