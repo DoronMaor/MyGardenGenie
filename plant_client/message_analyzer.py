@@ -46,7 +46,7 @@ def set_message(m):
 
 def get_message(m):
     if m[0] == "get_plant_dict":
-        return "get_plant_dict", None
+        return "get_plant_dict", m[1][0]
 
     return None, None
 

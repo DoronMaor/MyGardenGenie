@@ -55,7 +55,7 @@
         <div
           class="centered-text"
           id="remote-wall-text"
-          style="font-size: 30px; color: rgb(218, 255, 226)"
+          style="font-size: 30px; color: rgb(251, 255, 252)"
         >
           Start remote control mode in order to start controling your plants!
         </div>
@@ -158,19 +158,18 @@
 
     remoteModeBtn.addEventListener("click", () => {
       if (remoteWall.classList.contains("not-active")) {
-        remoteModeBtn.textContent = "Start Remote Mode";
-        remoteWall.classList.add("active");
-        remoteWall.classList.remove("not-active");
-
-        remoteWallText.textContent = "";
-        server_handler.stop_remote_mode();
-      } else {
+        server_handler.start_remote_mode();
         remoteModeBtn.textContent = "Stop Remote Mode";
+        remoteWall.classList.remove("not-active");
+        remoteWall.classList.add("active");
+        remoteWallText.textContent = "";
+      } else {
+        server_handler.stop_remote_mode();
+        remoteModeBtn.textContent = "Start Remote Mode";
         remoteWall.classList.remove("active");
         remoteWall.classList.add("not-active");
         remoteWallText.textContent =
           "Start remote control mode in order to start controling your plants!";
-        server_handler.start_remote_mode();
       }
     });
 
@@ -237,10 +236,6 @@
       .addEventListener("click", () => {
         server_handler.change_automatic(current_plant, "1");
       });
-
-    document.getElementById("remote-stop").addEventListener("click", () => {
-      server_handler.stop_remote_mode();
-    });
 
     document.getElementById("switch-plant").addEventListener("click", () => {
       server_handler.get_plants_dict().then((dict) => {

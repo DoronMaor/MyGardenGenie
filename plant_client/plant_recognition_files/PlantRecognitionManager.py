@@ -4,15 +4,52 @@ from plant_client.mgg_functions import *
 from plant_recognition_files.PlantDetector import PlantDetector
 import base64
 import os
+import tkinter as tk
 
 
 def extract_plant_data(response):
-    plant_recognition_data, gardening_data = response[1][0], response[1][1]
+    plant_recognition_data, gardening_data = response[1]['recognition'], response[1]['gardening']
     plant_dict = {"PLANT_NAME": input("plant name:"), "PLANT_TYPE": plant_recognition_data["plant_name"],
                   "LIGHT_LVL": gardening_data["LIGHT_LVL"], "LIGHT_HOURS": gardening_data["LIGHT_HOURS"],
                   "MOISTURE_LVL": gardening_data["MOISTURE_LVL"], "MODE": "AUTOMATIC"}
 
     return plant_dict
+
+
+def extract_plant_data_tk(response):
+    print("Extract")
+    plant_recognition_data, gardening_data = response[1]['recognition'], response[1]['gardening']
+
+    # Create a Tkinter window for the form
+    root = tk.Tk()
+    root.title("Plant Data Form")
+
+    # Create the form labels and input fields
+    plant_name_label = tk.Label(root, text="Plant Name:")
+    plant_name_entry = tk.Entry(root)
+    plant_name_label.grid(row=0, column=0)
+    plant_name_entry.grid(row=0, column=1)
+
+    # Create a function to be called when the form is submitted
+    def submit_form():
+        plant_dict = {"PLANT_NAME": plant_name_entry.get(),
+                      "PLANT_TYPE": plant_recognition_data["plant_name"],
+                      "LIGHT_LVL": gardening_data["LIGHT_LVL"],
+                      "LIGHT_HOURS": gardening_data["LIGHT_HOURS"],
+                      "MOISTURE_LVL": gardening_data["MOISTURE_LVL"],
+                      "MODE": "AUTOMATIC"}
+        root.plant_dict = plant_dict  # Store the plant_dict in an instance variable of the root window
+        root.destroy()  # Close the form window
+
+    # Create the submit button
+    submit_button = tk.Button(root, text="Submit", command=submit_form)
+    submit_button.grid(row=1, column=1)
+
+    # Block the program until the form is submitted
+    root.mainloop()
+
+    # Retrieve the plant_dict from the root window and return it
+    return root.plant_dict
 
 
 def download_resnet_model():
@@ -38,7 +75,7 @@ class PlantRecognitionManager:
         self.server_handler = server_handler
         self.picture_grabber = PictureGrabber()
         download_resnet_model()
-        # self.plant_detector = PlantDetector()
+        self.plant_detector = PlantDetector()
 
     def take_picture(self, purpose=""):
         if purpose == "analysis":
@@ -51,12 +88,12 @@ class PlantRecognitionManager:
         self.take_picture()
 
         plant_num = self.plant_detector.detect_plants(input_image_path, output_image_path, num_plants)
-
-        self.process_detected_plants(plant_num != current_plants)
+        self.process_detected_plants()  # plant_num != current_plants)
 
     def process_detected_plants(self, detect=True):
         directory = '.'  # current directory
         counter = 0
+        d = {0: 'A', 1: 'B', 2: 'C'}
         for filename in os.listdir(directory):
             if filename.startswith("detection_") and counter < 2:
                 with open(os.path.join(directory, filename), 'rb') as image_file:
@@ -66,8 +103,8 @@ class PlantRecognitionManager:
                         response = self.server_handler.send_image_recognition(zlib.compress(base64_image.encode()))
                         print(response)
 
-                        plant_dict = extract_plant_data(response)
-                        add_plant_dict(plant_dict)
+                        plant_dict = extract_plant_data_tk(response)
+                        add_plant_dict(plant_dict, d[counter])
 
                         # register in server
                         self.server_handler.register_plant(plant_dict)

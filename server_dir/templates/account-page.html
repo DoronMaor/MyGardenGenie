@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    {% include 'nav-template.html' %} {% block nav %} {% endblock %}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Account - Plant Monitoring App</title>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='account-page.css')}}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='general.css')}}"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <div class="section">
+        <h1>Account Information</h1>
+        <form
+          action="/account"
+          method="post"
+          class="form-container"
+          id="update-form"
+        >
+          <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" value="{{ username }}" />
+          </div>
+          <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" value="{{ email }}" />
+          </div>
+          <div class="form-group">
+            <label for="password">New Password:</label>
+            <input type="password" id="password" name="password" />
+          </div>
+          <div class="form-group">
+            <label for="account-code">Account code:</label>
+            <input
+              type="text"
+              id="account-code"
+              name="account-code"
+              value="{{ account_code }}"
+              readonly
+              style="
+                background-color: rgba(182, 182, 182, 0.254);
+                color: rgb(56, 56, 56);
+              "
+            />
+          </div>
+          <button class="cta-button" type="submit">Save Changes</button>
+        </form>
+      </div>
+
+      <div class="section">
+        <h1>Plants Information</h1>
+        <table>
+          <thead>
+            <tr>
+              <th>Your Plants</th>
+            </tr>
+            {% for plant in user_plants %}
+          </thead>
+
+          <tbody>
+            <tr class="plant">
+              <td>
+                {% set plant_name = plant['PLANT_NAME'] %} {{ plant_name }}
+                <button
+                  class="remove-button"
+                  onclick="this.parentNode.parentNode.remove(); removePlant('{{ plant_name }}');"
+                >
+                  &#10006;
+                </button>
+              </td>
+              <td>{{ plant['PLANT_TYPE'] }}</td>
+              <td>
+                <span
+                  class="status {{ 'active' if plant['MODE'] == 'AUTOMATIC' else 'not-active' }}"
+                  >{{ plant['MODE'] }}</span
+                >
+              </td>
+            </tr>
+          </tbody>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+  </body>
+  <script>
+    function removePlant(plantName) {
+      // send a POST request to the server to remove the plant
+      fetch("/remove_plant", {
+        method: "POST",
+        body: JSON.stringify({ plantName }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to remove plant");
+          }
+          // do any necessary actions if the request was successful
+        })
+        .catch((error) => {
+          console.error(error);
+          // do any necessary error handling
+        });
+    }
+  </script>
+
+  {% include 'footer-template.html' %} {% block footer %} {% endblock %}
+</html>

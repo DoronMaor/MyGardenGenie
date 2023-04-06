@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    {% include 'nav-template.html' %} {% block nav %} {% endblock %}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reports</title>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='reports-page.css')}}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='general.css')}}"
+    />
+  </head>
+  <h1>Reports</h1>
+
+  <div class="container">
+    <h2>Events by date</h2>
+
+    <form class="date-picker-form">
+      <label for="start-date">Start Date:</label>
+      <input
+        type="date"
+        id="start-date"
+        name="start_date"
+        value="{{ start_date|default('') }}"
+      />
+      <label for="end-date">End Date:</label>
+      <input
+        type="date"
+        id="end-date"
+        name="end_date"
+        value="{{ end_date|default('') }}"
+      />
+      <button type="submit">Submit</button>
+    </form>
+    <h3>{{ log_count }} results</h3>
+    <div class="logs-container">
+      {% for log in logs %}
+      <div class="log">
+        <p class="time">{{ log.time }}</p>
+        <p class="by">{{ log.by }}</p>
+        <p class="level">{{ log.level }}</p>
+        <p class="action">{{ log.action }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% include 'footer-template.html' %} {% block footer %} {% endblock %}
+</html>

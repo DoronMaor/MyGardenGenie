@@ -26,8 +26,8 @@ class PictureGrabber:
         self.file_name = file_name
 
     def setup_camera(self):
-        # self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-        self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+        # self.cap = cv2.VideoCapture(0)
 
     def get_file_name(self, path=""):
         if path == "plant_analysis_pictures":

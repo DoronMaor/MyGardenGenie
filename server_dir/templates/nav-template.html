@@ -1,14 +1,43 @@
 <!-- header section -->
-<header>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Inter&display=swap"
+  rel="stylesheet"
+/>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300&display=swap"
+  rel="stylesheet"
+/>
+<link
+  rel="icon"
+  type="image/ico"
+  href="{{ url_for('static', filename='favicon.ico') }}"
+/>
+<header class="navheader">
   <div class="logo">
-    <h1 style="color: #5cb85c">MyGardenGenie</h1>
+    <a href="/"
+      ><img
+        src="{{ url_for('static', filename='images/Logo2.png') }}"
+        height="65px"
+        href="/"
+        alt="home"
+    /></a>
   </div>
   <nav>
     <ul>
-      <li><a href="/">Home</a></li>
+      {% if logged %}
+
       <li><a href="/plant_monitoring">Plant Monitoring</a></li>
       <li><a href="/reports">Reports</a></li>
       <li><a href="/account">My Account</a></li>
+      <li><a href="/logout">Logout</a></li>
+
+      {% else %}
+      <li><a href="#signup-login">Signup/Login</a></li>
+      {% endif %}
     </ul>
   </nav>
 </header>

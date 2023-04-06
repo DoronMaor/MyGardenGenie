@@ -153,4 +153,18 @@ def set_remote_connection(mode: bool, filename="global.mgg"):
     # Write the updated contents back to the file
     with open(filename, 'w') as f:
         f.write(contents)
+
+
+def set_id(id_num, filename="global.mgg"):
+    # Open a file for writing
+    with open(filename, "w") as file:
+        # Write the contents to the file
+        file.write("ROUTINE_INTER: 6\nREMOTE_CONNECTION: False\nPICTURE_INTER: 1111\nID_NUM: %s" % id_num)
+
+
+def get_id(filename="global.mgg"):
+    with open(filename, 'r') as f:
+        contents = f.read()
+        match = re.search(r'ID_NUM:\s*(.*)', contents)
+        return match
 # endregion

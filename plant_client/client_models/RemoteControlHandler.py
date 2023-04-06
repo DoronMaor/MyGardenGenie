@@ -1,3 +1,5 @@
+import time
+
 from plant_client.message_analyzer import analyze_message
 import threading
 
@@ -19,12 +21,28 @@ class RemoteControlHandler:
     def set_current_message(self, mes):
         self.current_message = mes
 
+    def board_disconnected(self):
+        while True:
+            state = self.gardener.get_arduino_robot().reconnect_board()
+            if state:
+                print("Reconnected board successfully")
+                return
+            else:
+                time.sleep(0.5)
+
     def remote_loop(self, user_id: str):
         self.active = True
         print("===== Starting Remote =====")
         self.server_handler.set_time_out()
         while self.active:
             if not self.current_message:
+                is_connected = self.gardener.is_board_connected()
+                if not is_connected:
+                    self.server_handler.send_alert("The Arduino board is not connected to the PC anymore. \n"
+                                                   "Check if the USB cable is unplugged or the cable is loose")
+                    self.board_disconnected()
+                    is_connected = True
+                    self.server_handler.send_alert("The Arduino board has been reconnected!")
                 continue
 
             # Analyze message and get the action_type and action_data from it
@@ -35,8 +53,6 @@ class RemoteControlHandler:
                 # Invoke the action and get the response
                 response = self.gardener.do_action(action_data)
                 # Add an event to the event logger
-                # self.event_logger.add_auto_action_event(user_id=user_id, level="Manual", action=action_data,
-                #                                       send_now=True)
                 if response is not None:
                     self.server_handler.send_data((response, user_id), add_id=False)
             elif action_type == "remote_stop":
@@ -49,14 +65,24 @@ class RemoteControlHandler:
             else:
                 print("remote caught the message, moving to do_message")
                 # self.do_message(message)
+
+            self.event_logger.remote_event_logger(user_id=user_id, action_data=action_data, send_now=True)
             self.current_message = None
 
         print("===== Ending Remote =====")
         self.server_handler.set_time_out(None)
+
+    def remote_event_logger(self, user_id, action_data, send_now, threaded=True):
+        if threaded:
+            t = threading.Thread(target=self.event_logger.add_auto_action_event, args=(user_id, "Manual", action_data,
+                                                                                       send_now))
+            t.start()
+        else:
+            self.event_logger.add_auto_action_event(user_id=user_id, level="Manual", action=action_data,
+                                                    send_now=send_now)
 
     def start_remote_loop(self, user_id: str):
         self.current_thread = threading.Thread(target=self.remote_loop, args=(user_id,))
         self.current_thread.start()
         self.connected_accounts += 1
         self.server_handler.send_alert("Remote control started successfully")
-

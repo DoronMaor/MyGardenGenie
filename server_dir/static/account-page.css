@@ -1,0 +1,67 @@
+/* plant information styles */
+.plants {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  max-width: 800px;
+  margin: 50px auto;
+}
+
+.plant {
+  width: 250px;
+  margin: 20px;
+  padding: 20px;
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.plant-info {
+  margin-bottom: 20px;
+}
+
+.plant-info h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.plant-info p {
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.plant-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.plant-status p {
+  font-size: 16px;
+  margin-right: 10px;
+}
+
+.active {
+  font-size: 16px;
+  margin-right: 10px;
+  color: green;
+}
+
+.not-active {
+  font-size: 16px;
+  margin-right: 10px;
+  color: red;
+}
+
+.remove-button {
+  top: 0;
+  right: 0;
+  font-size: 20px;
+  color: red;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  margin-left: auto;
+}

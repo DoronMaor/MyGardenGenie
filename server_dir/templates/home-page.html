@@ -9,11 +9,11 @@
       rel="stylesheet"
       href="{{url_for('static', filename='general.css')}}"
     />
-    <title>Signup/Login Page</title>
+    <title>MGG</title>
   </head>
+  {% include 'nav-template.html' %} {% block nav %} {% endblock %}
 
   <body>
-    {% include 'nav-template.html' %} {% block nav %} {% endblock %}
     <!-- hero section -->
     <section class="hero">
       <div class="hero-content">
@@ -72,8 +72,9 @@
       </div>
     </section>
 
+    {% if logged %} {% else %}
     <!-- sign up section -->
-    <section class="hero">
+    <section class="hero" id="signup-login">
       <div class="signup-content">
         <h2>Get started with MyGardenGenie today</h2>
         <p>
@@ -95,6 +96,8 @@
               id="password_n"
               name="password_n"
             /><br /><br />
+            <label for="email">Email address:</label>
+            <input type="email" id="email" name="email" /><br /><br />
             <label for="code">Account Code (optional):</label>
             <input type="text" id="code" name="code" /><br /><br />
             <input type="submit" value="Signup" class="cta-button" />
@@ -120,12 +123,14 @@
               name="password"
               required
             /><br /><br />
+
             <input type="submit" value="Login" class="cta-button" />
           </form>
         </div>
       </div>
     </section>
-    {% include 'footer-template.html' %} {% block footer %} {% endblock %}
+    {% endif %} {% include 'footer-template.html' %} {% block footer %} {%
+    endblock %}
     <script>
       const form = document.getElementById("login-form");
       form.addEventListener("submit", function (event) {

@@ -61,3 +61,13 @@ class Gardener:
             return clean_output(self.arduino_robot.get_light_level(plant=plant, rec=rec))
         except:
             return -12349
+
+    def is_board_connected(self):
+        try:
+            return self.arduino_robot.check_device(self.arduino_robot.com)
+        except:
+            self.arduino_robot = ar.ArduinoRobot()
+            return False
+
+    def get_arduino_robot(self):
+        return self.arduino_robot

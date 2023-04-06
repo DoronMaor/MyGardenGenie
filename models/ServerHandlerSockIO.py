@@ -60,8 +60,11 @@ class ServerHandlerSockIO:
         if self.response:
             response = self.response
             print("Response:", response)
-            del self.response
-            return response
+            try:
+                del self.response
+                return response
+            finally:
+                return response
         return None
 
     # endregion
@@ -122,16 +125,15 @@ class ServerHandlerSockIO:
     # region IMAGE
     def send_image_recognition(self, zipped_b64_image):
         mes = ("plant_recognition", zipped_b64_image)
-        self.sio.emit(mes[0], mes[1], callback=self.handle_response)
-        return self.wait_for_response()
+        return self.send_and_receive(mes)
 
     # endregion
 
     # region EVENTS
     def send_event(self, event):
         mes = ("log_event", event)
-        state = self.send_and_receive(mes)
-        return state
+        self.send(mes)
+        return True
 
     # endregion
 
@@ -140,9 +142,9 @@ class ServerHandlerSockIO:
         mes = ("set_auto_mode", mode, plant)
         self.send(mes)
 
-    def send_plants_names(self, plant_dict: dict):
-        mes = ("response_plant_dict", plant_dict)
-        self.send(mes)
+    def send_plants_names(self, plant_dict: dict, request_id: str):
+        mes = ("response_plant_dict", plant_dict, request_id)
+        self.send(mes, add_id=False)
 
     def disconnect(self):
         self.send_and_receive(("disconnect", None))
@@ -156,9 +158,3 @@ class ServerHandlerSockIO:
         mes = ("client_type", self.client_type, get_ip())
         r = self.send_and_receive(mes)
     # endregion
-
-
-if __name__ == '__main__':
-    server_handler = ServerHandlerSockIO("127.0.0.1", 5000)
-    # server_handler.sign_up("2", "2")
-    server_handler.login("2", "2")

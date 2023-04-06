@@ -8,14 +8,14 @@ def generate_uid():
     """Generate a unique ID"""
     return uuid.uuid4().hex[:-1]
 
-def normalize_input(input):
-    lower_input = input.lower()
+
+def normalize_input(str_input):
+    lower_input = str_input.lower()
     new_input = ""
     for let in lower_input:
         new_input += let
 
     return new_input
-
 
 
 class SQLUserManager:
@@ -33,8 +33,8 @@ class SQLUserManager:
         self.conn = sqlite3.connect(self.db_path)
         self.cursor = self.conn.cursor()
 
-    def sign_up(self, username, password, code=None):
-        if code is not "":
+    def sign_up(self, username, password, email, code=None):
+        if code != "":
             print("code", code)
             idn = self.get_id_by_code(code)
             if idn is None:
@@ -44,8 +44,8 @@ class SQLUserManager:
         else:
             idn = generate_uid() + "A"
 
-        query = 'INSERT INTO users (id, username, password, plants) VALUES (?, ?, ?, ?)'
-        self.cursor.execute(query, (idn, username, password, pickle.dumps([])))
+        query = 'INSERT INTO users (id, username, password, plants, email, admin) VALUES (?, ?, ?, ?, ?, ?)'
+        self.cursor.execute(query, (idn, username, password, pickle.dumps([]), email, "False"))
         self.conn.commit()
         return True
 
@@ -69,23 +69,51 @@ class SQLUserManager:
         return result
 
     def add_plant(self, id_num, plant_dict):
-        # plants : (dict1, dict2)
-
         query = 'SELECT * FROM users WHERE id = ?'
         self.cursor.execute(query, (id_num,))
         pickled_result = self.cursor.fetchone()[3]
         results = pickle.loads(pickled_result)
-        plants = []
-        if not results:
-            plants = [plant_dict, None]
-        else:
-            for idx, result in enumerate(results):
-                try:
-                    if not result:
-                        plants[idx] = plant_dict
-                        break
-                except:
-                    plants.append(plant_dict)
+        plants = results
+
+        if not plants:
+            plants = [None, None]
+
+        if plants[0] == plants[1]:
+            plants[1] = None
+
+        # Look for a free spot in the results
+        for i, plant in enumerate(results):
+            if plant is None:
+                # Put the new plant in the results where it belongs
+                results[i] = plant_dict
+                plants = results
+                break
+
+        # Look for the same PLANT_TYPE as the plant_dict
+        for i, plant in enumerate(results):
+            if plant and plant['PLANT_TYPE'] == plant_dict['PLANT_TYPE']:
+                # Replace the old plant with the new one
+                results[i] = plant_dict
+                plants = results
+
+        self.update_user(id_num, pickle.dumps(plants))
+
+    def remove_plant(self, id_num, plant_name):
+        query = 'SELECT * FROM users WHERE id = ?'
+        self.cursor.execute(query, (id_num,))
+        pickled_result = self.cursor.fetchone()[3]
+        results = pickle.loads(pickled_result)
+        plants = results
+
+        if not plants:
+            plants = [None, None]
+
+        # Look for the plant with the matching PLANT_NAME
+        for i, plant in enumerate(results):
+            if plant and plant['PLANT_NAME'] == plant_name:
+                # Remove the plant from the results
+                results[i] = None
+                plants = results
 
         self.update_user(id_num, pickle.dumps(plants))
 
@@ -121,7 +149,23 @@ class SQLUserManager:
         self.cursor.execute(query, (pickled_plants, id_num[:7] + '%'))
         self.conn.commit()
 
-    def delete_user(self, id):
-        query = 'DELETE FROM users WHERE id = ?'
-        self.cursor.execute(query, (id,))
+    def update_full_user(self, new_name, new_email, new_password_hashed, user_id):
+        self.cursor.execute("""
+                UPDATE users
+                SET username = ?, password = ?, email = ?
+                WHERE id = ?
+            """, (normalize_input(new_name), normalize_input(new_password_hashed), new_email, user_id))
         self.conn.commit()
+
+    def delete_user(self, user_id):
+        query = 'DELETE FROM users WHERE id = ?'
+        self.cursor.execute(query, (user_id,))
+        self.conn.commit()
+
+    def is_admin(self, user_id):
+        usr = self.get_user(user_id)
+
+        if usr[-1] == "True":
+            return True
+
+        return False

@@ -43,10 +43,11 @@ def listen_for_messages(mes=None):
             t = threading.Thread(target=video_streamer.start)
             t.start()
             server_handler.send_alert("Video streaming started successfully, video will soon be shown on screen")
+
         elif action_header == "video_stop":
             video_streamer.stop()
         elif action_header == "get_plant_dict":
-            server_handler.send_plants_names(plant_dict=mgf.get_letter_plant_dict())
+            server_handler.send_plants_names(plant_dict=mgf.get_letter_plant_dict(), request_id=action_data)
         else:
             print("Couldn't analyze this message: ", message)
 
@@ -58,23 +59,22 @@ def timer_thread(duration):
 
 # region SETUP
 gardener = Gardener()
-# server_handler = ServerHandler(server_ip="localhost", client_type="plant", time_out=3)
 server_handler = ServerHandlerSockIO(server_ip="127.0.0.1", port=5000, client_type="plant", time_out=3)
 
 # usm.sign_up(server_handler)
-usr = usm.login(server_handler, "1", "1")
+usr = usm.login(server_handler, "2", "2")
 
 event_logger = EventLogger(server_handler)
 remote_handler = RemoteControlHandler(server_handler, gardener, usr, event_logger)
 video_streamer = VideoStreamer()
 plant_recognition_manager = PlantRecognitionManager(server_handler)
-
-# plant_recognition_manager.run(current_plants=mgf.check_plant_files())
-
+#
+plant_recognition_manager.run(current_plants=mgf.check_plant_files())
+#
 plantA_state = mgf.get_automatic_mode("plantA.mgg")
 plantB_state = mgf.get_automatic_mode("plantB.mgg")
 mgf.set_remote_connection(False)
-
+mgf.set_id(usr.id)
 
 # endregion
 
@@ -99,7 +99,7 @@ def main_loop():
             plantA_state = mgf.get_automatic_mode("plantA.mgg")
             plantB_state = mgf.get_automatic_mode("plantB.mgg")
             # Do the check up routine for both plants
-            pcr.full_routine_checkup(plantA_state, plantB_state, gardener)
+            pcr.full_routine_checkup(plantA_state, plantB_state, gardener, event_logger)
             # Start the hourly routine thread
             routine_thread = threading.Thread(target=timer_thread, args=(mgf.get_routine_interval(),))
             routine_thread.start()

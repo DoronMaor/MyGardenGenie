@@ -1,0 +1,42 @@
+.container {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.logs-container {
+  height: 300px;
+  overflow: auto;
+}
+
+.log {
+  padding: 20px;
+  background: rgb(51, 185, 110);
+  background: linear-gradient(270deg, var(--green) 0%, var(--light-green) 100%);
+  border-radius: 5px;
+  margin: 4px;
+  box-shadow: 1px 1px 7px rgb(199, 199, 199);
+}
+
+.log p {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #282828;
+  border-radius: 45px;
+  text-shadow: 1px 1px rgb(255, 255, 255);
+}
+
+.log p.time {
+  font-size: 14px;
+  font-weight: 400;
+  color: #555;
+}
+
+@media only screen and (max-width: 600px) {
+  .logs-container {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}

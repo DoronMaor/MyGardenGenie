@@ -3,6 +3,7 @@ import os
 import pickle
 import string
 import random
+import threading
 import time
 
 
@@ -37,8 +38,8 @@ class EventLogger:
 
     def send_event(self, cevent):
         """ Sends the event to the server """
-        state = self.s_h.send_event(cevent)[1]
-        return state
+        self.s_h.send_event(cevent)
+        return True
 
     def add_auto_action_event(self, user_id, level, action, send_now=False):
         """ Creates an event tuple based on the parameters and writes it to the events folder"""
@@ -58,31 +59,59 @@ class EventLogger:
             if send_now:
                 self.send_all_events()
         except:
+            print("Skipped event send")
             pass
 
-    def send_all_events(self, times=2):
-        """ Sends all the events in the folder to the server"""
-        def s():
-            files_to_delete = []
-            for file in os.listdir(self.dir):
-                if file.endswith('.pickle'):
-                    try:
-                        with open(os.path.join(self.dir, file), 'rb') as f:
-                            event = pickle.load(f)
-                            success = self.send_event(event)
-                            if success:
-                                # Add the file to the list of files to delete
-                                files_to_delete.append(os.path.join(self.dir, file))
-                    except Exception as e:
-                        print(e)
-                        pass
+    def send_all_events(self, num_tries=2):
+        """Sends all the events in the folder to the server"""
 
-            # Iterate over the list of files to delete and delete each one
-            for file in files_to_delete:
+        def send_single_event(filepath):
+            """Sends a single event file to the server"""
+            try:
+                with open(filepath, 'rb') as f:
+                    event = pickle.load(f)
+                    success = self.send_event(event)
+                    if success:
+                        print(f"Sent event: {event}")
+                        return True
+            except Exception as e:
+                print(f"Error sending event in file {filepath}: {e}")
+            return False
+
+        # Iterate over files in directory and send events
+        files_to_delete = []
+        for file in os.listdir(self.dir):
+            if file.endswith('.pickle'):
+                filepath = os.path.join(self.dir, file)
+                for i in range(num_tries):
+                    success = send_single_event(filepath)
+                    if success:
+                        # Add file to list of files to delete if sent successfully
+                        files_to_delete.append(filepath)
+                        break  # exit the retry loop
+
+        # Remove sent files
+        for file in files_to_delete:
+            try:
                 os.unlink(file)
-                print("removed file: ", file)
+                print(f"Removed file: {file}")
+            except Exception as e:
+                print(f"Error deleting file {file}: {e}")
 
-        # Twice in order to prevent errors
-        for i in range(times):
-            s()
-            time.sleep(0.5)
+    def remote_event_logger(self, user_id, action_data, send_now, threaded=True):
+        if threaded:
+            t = threading.Thread(target=self.add_auto_action_event, args=(user_id, "Manual", action_data,
+                                                                          send_now))
+            t.start()
+        else:
+            self.add_auto_action_event(user_id=user_id, level="Manual", action=action_data,
+                                       send_now=send_now)
+
+    def automatic_event_logger(self, user_id, action_data, send_now, threaded=True):
+        if threaded:
+            t = threading.Thread(target=self.add_auto_action_event, args=(user_id, "Automatic", action_data,
+                                                                          send_now))
+            t.start()
+        else:
+            self.add_auto_action_event(user_id=user_id, level="Automatic", action=action_data,
+                                       send_now=send_now)

@@ -1,6 +1,7 @@
 import base64
+import datetime
 import cv2
-from flask import Flask, request, redirect, render_template, g, url_for, session, Response
+from flask import Flask, request, redirect, render_template, g, url_for, session, Response, jsonify
 from flask_socketio import SocketIO, emit
 import select
 import pickle
@@ -22,6 +23,7 @@ db = SQLUserManager("dbs/")
 log_db = LogDatabase()
 plant_identifier = PlantIdentify("fLBl0xbtSnB4UPyp6Qtblo" + "apUFJbQRAbxyAZMrM048ZYTvWw94")
 
+
 # region gets
 def get_db():
     if "db" not in g:
@@ -40,6 +42,7 @@ def get_plant_identifier():
         g.plant_identifier = PlantIdentify("fLBl0xbtSnB4UPyp6Qtblo" + "apUFJbQRAbxyAZMrM048ZYTvWw94")
     return g.plant_identifier
 
+
 # endregion
 
 
@@ -53,11 +56,15 @@ def string_to_hash(s):
     return sha_s
 
 
-def pickle_to_data(data):
+def is_logged():
+    return session.get('id', None)
+
+
+def pickle_to_data(data, slice_num=1):
     try:
-        return pickle.loads(data)[1:]
+        return pickle.loads(data)[slice_num:]
     except:
-        return json.loads(data)[1:]
+        return json.loads(data)[slice_num:]
 
 
 def send_message(client_sid, m_type, m_data):
@@ -85,17 +92,19 @@ def index():
     if request.method == 'POST':
         db = get_db()
         try:
-            username = string_to_hash(request.form['username_n'])
+            username = request.form['username_n']
             password = string_to_hash(request.form['password_n'])
         except:
-            username = string_to_hash(request.form['username'])
+            username = request.form['username']
             password = string_to_hash(request.form['password'])
         request_type = ""
         try:
             code = request.form['code']
+            email = request.form['email']
             request_type = "signup"
         except:
             code = None
+            email = None
             request_type = "login"
 
         if request_type == "login":
@@ -108,26 +117,85 @@ def index():
             else:
                 return "Login failed, try again"
         elif request_type == "signup":
-            result = db.sign_up(username, password, code)
+            result = db.sign_up(username, password, email, code)
             if result:
                 return redirect(url_for('index'))
             else:
                 return "Sign up failed, try again"
+    return render_template("home-page.html", logged=is_logged())
 
-    return render_template("home-page.html")
+
+@app.route('/logout', methods=['GET'])
+def logout():
+    try:
+        session.pop('id')
+        session.pop('username')
+    finally:
+        return redirect(url_for('index', logged=is_logged()))
 
 
 @app.route('/plant_monitoring', methods=['GET', 'POST'])
 def remote_actions():
-    try:
-        a = session['id']
-        print(a)
-    except:
-        return redirect(url_for('index'))
+    if not is_logged():
+        return redirect(url_for('index', logged=is_logged()))
 
     session["client_type"] = "user"
-    return render_template("plant-monitoring-page.html")
+    return render_template("plant-monitoring-page.html", logged=is_logged())
 
+
+@app.route('/account', methods=['GET', 'POST'])
+def account_page():
+    if not is_logged():
+        return redirect(url_for('index', logged=is_logged()))
+
+    if request.method == 'POST':
+        db = get_db()
+        name = request.form['name']
+        email = request.form['email']
+        new_password = string_to_hash(request.form['password'])
+
+        db.update_full_user(name, email, new_password, session['id'])
+
+    user = get_db().get_user(session['id'])
+    user_plants = [x for x in pickle_to_data(user[3], slice_num=0) if x is not None]
+    print("user_plants:", user_plants)
+    return render_template("account-page.html", account_code=user[0][:5], username=user[1], email=user[4],
+                           logged=is_logged(), user_plants=user_plants)
+
+
+@app.route('/reports', methods=['GET', 'POST'])
+def reports_page():
+    if not is_logged():
+        return redirect(url_for('index', logged=is_logged()))
+
+    db = get_log_db()
+    if request.method == 'POST':
+        return "No post yet?"
+
+    # get the date or date range from the request parameters
+    start_date = request.args.get('start_date') if request.args.get(
+        'start_date') is not None else datetime.date.today().strftime("%Y-%m-%d")
+    end_date = request.args.get('end_date') if request.args.get(
+        'end_date') is not None else datetime.date.today().strftime("%Y-%m-%d")
+
+    logs = db.get_events_by_date(session['id'], start_date, end_date)
+    print(start_date, end_date)
+    print(logs)
+
+    # render your template and pass the log events to it
+    return render_template('reports-page.html', logs=logs, logged=is_logged(), start_date=start_date,
+                           end_date=end_date, log_count=len(logs))
+
+
+@app.route('/remove_plant', methods=['POST'])
+def remove_plant():
+    data = request.get_json()
+    db = get_db()
+
+    plant_name = data['plantName']
+    db.remove_plant(session['id'], plant_name)
+
+    return jsonify({'success': True}), 200
 
 @socketio.on('connect')
 def handle_connection():
@@ -197,9 +265,10 @@ def handle_get_plant_dict(pickled_data):
 @socketio.on('response_plant_dict')
 def handle_response_plant_dict(pickled_data):
     data = pickle_to_data(pickled_data)
-    user_id, message_data = data[1], data[0]
+    user_id, message_data = data[-1], data[0]
     s = plant_user_table.get_sock("user", user_id)
-    send_message(s, "response_plant_dict", (message_data, user_id,))
+    send_message(s, "remote_data", (message_data, user_id,))
+    send_message(s, "remote_data", (message_data, user_id,))
 
 
 # endregion
@@ -215,8 +284,8 @@ def handle_sign_up(pickled_data):
 @socketio.on('login')
 def handle_login(pickled_data):
     data = pickle_to_data(pickled_data)
-    res = get_db().login(string_to_hash(data[0]), string_to_hash(data[1]))
-    send_response("login", res)
+    res = get_db().login(data[0], string_to_hash(data[1]))
+    send_response("login", res[:2])
 
 
 @socketio.on('add_plant')
@@ -228,10 +297,10 @@ def handle_add_plant(data):
 
 
 @socketio.on('register_plant')
-def handle_register_plant(data):
-    user_id, plant_data = data[0], data[1]
+def handle_register_plant(pickled_data):
+    data = pickle_to_data(pickled_data)
+    user_id, plant_data = data[-1], data[0]
     get_db().add_plant(user_id, plant_data)
-    send_response("register_plant", "saul goodman")
 
 
 # endregion
@@ -254,7 +323,7 @@ def handle_alert(pickled_data):
 def handle_video_start(pickled_data):
     data = pickle_to_data(pickled_data)
     message_data, user_id = data[0], data[1]
-    s = plant_user_table.get_sock("plant", user_id)
+    s = plant_user_table.get_sock("plant", session.get('id', user_id))
     send_message(s, "video_start", message_data)
     send_response("video_start", plant_user_table.get_stream_ip_by_sock(s))
 
@@ -262,7 +331,7 @@ def handle_video_start(pickled_data):
 @socketio.on('video_stop')
 def handle_video_stop(pickled_data):
     data = pickle_to_data(pickled_data)
-    message_data, user_id = data[0], data[1]
+    message_data, user_id = data[0], data[-1]
     s = plant_user_table.get_sock("plant", user_id)
     send_message(s, "video_stop", message_data)
 
@@ -270,13 +339,23 @@ def handle_video_stop(pickled_data):
 # endregion
 
 # region RECOGNITION
-def plant_recognition(data):
-    recognition = get_plant_identifier().identify_plant(zipped_b64_image=data['image'], testing=False)
+@socketio.on('plant_recognition')
+def plant_recognition(pickled_data):
+    data = pickle_to_data(pickled_data)
+    recognition = get_plant_identifier().identify_plant(zipped_b64_image=data[0], testing=False)
     gardening = get_plant_identifier().search_for_plant(recognition)
     send_response('plant_recognition', {'recognition': recognition, 'gardening': gardening})
 
 
 # endregion
+
+
+# LOG EVENTS
+@socketio.on('log_event')
+def handle_log_event(pickled_data):
+    data = pickle_to_data(pickled_data)
+    message_data, user_id = data[0], data[-1]
+    state = log_db.add_action_args(*message_data)
 
 
 if __name__ == '__main__':

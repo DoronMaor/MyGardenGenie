@@ -31,6 +31,7 @@ label {
 input[type="text"],
 input[type="checkbox"] {
   font-size: 1.2rem;
+  font-family: "Oxanium", cursive;
   padding: 0.5rem;
   border-radius: 0.5rem;
   border: none;
@@ -79,8 +80,9 @@ input[type="text"] {
 #video-div {
   position: absolute;
   z-index: 102;
-  background-color: #f1f1f1;
-  border: 1px solid #d3d3d3;
+  background-color: #87ff8570;
+  border: 5px solid #ffffff3a;
+  border-radius: 25px;
   text-align: center;
 }
 
@@ -88,6 +90,7 @@ input[type="text"] {
   padding: 10px;
   cursor: move;
   z-index: 101;
-  background-color: #2196f3;
+  background-color: var(--light-brown);
   color: #fff;
+  border-radius: 20px;
 }

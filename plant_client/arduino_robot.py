@@ -1,6 +1,7 @@
 import sys
 import time
 import serial
+import serial.tools.list_ports
 
 
 class ArduinoRobot:
@@ -11,6 +12,7 @@ class ArduinoRobot:
                 i = i if i != 3 else 4
                 self.ser = serial.Serial(f'COM{i}', baud, timeout=timeout)
                 print("Connected to Arduino!")
+                self.com = f'COM{i}'
                 time.sleep(4)
                 break
             except Exception as e:
@@ -18,7 +20,36 @@ class ArduinoRobot:
                 pass
             if i == 24:
                 print("No Arduino board is connected, please try again.")
-                #sys.exit(-1)
+                self.com = None
+                # sys.exit(-1)
+
+    def check_device(self, port: str):
+        if not port:
+            return True
+        myports = [tuple(p) for p in list(serial.tools.list_ports.comports())]
+        device_port = [p for p in myports if p[0] == port]
+        if device_port:
+            return True
+        else:
+            return False
+
+    def reconnect_board(self, baud=115200, timeout=3):
+        for i in range(24):
+            try:
+                i = i if i != 3 else 4
+                self.ser = serial.Serial(f'COM{i}', baud, timeout=timeout)
+                print("Connected to Arduino again!")
+                self.com = f'COM{i}'
+                time.sleep(4)
+                return True
+            except Exception as e:
+                print(e)
+                pass
+            if i == 24:
+                print("No Arduino board is connected, please try again.")
+                self.com = None
+                # sys.exit(-1)
+        return False
 
     def send_and_receive(self, msg: str, rec=False):
         """Send msg to Arduino, with an option of receiving one back."""
