@@ -9,6 +9,7 @@ import fuckit as fit
 from models.PlantUserList import PlantUserList
 from models.LogDatabase import LogDatabase
 from models.SQLUserManager import SQLUserManager
+from models.PlantManagerDB import PlantManagerDB
 import threading
 from plant_identfication.PlantIdentify import PlantIdentify
 import hashlib
@@ -21,8 +22,8 @@ socketio = SocketIO(app)
 plant_user_table = PlantUserList()
 db = SQLUserManager("dbs/")
 log_db = LogDatabase()
+plant_table_db = PlantManagerDB("dbs/")
 plant_identifier = PlantIdentify("fLBl0xbtSnB4UPyp6Qtblo" + "apUFJbQRAbxyAZMrM048ZYTvWw94")
-
 
 # region gets
 def get_db():
@@ -36,6 +37,10 @@ def get_log_db():
         g.log_db = LogDatabase()
     return g.log_db
 
+def get_plant_table_db():
+    if "plant_table_db" not in g:
+        g.plant_table_db = PlantManagerDB("dbs/")
+    return g.plant_table_db
 
 def get_plant_identifier():
     if "plant_identifier" not in g:
@@ -54,6 +59,30 @@ def string_to_hash(s):
     hash_obj.update(s.encode("utf-8"))
     sha_s = hash_obj.hexdigest()
     return sha_s
+
+
+def format_logs_for_html(logs):
+    formatted_logs = []
+    db = get_db()
+    for log in logs:
+        formatted_log = {}
+        formatted_log['time'] = log['time'].strftime("%Y-%m-%d %H:%M:%S")
+        formatted_log['by'] = db.get_username_by_id(log['by'])
+        formatted_log['level'] = log['level']
+        if log['action'] is not None:
+            action_type, action_details = log['action'][0], log['action'][1:]
+            if action_type == 'display_text':
+                formatted_log['action'] = f"Displayed text: {action_details[0]}"
+            elif action_type == 'remote_start':
+                formatted_log['action'] = f"Remote control started"
+            elif action_type == 'remote_stop':
+                formatted_log['action'] = f"User disconnected from remote"
+            else:
+                formatted_log['action'] = f"{action_type}, {action_details}"
+        else:
+            formatted_log['action'] = ''
+        formatted_logs.append(formatted_log)
+    return formatted_logs
 
 
 def is_logged():
@@ -112,7 +141,7 @@ def index():
             if result is not None:
                 session['username'] = request.form['username']
                 session['id'] = result[0]
-
+                session['admin'] = result[5]
                 return redirect(url_for('remote_actions'))
             else:
                 return "Login failed, try again"
@@ -156,7 +185,9 @@ def account_page():
 
         db.update_full_user(name, email, new_password, session['id'])
 
-    user = get_db().get_user(session['id'])
+    user = get_db().get_user_by_id(session['id'])
+    session['admin'] = user[5]
+
     user_plants = [x for x in pickle_to_data(user[3], slice_num=0) if x is not None]
     print("user_plants:", user_plants)
     return render_template("account-page.html", account_code=user[0][:5], username=user[1], email=user[4],
@@ -173,18 +204,25 @@ def reports_page():
         return "No post yet?"
 
     # get the date or date range from the request parameters
+    plant_name = request.args.get('plant_name') if request.args.get(
+        'start_date') is not None else "Reem"
+
     start_date = request.args.get('start_date') if request.args.get(
         'start_date') is not None else datetime.date.today().strftime("%Y-%m-%d")
     end_date = request.args.get('end_date') if request.args.get(
         'end_date') is not None else datetime.date.today().strftime("%Y-%m-%d")
 
-    logs = db.get_events_by_date(session['id'], start_date, end_date)
+    logs = format_logs_for_html(db.get_events_by_date(session['id'], start_date, end_date))
     print(start_date, end_date)
     print(logs)
 
+    # growth
+    html_graph_tag = db.plot_growth_percentage(user_id=session['id'], plant_name=plant_name,
+                                               start_date=start_date, end_date=end_date)
+
     # render your template and pass the log events to it
     return render_template('reports-page.html', logs=logs, logged=is_logged(), start_date=start_date,
-                           end_date=end_date, log_count=len(logs))
+                           end_date=end_date, log_count=len(logs), plot_graph=html_graph_tag)
 
 
 @app.route('/remove_plant', methods=['POST'])
@@ -196,6 +234,40 @@ def remove_plant():
     db.remove_plant(session['id'], plant_name)
 
     return jsonify({'success': True}), 200
+
+
+@app.route('/admin_plants_table', methods=['GET', 'POST'])
+def plants_table_page():
+    if request.method == 'POST':
+        return "no post yet"
+    plant_db = get_plant_table_db()
+    return render_template("admin-plants-page.html", logged=is_logged(), plants=plant_db.get_all_plants_dict())
+
+
+@app.route('/update_all_plants_table', methods=['POST'])
+def update_all_plants_table():
+    db_table = get_plant_table_db()
+
+    if request.method == 'POST':
+        try:
+            button_value = request.form['update']
+        except:
+            try:
+                button_value = request.form['delete']
+            except:
+                button_value = request.form['add']
+
+        plant_type = button_value
+
+        if 'update' in request.form or 'delete' in request.form:
+            db_table.update_db(request.form)
+        else:  # add
+            db_table.add_plant_from_form(request.form)
+
+    # Handle unexpected button value
+
+    return render_template("admin-plants-page.html", logged=is_logged(), plants=db_table.get_all_plants_dict())
+
 
 @socketio.on('connect')
 def handle_connection():
@@ -356,6 +428,13 @@ def handle_log_event(pickled_data):
     data = pickle_to_data(pickled_data)
     message_data, user_id = data[0], data[-1]
     state = log_db.add_action_args(*message_data)
+
+
+@socketio.on('growth_event')
+def handle_log_event(pickled_data):
+    data = pickle_to_data(pickled_data)
+    message_data, user_id = data[0], data[-1]
+    state = log_db.add_growth_args(*message_data)
 
 
 if __name__ == '__main__':

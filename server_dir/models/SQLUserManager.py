@@ -128,7 +128,7 @@ class SQLUserManager:
             print(f"An error occurred: {e}")
         return None
 
-    def get_user(self, id):
+    def get_user_by_id(self, id):
         query = 'SELECT * FROM users WHERE id = ?'
         self.cursor.execute(query, (id,))
         result = self.cursor.fetchone()
@@ -163,9 +163,13 @@ class SQLUserManager:
         self.conn.commit()
 
     def is_admin(self, user_id):
-        usr = self.get_user(user_id)
+        usr = self.get_user_by_id(user_id)
 
         if usr[-1] == "True":
             return True
 
         return False
+
+    def get_username_by_id(self, user_id):
+        usr = self.get_user_by_id(user_id)
+        return usr[1]

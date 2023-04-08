@@ -1,7 +1,7 @@
 from imageai.Detection import ObjectDetection
 from PIL import Image
 import os
-
+import mgg_functions as mgf
 
 class PlantDetector:
     def __init__(self):
@@ -35,6 +35,34 @@ class PlantDetector:
 
             # Save the cropped image
             crop_img.save(f"detection_{i}.jpg")
+            i += 1
+            if i == num_plants:
+                return i
+        return i
+
+    def detect_plants_for_analysis(self, input_image_path, output_image_path, num_plants=2):
+        detections = self.detector.detectObjectsFromImage(input_image=input_image_path,
+                                                          output_image_path=output_image_path)
+        original_image = Image.open(input_image_path)
+        i = 0
+        d = {1: "plantA.mgg", 2: "plantB.mgg", 3: "plantC.mgg", }
+        for eachObject in detections:
+            print(eachObject["name"], " : ", eachObject["percentage_probability"], "%")
+            if "plant" not in eachObject["name"] and "vase" not in eachObject["name"]:
+                continue
+
+            # Get the bounding box coordinates
+            x1, y1, x2, y2 = eachObject["box_points"]
+            if "vase" in eachObject["name"]:
+                x1 -= 5
+                y1 -= 180
+                x2 += 5
+                y2 += 10
+            # Crop the image based on the bounding box
+            crop_img = original_image.crop((x1, y1, x2, y2))
+
+            # Save the cropped image
+            crop_img.save(output_image_path[:-4] + "_" + mgf.get_plant_name(d[i+1]) + ".jpg")
             i += 1
             if i == num_plants:
                 return i

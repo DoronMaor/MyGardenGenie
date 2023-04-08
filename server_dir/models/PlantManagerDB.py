@@ -3,6 +3,18 @@ import os
 import pickle
 
 
+def format_plants_for_html(plants):
+    formatted_plants = []
+    for plant in plants:
+        formatted_plant = {}
+        formatted_plant['type'] = plant[0]
+        formatted_plant['light'] = plant[1]
+        formatted_plant['light_hours'] = plant[2]
+        formatted_plant['moisture'] = plant[3].strip()
+        formatted_plants.append(formatted_plant)
+    return formatted_plants
+
+
 class PlantManagerDB:
     """
     A class that handles sql connection to users data base.
@@ -43,26 +55,67 @@ class PlantManagerDB:
     def add_plant(self, plant_type, light, light_hours, moisture):
         self.cur.execute(
             '''
-            INSERT INTO plants (type, light, light_hours, moisture)
+            INSERT INTO plants_conditions (type, light, light_hours, moisture)
             VALUES (?, ?, ?, ?)
             ''',
             (plant_type, light, light_hours, moisture)
         )
 
+    def add_plant_from_form(self, data):
+        self.add_plant(data["type"], data["light"], data["light_hours"], data["moisture"])
+
     def update_plant(self, plant_type, light, light_hours, moisture):
         self.cur.execute(
             '''
-            UPDATE plants
+            UPDATE plants_conditions
             SET type = ?, light = ?, light_hours = ?, moisture = ?
             WHERE type = ?
             ''',
             (plant_type, light, light_hours, moisture, plant_type)
         )
 
+    def update_db(self, data):
+
+        # Loop through each plant in the form data
+        for plant, value in list(data.items())[:-4]:
+            # Split the plant name into its type and attribute
+            try:
+                split_plant = plant.strip().split('/')
+                plant_type = split_plant[0].strip()
+                plant_attr = split_plant[1]
+            except:
+                print( plant, value)
+            # Handle update requests
+            if plant_attr == 'light':
+                self.cur.execute(
+                    'UPDATE plants_conditions SET light = ? WHERE type = ?',
+                    (value, plant_type)
+                )
+            elif plant_attr == 'light_hours':
+                self.cur.execute(
+                    'UPDATE plants_conditions SET light_hours = ? WHERE type = ?',
+                    (value, plant_type)
+                )
+            elif plant_attr == 'moisture':
+                self.cur.execute(
+                    'UPDATE plants_conditions SET moisture = ? WHERE type = ?',
+                    (value, plant_type)
+                )
+
+            # Handle delete requests
+            elif plant_attr == 'delete' and value == plant_type:
+                self.cur.execute(
+                    'DELETE FROM plants_conditions WHERE type = ?',
+                    (plant_type,)
+                )
+
+        # Commit changes and close connection
+        self.conn.commit()
+
     def delete_plant(self, plant_type):
         self.cur.execute(
             '''
-            DELETE FROM plants
+            DELETE FROM plants_conditions
             WHERE type = ?
             ''',
             (plant_type,)
@@ -71,7 +124,7 @@ class PlantManagerDB:
     def get_plant(self, plant_type):
         self.cur.execute(
             '''
-            SELECT * FROM plants
+            SELECT * FROM plants_conditions
             WHERE type = ?
             ''',
             (plant_type,)
@@ -81,11 +134,14 @@ class PlantManagerDB:
     def get_all_plants(self):
         self.cur.execute(
             '''
-            SELECT * FROM plants
+            SELECT * FROM plants_conditions
             '''
         )
         return self.cur.fetchall()
 
+    def get_all_plants_dict(self):
+        plants = self.get_all_plants()
+        return format_plants_for_html(plants)
 
 
     # # region for future refrence
@@ -242,3 +298,4 @@ class PlantManagerDB:
     #         return False
     #
     # # endregion
+

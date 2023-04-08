@@ -37,6 +37,8 @@
 
       {% else %}
       <li><a href="#signup-login">Signup/Login</a></li>
+      {% endif %} {% if session['admin'] %}
+      <li><a href="/admin_plants_table">Plants Table</a></li>
       {% endif %}
     </ul>
   </nav>

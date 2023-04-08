@@ -33,6 +33,7 @@ class RemoteControlHandler:
     def remote_loop(self, user_id: str):
         self.active = True
         print("===== Starting Remote =====")
+        self.event_logger.remote_event_logger(user_id=user_id, action_data=["remote_start", None], send_now=True)
         self.server_handler.set_time_out()
         while self.active:
             if not self.current_message:
@@ -60,6 +61,7 @@ class RemoteControlHandler:
                 if self.connected_accounts <= 0:
                     self.connected_accounts = 0
                     self.active = False
+                    action_data = [action_type, None]
                 else:
                     print("A user disconnected, but still connected with %d users" % self.connected_accounts)
             else:

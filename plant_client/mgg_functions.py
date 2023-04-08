@@ -102,6 +102,7 @@ def get_plant_dict(plant: str):
                 plant_dict[key] = value
     return plant_dict
 
+
 # endregion
 
 # region GLOBAL
@@ -116,6 +117,7 @@ def get_routine_interval(filename="global.mgg"):
             except ValueError:
                 pass
     return 7
+
 
 def get_picture_interval(filename="global.mgg"):
     """ Gets the time interval of a plant check up routine """
@@ -159,7 +161,7 @@ def set_id(id_num, filename="global.mgg"):
     # Open a file for writing
     with open(filename, "w") as file:
         # Write the contents to the file
-        file.write("ROUTINE_INTER: 6\nREMOTE_CONNECTION: False\nPICTURE_INTER: 1111\nID_NUM: %s" % id_num)
+        file.write("ROUTINE_INTER: 6\nREMOTE_CONNECTION: False\nPICTURE_INTER: 30\nID_NUM: %s" % id_num)
 
 
 def get_id(filename="global.mgg"):

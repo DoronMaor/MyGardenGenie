@@ -79,7 +79,7 @@ class PlantRecognitionManager:
 
     def take_picture(self, purpose=""):
         if purpose == "analysis":
-            self.picture_grabber.take_a_picture("plant_analysis_pictures")
+            self.picture_grabber.take_a_picture_for_analysis()
         else:
             self.picture_grabber.take_a_picture()
 
@@ -113,14 +113,3 @@ class PlantRecognitionManager:
 
         os.remove("plant_recognition_files\\all_plants.jpg")
 
-
-if __name__ == '__main__':
-    from models.server_handler import ServerHandler
-    import models.UserSQLManagment as usm
-
-    server_handler = ServerHandler(server_ip="localhost", client_type="plant", time_out=3)
-
-    # usm.sign_up(server_handler)
-    usr = usm.login(server_handler, "1", "1")
-
-    p = PlantRecognitionManager(server_handler)

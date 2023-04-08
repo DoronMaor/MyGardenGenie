@@ -11,7 +11,12 @@ from plant_client.plant_recognition_files.PlantDetector import PlantDetector
 def compress_image(image_file="plant_recognition_files\\all_plants.jpg"):
     filepath = os.path.join(os.getcwd(), image_file)
 
-    image = Image.open(filepath)
+    try:
+        image = Image.open(filepath)
+    except:
+        time.sleep(1)
+        image = Image.open(filepath)
+
 
     image.save(image_file,
                "JPEG",
@@ -24,6 +29,7 @@ class PictureGrabber:
     def __init__(self, file_name="plant_recognition_files\\all_plants.jpg"):
         self.cap = None
         self.file_name = file_name
+        self.plant_detector = PlantDetector()
 
     def setup_camera(self):
         self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
@@ -43,9 +49,32 @@ class PictureGrabber:
                 try:
                     f_name = self.get_file_name(path)
                     cv2.imwrite(f_name, photo)
-                    time.sleep(0.4)
+                    time.sleep(0.3)
                     compress_image(self.get_file_name(path))
+
                 except:
                     pass
                 break
         self.cap.release()
+
+    def take_a_picture_for_analysis(self, path="plant_analysis_pictures"):
+        self.setup_camera()
+        delete = []
+        while True:
+            ret, photo = self.cap.read()
+
+            if photo is not None:
+                try:
+                    f_name = self.get_file_name(path)
+                    cv2.imwrite(f_name, photo)
+                    time.sleep(0.5)
+                    compress_image(f_name)
+                    self.plant_detector.detect_plants_for_analysis(input_image_path=f_name, output_image_path=f_name)
+                    delete.append(f_name)
+                except:
+                    pass
+                break
+        self.cap.release()
+
+        for file in delete:
+            os.remove(file)

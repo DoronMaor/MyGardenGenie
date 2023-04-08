@@ -135,6 +135,11 @@ class ServerHandlerSockIO:
         self.send(mes)
         return True
 
+    def send_growth_event(self, event):
+        mes = ("growth_event", event)
+        self.send(mes)
+        return True
+
     # endregion
 
     # region Other Functions

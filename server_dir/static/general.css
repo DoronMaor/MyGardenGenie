@@ -165,7 +165,6 @@ nav ul li a:hover {
 form {
   display: flex;
   flex-direction: column;
-  max-width: 600px;
   margin: 50px auto;
   padding: 20px;
   background-color: #fff;
@@ -202,7 +201,6 @@ form button:hover {
   background-color: var(--light-green);
   transform: translateY(-2px);
 }
-
 /* table styles */
 table {
   border-collapse: collapse;
@@ -215,10 +213,10 @@ table {
 tbody {
   display: inline-block;
   vertical-align: top;
+  width: 50%;
 }
 table th,
 table td {
-  display: flex;
   padding: 15px;
   text-align: left;
   border-bottom: 1px solid #ddd;
@@ -252,7 +250,7 @@ table tr:hover {
 
   table tr {
     border-bottom: 2px solid #ddd;
-    display: flex;
+    display: block;
     margin-bottom: 10px;
   }
 
@@ -264,7 +262,7 @@ table tr:hover {
   }
 
   table td {
-    display: flex;
+    display: block;
     text-align: right;
     font-size: 13px;
   }
@@ -272,4 +270,45 @@ table tr:hover {
   table td:last-child {
     margin-bottom: 0;
   }
+}
+
+/* select style */
+select {
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  color: #555;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+select:focus {
+  outline: none;
+  border-color: #7b9de1;
+  box-shadow: 0 0 5px #7b9de1;
+}
+
+/* number style */
+input[type="number"] {
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  padding: 8px 12px;
+  font-size: 16px;
+  outline: none;
+  box-shadow: none;
+  transition: border-color 0.2s ease-in-out;
+}
+
+input[type="number"]:focus {
+  border-color: #00bfff;
+}
+
+/* number style */
+
+input[type="number"]:focus {
+  border-color: #00bfff;
 }

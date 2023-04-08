@@ -1,7 +1,7 @@
 import cv2
 
 
-def calculate_plant_growth(image_path, initial_height_cm):
+def calculate_plant_growth(image_path):
     # Load image and convert to grayscale
     image = cv2.imread(image_path)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -17,13 +17,15 @@ def calculate_plant_growth(image_path, initial_height_cm):
 
     # Calculate the height of the plant in centimeters
     plant_height_pixels = cv2.boundingRect(plant_contour)[3]
-    pixel_height = initial_height_cm / plant_height_pixels
+
+    return plant_height_pixels
+
+    pixel_height = initial_height / plant_height_pixels
     plant_height_cm = plant_height_pixels * pixel_height
 
     # Calculate the percentage growth relative to the initial height
-    growth_percentage = (plant_height_cm / initial_height_cm - 1) * 100
+    growth_percentage = (plant_height_cm / initial_height - 1) * 100
 
     # Round the growth percentage to two decimal places
     growth_percentage = round(growth_percentage, 2)
 
-    return growth_percentage
