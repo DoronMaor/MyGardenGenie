@@ -4,6 +4,9 @@ from PIL import Image
 import os
 import mgg_functions as mgf
 
+
+
+
 class PlantDetector:
     def __init__(self):
         self.execution_path = os.getcwd()

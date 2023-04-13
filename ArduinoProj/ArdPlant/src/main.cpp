@@ -22,14 +22,14 @@
 */
 
 // Define pins
-#define LED_SCREEN_PIN            2
-#define WATER_PUMP_RELAY_PIN_A    4
-#define WATER_PUMP_RELAY_PIN_B    3
-#define LED_PIN_A                 6
-#define LED_PIN_B                 7
-#define LIGHT_SENS_PIN_A          A0
-#define MOISTURE_PIN_A            A2
-#define MOISTURE_PIN_B            A3
+#define LED_SCREEN_PIN            2 // [orange->main SCL] [white->main SDL]
+#define WATER_PUMP_RELAY_PIN_A    4 // [purple->4] [gray->ground]
+#define WATER_PUMP_RELAY_PIN_B    3 // [purple->3] [gray->ground]
+#define LED_PIN_A                 6 // [green->ground] [red->5v] [brown->6]
+#define LED_PIN_B                 7 // [green->ground] [orange->5v] [brown->7]
+#define LIGHT_SENS_PIN_A          A0 // [yellow->5v] [purple->SDA] [blue->SCL] [white->ground]
+#define MOISTURE_PIN_A            A2 //Analog in -> [A0] comparator [L: blue and gray]
+#define MOISTURE_PIN_B            A3 //Analog in -> [A0] comparator [L: yellow and purple]
 
 #define LED_RING_PIXELS     12
 const int LED_COLOR[] = {204, 51, 255};
@@ -185,7 +185,7 @@ void serialFlush() {
   }
 }
 
-const bool testingMode = false;
+const bool testingMode = true;
 
 void loop() {
 
@@ -194,20 +194,20 @@ void loop() {
     int ma = GetMoisture('A');
     int mb = GetMoisture('B');
     float l = GetLightSensor();
-    WriteToLCD("MoisA: " + String(ma) + "|" + "MoisB: " + String(mb)+ "|" + "Light: " + String(l));
-
-    /*TurnPump(800, 'A');
-    TurnPump(800, 'B');*/
-
-    /*TurnLEDRing(true, 'A');
-    TurnLEDRing(true, 'B');*/
+    WriteToLCD("MoisA:" + String(ma) + "|" + "MoisB:" + String(mb)+ "|" + "Light:" + String(l));
+    //WriteToLCD("MoisB: " + String(mb)+ "|" + "Light: " + String(l));
+    TurnPump(1000, 'A');
+    TurnPump(1000, 'B');
+    /**//**/
+    TurnLEDRing(true, 'A');
+    TurnLEDRing(true, 'B');
 
     if (false)
     {
       float l = GetLightSensor();
       WriteToLCD("Light: " + String(l));
-      TurnPump(800, 'A');
-      TurnPump(800, 'B');
+      TurnPump(1000, 'A');
+      TurnPump(1000, 'B');
       TurnLEDRing(true, 'A');
       TurnLEDRing(true, 'B');
     }
@@ -229,7 +229,8 @@ void loop() {
         //#GET_MOISTURE#A/B
         char plant = msg.substring(10)[0];
         int mois = GetMoisture(plant);
-        Serial.print("#MOISTURE#" + mois);
+        WriteToLCD(String(mois));
+        Serial.print("#MOISTURE#" + String(mois));
         delay(100);
       }
       else if (msg.substring(0, 7) == "#LIGHT#")

@@ -11,8 +11,13 @@
     />
     <title>MGG</title>
   </head>
-  {% include 'nav-template.html' %} {% block nav %} {% endblock %}
-
+  {% include 'nav-template.html' %} {% block nav %} {% endblock %} {% include
+  'alert-popup-template.html' %} {% block alert %} {% endblock %} {% if alerts
+  %}
+  <script>
+    showMessage("{{alerts}}", (showTime = 10000));
+  </script>
+  {% else %} {% endif %}
   <body>
     <!-- hero section -->
     <section class="hero">

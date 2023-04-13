@@ -12,6 +12,7 @@ from models.SQLUserManager import SQLUserManager
 from models.PlantManagerDB import PlantManagerDB
 import threading
 from plant_identfication.PlantIdentify import PlantIdentify
+from plant_identfication.PlantHealthDetector import PlantHealthDetector
 import hashlib
 import json
 
@@ -23,7 +24,9 @@ plant_user_table = PlantUserList()
 db = SQLUserManager("dbs/")
 log_db = LogDatabase()
 plant_table_db = PlantManagerDB("dbs/")
-plant_identifier = PlantIdentify("fLBl0xbtSnB4UPyp6Qtblo" + "apUFJbQRAbxyAZMrM048ZYTvWw94")
+plant_identifier = PlantIdentify("5CHZ8TnzXgrbYOioi0Ewf9j"+"RFwWKCFtH9UbiYkqwjlgdUtBCnl")
+plant_health_detector = PlantHealthDetector("5CHZ8TnzXgrbYOioi0Ewf9j"+"RFwWKCFtH9UbiYkqwjlgdUtBCnl")
+
 
 # region gets
 def get_db():
@@ -37,15 +40,23 @@ def get_log_db():
         g.log_db = LogDatabase()
     return g.log_db
 
+
 def get_plant_table_db():
     if "plant_table_db" not in g:
         g.plant_table_db = PlantManagerDB("dbs/")
     return g.plant_table_db
 
+
 def get_plant_identifier():
     if "plant_identifier" not in g:
-        g.plant_identifier = PlantIdentify("fLBl0xbtSnB4UPyp6Qtblo" + "apUFJbQRAbxyAZMrM048ZYTvWw94")
+        g.plant_identifier = PlantIdentify("5CHZ8TnzXgrbYOioi0Ewf9j"+"RFwWKCFtH9UbiYkqwjlgdUtBCnl")
     return g.plant_identifier
+
+
+def get_plant_health_detector():
+    if "plant_health_detector" not in g:
+        g.plant_health_detector = PlantHealthDetector("5CHZ8TnzXgrbYOioi0Ewf9j"+"RFwWKCFtH9UbiYkqwjlgdUtBCnl")
+    return g.plant_health_detector
 
 
 # endregion
@@ -65,10 +76,12 @@ def format_logs_for_html(logs):
     formatted_logs = []
     db = get_db()
     for log in logs:
-        formatted_log = {}
-        formatted_log['time'] = log['time'].strftime("%Y-%m-%d %H:%M:%S")
-        formatted_log['by'] = db.get_username_by_id(log['by'])
-        formatted_log['level'] = log['level']
+        formatted_log = {'time': log['time'].strftime("%Y-%m-%d %H:%M:%S"), 'by': db.get_username_by_id(log['by']),
+                         'level': log['level']}
+
+        if log['level'] == "Automatic":
+            formatted_log['by'] = "Garden Genie"
+
         if log['action'] is not None:
             action_type, action_details = log['action'][0], log['action'][1:]
             if action_type == 'display_text':
@@ -77,6 +90,8 @@ def format_logs_for_html(logs):
                 formatted_log['action'] = f"Remote control started"
             elif action_type == 'remote_stop':
                 formatted_log['action'] = f"User disconnected from remote"
+            elif action_type == 'get_light_level':
+                formatted_log['action'] = f"Read light level"
             else:
                 formatted_log['action'] = f"{action_type}, {action_details}"
         else:
@@ -142,7 +157,7 @@ def index():
                 session['username'] = request.form['username']
                 session['id'] = result[0]
                 session['admin'] = result[5]
-                return redirect(url_for('remote_actions'))
+                return redirect(url_for('index'))
             else:
                 return "Login failed, try again"
         elif request_type == "signup":
@@ -151,7 +166,19 @@ def index():
                 return redirect(url_for('index'))
             else:
                 return "Sign up failed, try again"
-    return render_template("home-page.html", logged=is_logged())
+
+    logged = is_logged()
+    alerts = ""
+
+    if logged:
+        alerts = "Welcome back %s!" % session['username']
+        log_alerts = get_log_db().get_and_delete_alerts(session['id'])
+        if log_alerts:
+            alerts = log_alerts
+
+    print("alerts", alerts)
+
+    return render_template("home-page.html", logged=logged, alerts=alerts)
 
 
 @app.route('/logout', methods=['GET'])
@@ -217,12 +244,16 @@ def reports_page():
     print(logs)
 
     # growth
-    html_graph_tag = db.plot_growth_percentage(user_id=session['id'], plant_name=plant_name,
+    html_growth_graph = db.plot_growth_percentage(user_id=session['id'], plant_name=plant_name,
+                                               start_date=start_date, end_date=end_date)
+
+    html_light_moisture_graph = db.moisture_light_plot(user_id=session['id'], plant_name=plant_name,
                                                start_date=start_date, end_date=end_date)
 
     # render your template and pass the log events to it
     return render_template('reports-page.html', logs=logs, logged=is_logged(), start_date=start_date,
-                           end_date=end_date, log_count=len(logs), plot_graph=html_graph_tag)
+                           end_date=end_date, log_count=len(logs),
+                           growth_graph=html_growth_graph, light_moisture_graph=html_light_moisture_graph)
 
 
 @app.route('/remove_plant', methods=['POST'])
@@ -377,6 +408,16 @@ def handle_register_plant(pickled_data):
 
 # endregion
 
+# region PLANT SQL
+@socketio.on('get_light_moisture_values')
+def handle_light_moisture_values(pickled_data):
+    data = pickle_to_data(pickled_data)
+    message_data, user_id = data[0], data[-1]
+    values_tuple = get_plant_table_db().get_plant(message_data)[1:]
+    send_response("get_light_moisture_values", values_tuple)
+
+# endregion
+
 # region ALERTS
 @socketio.on('alert')
 def handle_alert(pickled_data):
@@ -389,6 +430,7 @@ def handle_alert(pickled_data):
     socketio.emit('alert', {'message': message_data}, room=sA)
     socketio.emit('alert', {'message': message_data}, room=sB)
 
+# endregion
 
 # region VIDEO STREAMING
 @socketio.on('video_start')
@@ -419,10 +461,17 @@ def plant_recognition(pickled_data):
     send_response('plant_recognition', {'recognition': recognition, 'gardening': gardening})
 
 
+@socketio.on('plant_health')
+def plant_recognition(pickled_data):
+    data = pickle_to_data(pickled_data)
+    message_data, user_id = data[0], data[-1]
+    health_assessment = get_plant_health_detector().assess_health(zipped_b64_image=message_data, testing=False)
+    get_log_db().add_alert(user_id=user_id, alert=health_assessment)
+
 # endregion
 
 
-# LOG EVENTS
+# region LOG EVENTS
 @socketio.on('log_event')
 def handle_log_event(pickled_data):
     data = pickle_to_data(pickled_data)
@@ -436,6 +485,7 @@ def handle_log_event(pickled_data):
     message_data, user_id = data[0], data[-1]
     state = log_db.add_growth_args(*message_data)
 
+# endregion
 
 if __name__ == '__main__':
     # socketio.start_background_task(target=generate_frames)

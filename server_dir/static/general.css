@@ -114,6 +114,10 @@ nav ul li a:hover {
   color: var(--green);
 }
 
+.admin-li {
+  color: rgb(69, 96, 252);
+}
+
 .cta-button {
   display: inline-block;
   background-color: var(--green);

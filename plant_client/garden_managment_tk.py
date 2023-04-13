@@ -29,7 +29,7 @@ class GardenManagement():
         self.server_handler = ServerHandlerSockIO(server_ip="127.0.0.1", port=5000, client_type="plant", time_out=3)
 
         # usm.sign_up(server_handler)
-        self.usr = usm.login(self.server_handler, "2", "2")
+        self.usr = usm.login(self.server_handler, "6", "6")
 
         self.event_logger = EventLogger(self.server_handler)
         self.remote_handler = RemoteControlHandler(self.server_handler, self.gardener, self.usr, self.event_logger)
@@ -40,8 +40,11 @@ class GardenManagement():
         #
         self.plantA_state = mgf.get_automatic_mode("plantA.mgg")
         self.plantB_state = mgf.get_automatic_mode("plantB.mgg")
+
         mgf.set_remote_connection(False)
+        mgf.set_video_connection(False)
         mgf.set_id(self.usr.id)
+        mgf.update_moisture_light_values(self.server_handler)
 
         self.active_loop = True
         self.do_plant_recognition = False
@@ -92,18 +95,20 @@ class GardenManagement():
         s = sched.scheduler(time.time, time.sleep)
 
         def routine_checkup():
-            print("Time for check up")
-            # Get the automatic mode of both plants
-            plantA_state = mgf.get_automatic_mode("plantA.mgg")
-            plantB_state = mgf.get_automatic_mode("plantB.mgg")
-            # Do the check up routine for both plants
-            pcr.full_routine_checkup(plantA_state, plantB_state, self.gardener, self.event_logger)
-            # Schedule the next checkup
+            if not mgf.get_remote_connection():
+                print("Time for check up")
+                # Get the automatic mode of both plants
+                plantA_state = mgf.get_automatic_mode("plantA.mgg")
+                plantB_state = mgf.get_automatic_mode("plantB.mgg")
+                # Do the check-up routine for both plants
+                pcr.full_routine_checkup(plantA_state, plantB_state, self.gardener, self.event_logger, testing=True)
+                # Schedule the next checkup
             s.enter(mgf.get_routine_interval(), 1, routine_checkup)
 
         def take_picture():
-            print("Taking picture for later analysis")
-            self.plant_recognition_manager.take_picture("analysis")
+            if not mgf.get_video_connection():
+                print("Taking picture for later analysis")
+                self.plant_recognition_manager.take_picture("analysis")
             # Schedule the next picture
             s.enter(mgf.get_picture_interval(), 1, take_picture)
 

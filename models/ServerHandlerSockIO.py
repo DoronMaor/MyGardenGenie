@@ -36,7 +36,7 @@ class ServerHandlerSockIO:
         return self.wait_for_response()
 
     def send_and_receive(self, mes: tuple):
-        """ Sends a message and waits for a respond """
+        """ Sends a message and waits for a response """
         pickled_mes = pickle.dumps(mes + (self.client_id,))
         print("sent data:", mes, self.client_id)
         print("sent pickled data:", pickled_mes)
@@ -69,7 +69,7 @@ class ServerHandlerSockIO:
 
     # endregion
 
-    # region USERSQL
+    # region USER SQL
     def sign_up(self, username, password, user_code=None):
         mes = ("sign_up", username, password, user_code)
         self.send(mes)
@@ -85,6 +85,13 @@ class ServerHandlerSockIO:
         mes = ("register_plant", plant_dict)
         self.send(mes)
 
+    # endregion
+
+    # region PLANT SQL
+    def get_light_moisture_values(self, plant_type):
+        mes = ("get_light_moisture_values", plant_type)
+        values_tuple = self.send_and_receive(mes)
+        return values_tuple
     # endregion
 
     # region REMOTE
@@ -108,8 +115,6 @@ class ServerHandlerSockIO:
         mes = ('alert', msg)
         self.send(mes)
     # endregion
-
-
 
     # region VIDEO
     def video_start(self, ip: str, port: int):

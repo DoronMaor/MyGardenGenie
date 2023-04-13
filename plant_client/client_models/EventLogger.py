@@ -113,8 +113,8 @@ class EventLogger:
                 pickle.dump(event, f)
             if send_now:
                 self.send_all_events()
-        except:
-            print("Skipped event send")
+        except Exception as e:
+            print("Skipped event send", e)
             pass
 
     def send_all_events(self, num_tries=2):

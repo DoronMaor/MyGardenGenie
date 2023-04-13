@@ -9,6 +9,7 @@ from flask_cors import CORS, cross_origin
 import cv2
 from flask import Flask, request, redirect, render_template, g, url_for, session, Response
 from flask_socketio import SocketIO, emit
+import mgg_functions as mgf
 
 
 def get_ip():
@@ -40,6 +41,8 @@ class VideoStreamer:
         self.host = get_ip()
 
     def shutdown_server(self):
+        print("Shutting down video server")
+        mgf.set_video_connection(False)
         func = request.environ.get('werkzeug.server.shutdown')
         if func is None:
             raise RuntimeError('Not running with the Werkzeug Server')
@@ -67,6 +70,8 @@ class VideoStreamer:
         @self.app.route('/video')
         @cross_origin()
         def video():
+            mgf.set_video_connection(True)
+
             # Add the connection to the set of active connections
             random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=5))
             r = request.remote_addr + random_string

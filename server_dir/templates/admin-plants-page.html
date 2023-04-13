@@ -10,65 +10,75 @@
       href="{{url_for('static', filename='general.css')}}"
     />
   </head>
-<body>
-	<h1>Plants Table</h1>
-	<form method="post" action="{{ url_for('update_all_plants_table') }}">
-		<table>
-			<tr>
-				<th>Type</th>
-				<th>Light</th>
-				<th>Light Hours</th>
-				<th>Moisture</th>
-				<th>Actions</th>
-			</tr>
-			{% for plant in plants %}
-			<tr>
-				<td>{{ plant['type'] }}</td>
-				<td>
-					{% set light_value = plant['light'] %}
-					<select name="{{ plant['type'] }}/light">
-						<option value="HIGH" {% if light_value == 'HIGH' %}selected{% endif %}>HIGH</option>
-						<option value="MEDIUM" {% if light_value == 'MEDIUM' %}selected{% endif %}>MEDIUM</option>
-						<option value="LOW" {% if light_value == 'LOW' %}selected{% endif %}>LOW</option>
-					</select>
-				</td>
-				<td><input type="number" name="{{ plant['type'] }}/light_hours" value="{{ plant['light_hours'] }}"></td>
-				<td>
-					{% set moisture_value = plant['moisture'] %}
-					<select name="{{ plant['type'] }}/moisture">
-						<option value="DRY"{% if moisture_value == 'DRY' %}selected{% endif %}>DRY</option>
-						<option value="MOIST" {% if moisture_value == 'MOIST' %}selected{% endif %}>MOIST</option>
-						<option value="WET" {% if moisture_value == 'WET' %}selected{% endif %}>WET</option>
-					</select>
-				</td>
-				<td>
-					<button type="submit" name="update" value="{{ plant['type'] }}" class="cta-button-mini">Update</button>
-					<button type="submit" name="delete" value="{{ plant['type'] }}" class="cta-button-mini">Delete</button>
-				</td>
-			</tr>
-			{% endfor %}
-			<tr>
-				<td><input type="text" name="type"></td>
-				<td>
-					<select name="light">
-						<option value="HIGH">HIGH</option>
-						<option value="MEDIUM">MEDIUM</option>
-						<option value="LOW">LOW</option>
-					</select>
-				</td>
-				<td><input type="number" name="light_hours"></td>
-				<td>
-					<select name="moisture">
-						<option value="DRY">DRY</option>
-						<option value="MOIST">MOIST</option>
-						<option value="WET">WET</option>
-					</select>
-				</td>
-				<td><button type="submit" name="add" value="add">Add</button></td>
-			</tr>
-		</table>
-	</form>
-</body>
+  <body>
+    <h1>Plants Table</h1>
+    <form method="post" action="{{ url_for('update_all_plants_table') }}">
+      <table>
+        <tr>
+          <th>Type</th>
+          <th>Light</th>
+          <th>Light Hours</th>
+          <th>Moisture</th>
+          <th>Actions</th>
+        </tr>
+        {% for plant in plants %}
+        <tr>
+          <td>{{ plant['type'] }}</td>
+
+          <td>
+            <input
+              type="number"
+              name="{{ plant['type'] }}/light"
+              value="{{ plant['light'] }}"
+            />
+          </td>
+
+          <td>
+            <input
+              type="number"
+              name="{{ plant['type'] }}/light_hours"
+              value="{{ plant['light_hours'] }}"
+            />
+          </td>
+          <td>
+            <input
+              type="number"
+              name="{{ plant['type'] }}/moisture"
+              value="{{ plant['moisture'] }}"
+            />
+          </td>
+
+          <td>
+            <button
+              type="submit"
+              name="update"
+              value="{{ plant['type'] }}"
+              class="cta-button-mini"
+            >
+              Update
+            </button>
+            <button
+              type="submit"
+              name="delete"
+              value="{{ plant['type'] }}"
+              class="cta-button-mini"
+            >
+              Delete
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+        <tr>
+          <td><input type="text" name="type" /></td>
+          <td><input type="number" name="light" /></td>
+          <td><input type="number" name="moisture" /></td>
+          <td><input type="number" name="light_hours" /></td>
+
+          <td><button type="submit" name="add" value="add">Add</button></td>
+        </tr>
+      </table>
+    </form>
+  </body>
 
   {% include 'footer-template.html' %} {% block footer %} {% endblock %}
 </html>

@@ -59,7 +59,7 @@
     }, 500);
   });
 
-  function showMessage(msg) {
+  function showMessage(msg, showTime = 5000) {
     messageText.textContent = msg;
     message.classList.add("show");
 
@@ -67,7 +67,7 @@
       message.classList.remove("show");
       setTimeout(function () {
         messageText.textContent = "";
-      }, 500);
-    }, 5000);
+      }, 300);
+    }, showTime);
   }
 </script>

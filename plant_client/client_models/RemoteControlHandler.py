@@ -1,5 +1,5 @@
 import time
-
+import mgg_functions as mgf
 from plant_client.message_analyzer import analyze_message
 import threading
 
@@ -61,6 +61,7 @@ class RemoteControlHandler:
                 if self.connected_accounts <= 0:
                     self.connected_accounts = 0
                     self.active = False
+                    mgf.set_remote_connection(False)
                     action_data = [action_type, None]
                 else:
                     print("A user disconnected, but still connected with %d users" % self.connected_accounts)

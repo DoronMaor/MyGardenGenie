@@ -39,6 +39,8 @@ class PlantHealthDetector:
             headers=self.headers
         ).json()
 
+        print(response)
+
         if not response["health_assessment"]["is_healthy"]:
             diseases = response["health_assessment"]["diseases"]
             suggestions = []
@@ -49,4 +51,3 @@ class PlantHealthDetector:
             return suggestions
         else:
             return "Plant is healthy!"
-

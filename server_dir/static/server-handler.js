@@ -159,7 +159,7 @@ class ServerHandlerSockIO {
   }
 
   get_plants_dict() {
-    const mes = ["get_plant_dict", null];
+    const mes = ["get_plant_dict", this.client_id];
     return this.send_and_receive(mes);
   }
 

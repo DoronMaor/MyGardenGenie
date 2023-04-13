@@ -2,6 +2,7 @@ import base64
 import os
 from io import BytesIO
 import matplotlib
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import datetime
@@ -17,13 +18,13 @@ class LogDatabase:
         self.db = self.client["Logs"]
         self.events = self.db["events"]
         self.growth = self.db["growth"]
+        self.alerts = self.db["alerts"]
+        self.conditions_tester_users = self.db["conditions_tester_users"]
 
     def insert_event(self, event):
-        # Insert a log event into the collection
         self.events.insert_one(event)
 
     def find_events(self, query):
-        # Find log events that match the given query
         return self.events.find(query)
 
     def add_action_args(self, user_id, time: str, level: str, action: str):
@@ -140,6 +141,117 @@ class LogDatabase:
 
         # Build the HTML img tag and return it
         img_html = f'data:image/png;base64,{img_str}'
-        print(img_html)
         return img_html
 
+    def moisture_light_plot(self, user_id, plant_name, start_date=None, end_date=None):
+        growth_events = self.growth[str(user_id[:-1])]
+
+        # Set default values for start and end dates
+        if start_date is None:
+            start_date = (datetime.date.today() - datetime.timedelta(days=30)).strftime("%Y-%m-%d")
+        if end_date is None:
+            end_date = datetime.date.today().strftime("%Y-%m-%d")
+
+        # Query growth events within the date range
+        query = {"plant_name": plant_name, "time": {"$gte": start_date, "$lte": end_date}}
+        projection = {"time": 1, "light_level": 1, "moisture_level": 1, "_id": 0}
+        results = growth_events.find(query, projection=projection).sort("time")
+
+        # Get the data for moisture and light levels
+        moisture_data = []
+        light_data = []
+        for result in results:
+            time = datetime.datetime.strptime(str(result["time"]), "%Y-%m-%d %H:%M:%S")
+            moisture_data.append((time, result["moisture_level"]))
+            light_data.append((time, result["light_level"]))
+
+        # Plot the data and encode the image as a base64 string
+        fig, ax1 = plt.subplots()
+        ax2 = ax1.twinx()
+        ax1.plot([data[0] for data in moisture_data], [data[1] for data in moisture_data], 'b-')
+        ax2.plot([data[0] for data in light_data], [data[1] for data in light_data], 'r-')
+        ax1.set_xlabel("Time")
+        ax1.set_ylabel("Moisture Level", color='b')
+        ax2.set_ylabel("Light Level", color='r')
+        ax1.set_title("Moisture and Light Levels Over Time")
+
+        # Encode the image as a base64 string
+        buffer = BytesIO()
+        fig.savefig(buffer, format='png')
+        buffer.seek(0)
+        img_str = base64.b64encode(buffer.read()).decode()
+
+        # Build the HTML img tag and return it
+        img_html = f'data:image/png;base64,{img_str}'
+        return img_html
+
+    ###
+
+    def add_tester_user(self, full_id: str, plant_type: str, new_light_level, new_moisture_level):
+        main_id = full_id[:-1]
+
+        user_data = {
+            "main_id": main_id,
+            "plant_type": plant_type,
+            "new_light_level": new_light_level,
+            "new_moisture_level": new_moisture_level,
+            "starting_date": datetime.date.today().strftime("%Y-%m-%d"),
+            "ending_date": (datetime.date.today() + datetime.timedelta(days=7)).strftime("%Y-%m-%d"),
+        }
+
+        self.conditions_tester_users.insert_one(user_data)
+
+    def get_tester_data_by_plant(self, plant_type: str):
+        users = self.conditions_tester_users.find({"plant_type": plant_type})
+        plant_data = []
+        for user in users:
+            user_id = user["main_id"] + "1"
+            plant_name = user["plant_type"]
+            oldest_height_px = self.get_oldest_height_px(user_id, plant_name)
+            light_levels = []
+            moisture_levels = []
+            growth_percentages = []
+            growth_events = self.growth[user["main_id"]]
+            for event in growth_events.find({"plant_name": plant_name}):
+                light_levels.append(event["light_level"])
+                moisture_levels.append(event["moisture_level"])
+                height_px = event["height_px"]
+                growth_percentage = (height_px - oldest_height_px) / oldest_height_px * 100
+                growth_percentages.append(growth_percentage)
+            if growth_percentages:
+                average_light = sum(light_levels) / len(light_levels)
+                average_moisture = sum(moisture_levels) / len(moisture_levels)
+                average_growth_percentage = sum(growth_percentages) / len(growth_percentages)
+            else:
+                average_light = 0
+                average_moisture = 0
+                average_growth_percentage = 0
+            plant_data.append((average_light, average_moisture, average_growth_percentage))
+        return plant_data
+
+    ###
+
+    def add_alert(self, user_id, alert):
+        try:
+            alerts = self.alerts[str(user_id[:-1])]
+
+            calert = {
+                "user_id": user_id,
+                "alert": alert,
+            }
+
+            alerts.insert_one(calert)
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
+    def get_and_delete_alerts(self, user_id):
+        try:
+            alerts = self.alerts[str(user_id[:-1])]
+            user_alerts = list(alerts.find({"user_id": user_id}))
+            alerts.delete_many({"user_id": user_id})
+            return user_alerts
+        except Exception as e:
+            print(e)
+            return []

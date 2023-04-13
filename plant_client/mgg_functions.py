@@ -94,13 +94,42 @@ def check_plant_files():
 def get_plant_dict(plant: str):
     file_name = "plant%s.mgg" % plant.upper()
     plant_dict = {}
-    with open(file_name, "r") as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                key, value = line.split(":")
-                plant_dict[key] = value
-    return plant_dict
+    try:
+        with open(file_name, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    key, value = line.split(":")
+                    plant_dict[key] = value
+        return plant_dict
+    except:
+        return False
+
+
+def update_moisture_light_values(server_handler):
+
+    for plant_letter in ['A', 'B']:
+        filename = "plant%s.mgg" % plant_letter
+
+        plant_dict = get_plant_dict(plant_letter)
+        light_level, light_hours, moisture_level  = server_handler.get_light_moisture_values(plant_dict["PLANT_TYPE"])
+
+        if not os.path.isfile(filename):
+            print(f"File {filename} does not exist, skipping...")
+            continue
+
+            # Open the file in read mode
+        with open(filename, 'r') as f:
+            contents = f.read()
+
+            # Update the remote connection state in the file
+        contents = re.sub(r'LIGHT_LVL:.*', f'LIGHT_LVL: {light_level}', contents)
+        contents = re.sub(r'MOISTURE_LVL:.*', f'MOISTURE_LVL: {moisture_level}', contents)
+        contents = re.sub(r'LIGHT_HOURS:.*', f'LIGHT_HOURS: {light_hours}', contents)
+
+        # Write the updated contents back to the file
+        with open(filename, 'w') as f:
+            f.write(contents)
 
 
 # endregion
@@ -157,16 +186,50 @@ def set_remote_connection(mode: bool, filename="global.mgg"):
         f.write(contents)
 
 
-def set_id(id_num, filename="global.mgg"):
-    # Open a file for writing
-    with open(filename, "w") as file:
-        # Write the contents to the file
-        file.write("ROUTINE_INTER: 6\nREMOTE_CONNECTION: False\nPICTURE_INTER: 30\nID_NUM: %s" % id_num)
+def get_video_connection(filename="global.mgg"):
+    """ Gets the state of a remote connection """
+    with open(filename, 'r') as f:
+        contents = f.read()
+        match = re.search(r'VIDEO_CONNECTION:\s*(.*)', contents)
+    if match:
+        return match.group(1).strip() == 'True'
+    else:
+        return False
 
+
+def set_video_connection(mode: bool, filename="global.mgg"):
+    """ Sets the state of a video connection """
+    # Open the file in read mode
+    with open(filename, 'r') as f:
+        contents = f.read()
+
+    # Update the remote connection state in the file
+    contents = re.sub(r'VIDEO_CONNECTION:.*', f'VIDEO_CONNECTION: {mode}', contents)
+
+    # Write the updated contents back to the file
+    with open(filename, 'w') as f:
+        f.write(contents)
+
+
+def set_id(id_num, filename="global.mgg"):
+    """ Sets the id num connection """
+    # Open the file in read mode
+    with open(filename, 'r') as f:
+        contents = f.read()
+
+    # Update the remote connection state in the file
+    contents = re.sub(r'ID_NUM:.*', f'ID_NUM: {id_num}', contents)
+
+    # Write the updated contents back to the file
+    with open(filename, 'w') as f:
+        f.write(contents)
 
 def get_id(filename="global.mgg"):
     with open(filename, 'r') as f:
         contents = f.read()
         match = re.search(r'ID_NUM:\s*(.*)', contents)
-        return match
+        if match:
+            return match.group(1)
+        else:
+            return None
 # endregion

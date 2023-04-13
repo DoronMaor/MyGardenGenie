@@ -195,6 +195,8 @@ class HomePage:
 
 
 def format_plant_info(info_dict):
+    if info_dict == {"PLANT_NAME": "No plant"}:
+        return ""
     plant_name = info_dict['PLANT_NAME']
     plant_type = info_dict['PLANT_TYPE']
     light_lvl = info_dict['LIGHT_LVL']
@@ -229,6 +231,10 @@ def update_strings(garden_management, home_page_obj):
     set_status(home_page_obj, garden_management.status)
     plant_dict_A = mgf.get_plant_dict("A")
     plant_dict_B = mgf.get_plant_dict("B")
+    if type(plant_dict_A) == bool:
+        plant_dict_B = {"PLANT_NAME": "No plant"}
+    if type(plant_dict_A) == bool:
+        plant_dict_A = {"PLANT_NAME": "No plant"}
     home_page_obj.plant_A_label.configure(text=plant_dict_A["PLANT_NAME"])
     home_page_obj.plant_B_label.configure(text=plant_dict_B["PLANT_NAME"])
 

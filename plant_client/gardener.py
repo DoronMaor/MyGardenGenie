@@ -71,3 +71,9 @@ class Gardener:
 
     def get_arduino_robot(self):
         return self.arduino_robot
+
+    def get_led_ring(self, plant: str):
+        if plant == "A":
+            return  self.led_state_A
+
+        return self.led_state_B
