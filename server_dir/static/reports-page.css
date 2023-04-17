@@ -1,5 +1,5 @@
 .container {
-  max-width: 800px;
+  max-width: 1000px;
   margin: 20px auto;
   padding: 20px;
   background-color: #fff;
@@ -7,7 +7,7 @@
 }
 
 .logs-container {
-  height: 300px;
+  height: 700px;
   overflow: auto;
 }
 
@@ -18,6 +18,7 @@
   border-radius: 5px;
   margin: 4px;
   box-shadow: 1px 1px 7px rgb(199, 199, 199);
+  position: relative;
 }
 
 .log p {
@@ -39,4 +40,80 @@
   .logs-container {
     grid-template-columns: repeat(1, 1fr);
   }
+}
+
+.log-images {
+  display: none;
+  position: absolute;
+  z-index: 1;
+  top: 100%;
+  left: 50%;
+  transform: translate(-50%, 10px);
+  width: calc(100% - 20px);
+  max-height: 60vh;
+  overflow: auto;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  transition: all 0.3s ease-in-out;
+}
+
+.img-icon {
+  position: absolute;
+  transition: all 0.2s ease-in-out;
+  top: 0;
+  right: 0;
+}
+
+.img-icon:hover {
+  transform: scale(1.2);
+  transform: translate(1%, 2px);
+}
+
+.log-images img {
+  margin: auto;
+  width: 130px;
+  max-height: 100%;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.4s ease-in-out;
+  z-index: 999;
+  transform-origin: center center;
+}
+
+.log-images img:hover {
+  transform: scale(1.5);
+  z-index: 1000;
+}
+
+.search-options {
+  position: relative;
+}
+
+.search-options ul {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.search-options li {
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.search-options li:hover,
+.search-options li:focus {
+  background-color: #f2f2f2;
 }

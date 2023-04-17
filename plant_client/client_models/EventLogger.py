@@ -1,3 +1,4 @@
+import base64
 import datetime
 import os
 import pickle
@@ -48,10 +49,47 @@ def get_image_height(image_path):
     with Image.open(image_path) as img:
         return img.size[1]
 
+def parse_filename_datetime(filename):
+    # split the filename into its components
+    parts = filename.split('_')
+    # extract the date and time components
+    date_str = parts[0] + '-' + parts[1] + '-' + parts[2].split('-')[0]
+    time_str = parts[2].split('-')[1] + ":" + parts[4] + ':' + parts[3]
+    # combine the date and time strings into a datetime object
+    full_str = date_str + ' ' + time_str
+    dt = datetime.datetime.strptime(full_str.replace(".jpg", ""), '%m-%d-%Y %H:%M:%S')
+    return dt
 
-def create_action_event(user_id, time, level, action):
+def get_images_before_time(event_time):
+    encoded_images = []
+    for filename in os.listdir("plant_analysis_pictures"):
+        if filename.endswith(".jpg"):
+            # Extract the timestamp from the filename
+            timestamp = parse_filename_datetime(filename)
+            event_timestamp = datetime.datetime.strptime(event_time, '%Y-%m-%d %H:%M:%S')
+            event_timestamp_formatted = event_timestamp.strftime('%d-%m-%Y %H:%M:%S')
+            event_timestamp_datetime = datetime.datetime.strptime(event_timestamp_formatted, '%d-%m-%Y %H:%M:%S')
+
+            # Check if the image was taken before or at the specified time
+            if timestamp <= event_timestamp_datetime:
+                with open(os.path.join("plant_analysis_pictures", filename), "rb") as f:
+                    binary_data = f.read()
+
+                # Encode the binary data as base64 and convert to string
+                encoded_data = base64.b64encode(binary_data).decode('ascii')
+
+                # Add the image data and timestamp to the logs list
+                encoded_images.append(encoded_data)
+
+                # Delete the image file
+                os.remove(os.path.join("plant_analysis_pictures", filename))
+
+    return encoded_images
+
+
+def create_action_event(user_id, event_time, level, action):
     """ Creates an event tuple based on the parameters """
-    cevent = (user_id, time, level, action)
+    cevent = (user_id, event_time, level, action, get_images_before_time(event_time))
     return cevent
 
 

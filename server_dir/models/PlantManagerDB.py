@@ -60,6 +60,7 @@ class PlantManagerDB:
             ''',
             (plant_type, light, light_hours, moisture)
         )
+        self.conn.commit()
 
     def add_plant_from_form(self, data):
         self.add_plant(data["type"], data["light"], data["light_hours"], data["moisture"])
@@ -129,7 +130,11 @@ class PlantManagerDB:
             ''',
             (plant_type,)
         )
-        return self.cur.fetchone()
+        results = self.cur.fetchone()
+        if results is None:
+            self.add_plant(plant_type=plant_type, light=60, light_hours=14, moisture=300)
+            return self.get_plant(plant_type)
+        return results
 
     def get_all_plants(self):
         self.cur.execute(

@@ -17,20 +17,17 @@ def hysteresis_water_handling(plant: str, low_threshold: int, high_threshold: in
     Returns:
         None
     """
+    start_time = time.monotonic()
+    while gardener.get_moisture(plant) > high_threshold:
+        gardener.add_water(plant, 1)
+        time.sleep(1.5)
+        elapsed_time = time.monotonic() - start_time
+        if elapsed_time > 60:
+            # Timeout after 60 seconds
+            break
 
-    def watering_process():
-        start_time = time.monotonic()
-        while gardener.get_moisture(plant) < high_threshold:
-            gardener.add_water(plant, 1)
-            time.sleep(0.2)
-            elapsed_time = time.monotonic() - start_time
-            if elapsed_time > 60:
-                # Timeout after 60 seconds
-                break
-
-    if gardener.get_moisture(plant) <= low_threshold:
-        watering_process()
-        event_logger.automatic_event_logger(user_id=mgf.get_id(), action_data=("watering", plant), send_now=True)
+    # Log watering event
+    event_logger.automatic_event_logger(user_id=mgf.get_id(), action_data=("watering", plant), send_now=True)
 
 
 
@@ -60,8 +57,8 @@ def hysteresis_lighting_handling(plant: str, low_threshold: int, gardener, event
 def routine(plant: str, gardener, event_logger):
     """Performs a routine checkup for the specified plant, including hysteresis lighting handling and hysteresis water handling."""
 
-    p_water_low_threshold, p_water_high_threshold = mgf.get_plant_dict(plant)["MOISTURE_LVL"]
-    p_light_low_threshold = mgf.get_plant_dict(plant)["LIGHT_LVL"]
+    p_water_low_threshold, p_water_high_threshold = int(mgf.get_plant_dict(plant)["MOISTURE_LVL"])-100, int(mgf.get_plant_dict(plant)["MOISTURE_LVL"])
+    p_light_low_threshold = int(mgf.get_plant_dict(plant)["LIGHT_LVL"])
 
     hysteresis_lighting_handling(plant, p_light_low_threshold, gardener, event_logger)
     hysteresis_water_handling(plant, p_water_low_threshold, p_water_high_threshold, gardener, event_logger)
@@ -75,6 +72,6 @@ def full_routine_checkup(plantA_state: str, plantB_state: str, gardener, event_l
     if not testing:
         if plantA_state == "AUTOMATIC":
             routine("A", gardener, event_logger)
-
+        return
         if plantB_state == "AUTOMATIC":
             routine("B", gardener, event_logger)

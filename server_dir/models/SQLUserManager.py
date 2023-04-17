@@ -34,11 +34,11 @@ class SQLUserManager:
         self.cursor = self.conn.cursor()
 
     def sign_up(self, username, password, email, code=None):
-        if code != "":
+        if code != "" and code is not None and len(code) >= 4:
             print("code", code)
             idn = self.get_id_by_code(code)
             if idn is None:
-                print("ERORR, idn is NONE!")
+                print("Error, no code found")
                 return None
             idn = idn[:-1] + "B"
         else:
@@ -67,7 +67,6 @@ class SQLUserManager:
             result = result[:-1] + (last_element,)
 
         return result
-
     def add_plant(self, id_num, plant_dict):
         query = 'SELECT * FROM users WHERE id = ?'
         self.cursor.execute(query, (id_num,))
@@ -97,26 +96,28 @@ class SQLUserManager:
                 plants = results
 
         self.update_user(id_num, pickle.dumps(plants))
-
     def remove_plant(self, id_num, plant_name):
-        query = 'SELECT * FROM users WHERE id = ?'
-        self.cursor.execute(query, (id_num,))
-        pickled_result = self.cursor.fetchone()[3]
-        results = pickle.loads(pickled_result)
-        plants = results
+        id_num_base = id_num[:-1]
+        lets = ["A", "B", "C"]
+        for let in lets:
+            curr_id_num = id_num_base + let
+            query = 'SELECT * FROM users WHERE id = ?'
+            self.cursor.execute(query, (curr_id_num,))
+            pickled_result = self.cursor.fetchone()[3]
+            results = pickle.loads(pickled_result)
+            plants = results
 
-        if not plants:
-            plants = [None, None]
+            if not plants:
+                plants = [None, None]
 
-        # Look for the plant with the matching PLANT_NAME
-        for i, plant in enumerate(results):
-            if plant and plant['PLANT_NAME'] == plant_name:
-                # Remove the plant from the results
-                results[i] = None
-                plants = results
+            # Look for the plant with the matching PLANT_NAME
+            for i, plant in enumerate(results):
+                if plant and plant['PLANT_NAME'] == plant_name:
+                    # Remove the plant from the results
+                    results[i] = None
+                    plants = results
 
-        self.update_user(id_num, pickle.dumps(plants))
-
+            self.update_user(curr_id_num, pickle.dumps(plants))
     def get_id_by_code(self, code):
         try:
             query = "SELECT id FROM users WHERE id LIKE ?"
@@ -127,10 +128,9 @@ class SQLUserManager:
         except sqlite3.Error as e:
             print(f"An error occurred: {e}")
         return None
-
-    def get_user_by_id(self, id):
+    def get_user_by_id(self, id_num):
         query = 'SELECT * FROM users WHERE id = ?'
-        self.cursor.execute(query, (id,))
+        self.cursor.execute(query, (id_num,))
         result = self.cursor.fetchone()
 
         if result is not None:
@@ -144,11 +144,37 @@ class SQLUserManager:
 
         return result
 
+    def get_plants_by_similar_id(self, id_num, as_plant_dict=False):
+
+        # Remove the last character from the id
+        id_prefix = id_num[:-1]
+        # Query the database for all users with an id that starts with the modified id
+        query = 'SELECT * FROM users WHERE id LIKE ?'
+        self.cursor.execute(query, (f"{id_prefix}%",))
+        results = self.cursor.fetchall()
+
+        plants = []
+        for result in results:
+            plant_lst = result[3]
+            if isinstance(plant_lst, bytes):
+                plant_lst = pickle.loads(plant_lst)
+            plants += plant_lst
+
+        if not as_plant_dict:
+            return plants
+
+        let = "A"
+        dict_plants = {}
+        for plant in plants:
+            dict_plants[let] = plant
+            let = chr(ord(let) + 1)
+
+        return dict_plants
+
     def update_user(self, id_num, pickled_plants):
         query = 'UPDATE users SET plants = ? WHERE id LIKE ?'
         self.cursor.execute(query, (pickled_plants, id_num[:7] + '%'))
         self.conn.commit()
-
     def update_full_user(self, new_name, new_email, new_password_hashed, user_id):
         self.cursor.execute("""
                 UPDATE users
@@ -161,7 +187,6 @@ class SQLUserManager:
         query = 'DELETE FROM users WHERE id = ?'
         self.cursor.execute(query, (user_id,))
         self.conn.commit()
-
     def is_admin(self, user_id):
         usr = self.get_user_by_id(user_id)
 
@@ -169,7 +194,31 @@ class SQLUserManager:
             return True
 
         return False
-
     def get_username_by_id(self, user_id):
+        if user_id[-1] != "A" and user_id[-1] != "B":
+            user_id = user_id + "A"
         usr = self.get_user_by_id(user_id)
         return usr[1]
+
+    import sqlite3
+
+    def get_unique_user_ids(self):
+        # execute a query to get all the user ids
+        query = "SELECT id FROM users"
+        self.cursor.execute(query)
+
+        # fetch all the user ids and convert them to a list
+        rows = self.cursor.fetchall()
+        user_ids = [row[0] for row in rows]
+
+        # remove the last character from each user id
+        user_ids = [uid[:-1] for uid in user_ids]
+
+        # remove duplicates from the list
+        unique_user_ids = list(set(user_ids))
+
+
+        return unique_user_ids
+
+
+

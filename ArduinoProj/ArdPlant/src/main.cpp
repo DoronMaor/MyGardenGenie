@@ -185,7 +185,7 @@ void serialFlush() {
   }
 }
 
-const bool testingMode = true;
+const bool testingMode = false;
 
 void loop() {
 

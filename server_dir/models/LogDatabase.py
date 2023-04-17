@@ -2,8 +2,8 @@ import base64
 import os
 from io import BytesIO
 import matplotlib
-
 matplotlib.use('Agg')
+from bson.binary import Binary
 import matplotlib.pyplot as plt
 import datetime
 import pymongo
@@ -27,16 +27,19 @@ class LogDatabase:
     def find_events(self, query):
         return self.events.find(query)
 
-    def add_action_args(self, user_id, time: str, level: str, action: str):
+    def add_action_args(self, user_id, time: str, level: str, action: str, encoded_images: list):
         try:
             user_events = self.events[str(user_id[:-1])]
             log_time = datetime.datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
+            specify_plant_headers = ["get_moisture", "led_ring", "add_water"]
+
 
             cevent = {
                 "by": user_id,
                 "time": log_time,
                 "level": level,
                 "action": action,
+                "image": encoded_images if encoded_images is not None else None
             }
 
             user_events.insert_one(cevent)
@@ -166,8 +169,10 @@ class LogDatabase:
             light_data.append((time, result["light_level"]))
 
         # Plot the data and encode the image as a base64 string
-        fig, ax1 = plt.subplots()
+        # Set the figure size
+        fig, ax1 = plt.subplots(figsize=(10, 6))
         ax2 = ax1.twinx()
+
         ax1.plot([data[0] for data in moisture_data], [data[1] for data in moisture_data], 'b-')
         ax2.plot([data[0] for data in light_data], [data[1] for data in light_data], 'r-')
         ax1.set_xlabel("Time")

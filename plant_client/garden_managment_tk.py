@@ -101,12 +101,12 @@ class GardenManagement():
                 plantA_state = mgf.get_automatic_mode("plantA.mgg")
                 plantB_state = mgf.get_automatic_mode("plantB.mgg")
                 # Do the check-up routine for both plants
-                pcr.full_routine_checkup(plantA_state, plantB_state, self.gardener, self.event_logger, testing=True)
+                pcr.full_routine_checkup(plantA_state, plantB_state, self.gardener, self.event_logger, testing=False)
                 # Schedule the next checkup
             s.enter(mgf.get_routine_interval(), 1, routine_checkup)
 
         def take_picture():
-            if not mgf.get_video_connection():
+            if not mgf.get_video_connection() and not mgf.get_remote_connection():
                 print("Taking picture for later analysis")
                 self.plant_recognition_manager.take_picture("analysis")
             # Schedule the next picture

@@ -15,12 +15,68 @@
       href="{{url_for('static', filename='general.css')}}"
     />
   </head>
+
   <h1>Reports</h1>
+  <!-- User search -->
+  <h2>User search</h2>
+
+  <form class="user-search-form form">
+    <label for="user-id">User ID:</label>
+    <input
+      type="text"
+      id="user_id_num"
+      name="user_id_num"
+      placeholder="Enter user ID"
+      autocomplete="off"
+    />
+
+    <div class="search-options">
+      <ul></ul>
+    </div>
+
+    <button type="submit">Search</button>
+  </form>
+
+  <script>
+    // Define the search options
+    const searchOptions = {{ search_options | tojson }};
+
+    // Get the input and search options elements
+    const input = document.querySelector("#user_id_num");
+    const optionsList = document.querySelector(".search-options ul");
+
+    // Update the search options when the user types in the input field
+    input.addEventListener("input", () => {
+      // Clear the previous search options
+      optionsList.innerHTML = "";
+
+      // Get the current input value
+      const inputValue = input.value;
+
+      // Filter the search options based on the input value
+      const filteredOptions = searchOptions.filter((option) => {
+        return option.includes(inputValue);
+      });
+
+      // Display the filtered search options
+      filteredOptions.forEach((option) => {
+        const li = document.createElement("li");
+        li.innerText = option;
+        optionsList.appendChild(li);
+      });
+    });
+
+    // Select a search option when the user clicks on it
+    optionsList.addEventListener("click", (event) => {
+      const clickedOption = event.target.innerText;
+      input.value = clickedOption;
+      optionsList.innerHTML = "";
+    });
+  </script>
 
   <div class="container">
     <!-- Events by Date -->
-    <h2>Events by date</h2>
-
+    <h2>Events of {{ username }} by date</h2>
     <form class="date-picker-form">
       <label for="start-date">Start Date:</label>
       <input
@@ -36,6 +92,13 @@
         id="end-date"
         name="end_date"
         value="{{ end_date|default('') }}"
+      />
+      <input
+        type="text"
+        id="user_id_num"
+        name="user_id_num"
+        value="{{ search_id|default('') }}"
+        hidden
       />
 
       <button type="submit">Submit</button>

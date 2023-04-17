@@ -90,7 +90,7 @@ class ServerHandlerSockIO:
     # region PLANT SQL
     def get_light_moisture_values(self, plant_type):
         mes = ("get_light_moisture_values", plant_type)
-        values_tuple = self.send_and_receive(mes)
+        values_tuple = self.send_and_receive(mes)[1:][0]
         return values_tuple
     # endregion
 

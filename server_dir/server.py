@@ -72,12 +72,19 @@ def string_to_hash(s):
     return sha_s
 
 
-def format_logs_for_html(logs):
+def format_logs_for_html(logs, current_id=None):
     formatted_logs = []
     db = get_db()
+    current_id = current_id if current_id is not None else session['id']
+    plant_dict = db.get_plants_by_similar_id(current_id, as_plant_dict=True)
+
     for log in logs:
         formatted_log = {'time': log['time'].strftime("%Y-%m-%d %H:%M:%S"), 'by': db.get_username_by_id(log['by']),
                          'level': log['level']}
+        try:
+            formatted_log['images'] = log['image']
+        except:
+            print("No pics")
 
         if log['level'] == "Automatic":
             formatted_log['by'] = "Garden Genie"
@@ -92,6 +99,12 @@ def format_logs_for_html(logs):
                 formatted_log['action'] = f"User disconnected from remote"
             elif action_type == 'get_light_level':
                 formatted_log['action'] = f"Read light level"
+            elif action_type == 'get_moisture':
+                formatted_log['action'] = f"Read moisture to {plant_dict[action_details[0][0]]['PLANT_NAME']}"
+            elif action_type == 'led_ring':
+                formatted_log['action'] = f"Turned LED to {plant_dict[action_details[0][0]]['PLANT_NAME']}"
+            elif action_type == 'add_water':
+                formatted_log['action'] = f"Watered {plant_dict[action_details[0][0]]['PLANT_NAME']}"
             else:
                 formatted_log['action'] = f"{action_type}, {action_details}"
         else:
@@ -156,7 +169,7 @@ def index():
             if result is not None:
                 session['username'] = request.form['username']
                 session['id'] = result[0]
-                session['admin'] = result[5]
+                session['admin'] = True if result[5] == "True" else False
                 return redirect(url_for('index'))
             else:
                 return "Login failed, try again"
@@ -213,9 +226,10 @@ def account_page():
         db.update_full_user(name, email, new_password, session['id'])
 
     user = get_db().get_user_by_id(session['id'])
-    session['admin'] = user[5]
+    user_plants = get_db().get_plants_by_similar_id(session['id'])
+    session['admin'] = False if user[5] == 'False' else True
 
-    user_plants = [x for x in pickle_to_data(user[3], slice_num=0) if x is not None]
+    # user_plants = [x for x in pickle_to_data(user[3], slice_num=0) if x is not None]
     print("user_plants:", user_plants)
     return render_template("account-page.html", account_code=user[0][:5], username=user[1], email=user[4],
                            logged=is_logged(), user_plants=user_plants)
@@ -225,6 +239,42 @@ def account_page():
 def reports_page():
     if not is_logged():
         return redirect(url_for('index', logged=is_logged()))
+    current_id = session['id']
+    db = get_log_db()
+    if request.method == 'POST':
+        return "No post yet?"
+
+    # get the date or date range from the request parameters
+    plant_name = request.args.get('plant_name') if request.args.get(
+        'plant_name') is not None else "Reem"
+
+    start_date = request.args.get('start_date') if request.args.get(
+        'start_date') is not None else datetime.date.today().strftime("%Y-%m-%d")
+    end_date = request.args.get('end_date') if request.args.get(
+        'end_date') is not None else datetime.date.today().strftime("%Y-%m-%d")
+
+    logs = format_logs_for_html(db.get_events_by_date(current_id, start_date, end_date))
+    print(start_date, end_date)
+    print(logs)
+
+    # growth
+    html_growth_graph = db.plot_growth_percentage(user_id=current_id, plant_name=plant_name,
+                                               start_date=start_date, end_date=end_date)
+
+    html_light_moisture_graph = db.moisture_light_plot(user_id=current_id, plant_name=plant_name,
+                                               start_date=start_date, end_date=end_date)
+
+    # render your template and pass the log events to it
+    return render_template('reports-page.html', logs=logs, logged=is_logged(), start_date=start_date,
+                           end_date=end_date, log_count=len(logs),
+                           growth_graph=html_growth_graph, light_moisture_graph=html_light_moisture_graph)
+
+@app.route('/admin_reports', methods=['GET', 'POST'])
+def admin_reports_page():
+    if not is_logged() or not session['admin']:
+        return redirect(url_for('index', logged=is_logged()))
+
+    current_id = session['id'] if request.args.get('user_id_num') is None else request.args.get('user_id_num') + "A"
 
     db = get_log_db()
     if request.method == 'POST':
@@ -232,28 +282,31 @@ def reports_page():
 
     # get the date or date range from the request parameters
     plant_name = request.args.get('plant_name') if request.args.get(
-        'start_date') is not None else "Reem"
+        'plant_name') is not None else "Reem"
 
     start_date = request.args.get('start_date') if request.args.get(
         'start_date') is not None else datetime.date.today().strftime("%Y-%m-%d")
     end_date = request.args.get('end_date') if request.args.get(
         'end_date') is not None else datetime.date.today().strftime("%Y-%m-%d")
 
-    logs = format_logs_for_html(db.get_events_by_date(session['id'], start_date, end_date))
+    logs = format_logs_for_html(db.get_events_by_date(current_id, start_date, end_date), current_id=current_id)
     print(start_date, end_date)
     print(logs)
 
     # growth
-    html_growth_graph = db.plot_growth_percentage(user_id=session['id'], plant_name=plant_name,
+    html_growth_graph = db.plot_growth_percentage(user_id=current_id, plant_name=plant_name,
                                                start_date=start_date, end_date=end_date)
 
-    html_light_moisture_graph = db.moisture_light_plot(user_id=session['id'], plant_name=plant_name,
+    html_light_moisture_graph = db.moisture_light_plot(user_id=current_id, plant_name=plant_name,
                                                start_date=start_date, end_date=end_date)
 
     # render your template and pass the log events to it
-    return render_template('reports-page.html', logs=logs, logged=is_logged(), start_date=start_date,
+    return render_template('admin-reports-page.html', logs=logs, logged=is_logged(), start_date=start_date,
                            end_date=end_date, log_count=len(logs),
-                           growth_graph=html_growth_graph, light_moisture_graph=html_light_moisture_graph)
+                           growth_graph=html_growth_graph, light_moisture_graph=html_light_moisture_graph,
+                           username=get_db().get_username_by_id(current_id), search_options=get_db().get_unique_user_ids(),
+                           search_id=current_id)
+
 
 
 @app.route('/remove_plant', methods=['POST'])
@@ -267,10 +320,8 @@ def remove_plant():
     return jsonify({'success': True}), 200
 
 
-@app.route('/admin_plants_table', methods=['GET', 'POST'])
+@app.route('/admin_plants_table', methods=['GET'])
 def plants_table_page():
-    if request.method == 'POST':
-        return "no post yet"
     plant_db = get_plant_table_db()
     return render_template("admin-plants-page.html", logged=is_logged(), plants=plant_db.get_all_plants_dict())
 
