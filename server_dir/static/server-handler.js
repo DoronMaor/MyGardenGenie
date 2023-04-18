@@ -7,6 +7,7 @@ class ServerHandlerSockIO {
     this.client_type = client_type;
     this.time_out = time_out;
     this.client_id = null;
+    this.plant_dict = null;
   }
 
   // region GENERAL
@@ -124,7 +125,7 @@ class ServerHandlerSockIO {
     return light_level;
   }
 
-  change_automatic(plant, mode) {
+  change_automatic(mode, plant) {
     var automatic = mode == "1" ? true : false;
     this.send_automatic_mode(automatic, plant);
   }
@@ -160,7 +161,11 @@ class ServerHandlerSockIO {
 
   get_plants_dict() {
     const mes = ["get_plant_dict", this.client_id];
-    return this.send_and_receive(mes);
+    self.plant_dict = this.send_and_receive(mes);
+  }
+
+  get_dict() {
+    return self.plant_dict;
   }
 
   disconnect() {

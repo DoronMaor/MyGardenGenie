@@ -59,7 +59,7 @@ def handle_set_message(message):
     """
     if message[0] == "set_auto_mode":
         gmf.set_mode("plant" + str(message[1][1]) + ".mgg", "AUTOMATIC" if message[1][0] else "MANUAL")
-        return None, None
+        return True, None
 
 
 def handle_get_message(message):

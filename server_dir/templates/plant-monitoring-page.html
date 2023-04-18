@@ -74,14 +74,20 @@
         Change Automatic
       </button>
       <br /><br />
-      <label for="display-text">Display Text:</label>
+      <label for="display-text">Display text:</label>
       <input type="text" id="display-text_inp" /><br /><br />
-      <label for="get-moisture">Get Moisture:</label>
+      <label for="get-moisture">Get moisture:</label>
       <input readonly type="text" id="get-moisture_inp" /><br /><br />
-      <label for="add-water">Add Water (in seconds):</label>
+      <label for="add-water">Add water (in seconds):</label>
       <input type="text" id="add-water_inp" /><br /><br />
-      <label for="get-light-level">Get Light Level:</label>
+      <label for="get-light-level">Get light Level:</label>
       <input readonly type="text" id="get-light-level_inp" /><br /><br />
+      <label for="change-automatic">Change automatic mode:</label>
+      <select id="change-automatic_inp">
+        <option value="1">Automatic</option>
+        <option value="2">Manual</option>
+      </select>
+      <br />
     </div>
 
     <div id="video-div" style="display: none">
@@ -163,6 +169,16 @@
         remoteWall.classList.remove("not-active");
         remoteWall.classList.add("active");
         remoteWallText.textContent = "";
+        server_handler.get_plants_dict();
+
+        server_handler.get_dict().then((dict) => {
+          console.log("Plants dict: ", dict);
+
+          new_plant = current_plant == "A" ? "B" : "A";
+          current_plant = new_plant;
+          document.getElementById("current_plant_tag").innerHTML =
+            "Current plant:" + dict[1][0][current_plant];
+        });
       } else {
         server_handler.stop_remote_mode();
         remoteModeBtn.textContent = "Start Remote Mode";
@@ -234,11 +250,14 @@
     document
       .getElementById("change-automatic")
       .addEventListener("click", () => {
-        server_handler.change_automatic(current_plant, "1");
+        server_handler.change_automatic(
+          document.getElementById("change-automatic_inp").value,
+          current_plant
+        );
       });
 
     document.getElementById("switch-plant").addEventListener("click", () => {
-      server_handler.get_plants_dict().then((dict) => {
+      server_handler.get_dict().then((dict) => {
         console.log("Plants dict: ", dict);
 
         new_plant = current_plant == "A" ? "B" : "A";

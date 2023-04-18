@@ -402,8 +402,9 @@ def handle_remote_stop(pickled_data):
 
 # region COMMANDS
 @socketio.on('set_auto_mode')
-def handle_set_auto_mode(data):
-    user_id, mode_data = data[0], data[1]
+def handle_set_auto_mode(pickled_data):
+    data = pickle_to_data(pickled_data)
+    mode_data, user_id  = (data[0], data[1]), data[-1]
     s = plant_user_table.get_sock("plant", user_id)
     send_message(s, "set_auto_mode", mode_data)
 
