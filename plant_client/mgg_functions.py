@@ -109,7 +109,7 @@ def set_mode(filename: str, new_mode: str) -> None:
     with open(filename, 'r') as f:
         contents = f.read()
 
-    contents = re.sub(r'MODE:.*', f'MODE: {new_mode.upper()}', contents)
+    contents = re.sub(r'MODE:.*', f'MODE:{new_mode.upper()}', contents)
 
     with open(filename, 'w') as f:
         f.write(contents)

@@ -22,9 +22,9 @@
 */
 
 // Define pins
-#define LED_SCREEN_PIN            2 // [orange->main SCL] [white->main SDL]
-#define WATER_PUMP_RELAY_PIN_A    4 // [purple->4] [gray->ground]
-#define WATER_PUMP_RELAY_PIN_B    3 // [purple->3] [gray->ground]
+// #define LED_SCREEN_PIN            2 // [orange->main SCL] [white->main SDL]
+#define WATER_PUMP_RELAY_PIN_A    12 // [purple->12] [gray->ground]
+#define WATER_PUMP_RELAY_PIN_B    5 // [purple->5] [gray->ground]
 #define LED_PIN_A                 6 // [green->ground] [red->5v] [brown->6]
 #define LED_PIN_B                 7 // [green->ground] [orange->5v] [brown->7]
 #define LIGHT_SENS_PIN_A          A0 // [yellow->5v] [purple->SDA] [blue->SCL] [white->ground]
@@ -149,12 +149,19 @@ void TurnPump(int dur, char type) {
     digitalWrite(WATER_PUMP_RELAY_PIN_A, LOW);
     delay(dur);
     digitalWrite(WATER_PUMP_RELAY_PIN_A, HIGH);
+    delay(3000);
   }
   else if (type=='B'){
     // Active low relay
     digitalWrite(WATER_PUMP_RELAY_PIN_B, LOW);
     delay(dur);
     digitalWrite(WATER_PUMP_RELAY_PIN_B, HIGH);
+    delay(3000);
+  }
+  else {
+    digitalWrite(WATER_PUMP_RELAY_PIN_B, HIGH);
+    digitalWrite(WATER_PUMP_RELAY_PIN_A, HIGH);
+    WriteToLCD("Failed TurnPump");
   }
 }
 
@@ -185,24 +192,25 @@ void serialFlush() {
   }
 }
 
-const bool testingMode = false;
+const bool testingMode = true;
 
 void loop() {
 
   if (testingMode)
   {
+
     int ma = GetMoisture('A');
     int mb = GetMoisture('B');
     float l = GetLightSensor();
-    WriteToLCD("MoisA:" + String(ma) + "|" + "MoisB:" + String(mb)+ "|" + "Light:" + String(l));
-    //WriteToLCD("MoisB: " + String(mb)+ "|" + "Light: " + String(l));
-    TurnPump(1000, 'A');
+    WriteToLCD("MoisA:" + String(ma) + "/" + "MoisB:" + String(mb)+ "/" + "Light:" + String(l));
+    delay(1000);
+    /*TurnPump(1000, 'A');
     TurnPump(1000, 'B');
-    /**//**/
-    TurnLEDRing(true, 'A');
-    TurnLEDRing(true, 'B');
+    *//**/
+    //TurnLEDRing(true, 'A');
+    //TurnLEDRing(true, 'B');
 
-    if (false)
+    /*if (false)
     {
       float l = GetLightSensor();
       WriteToLCD("Light: " + String(l));
@@ -210,8 +218,7 @@ void loop() {
       TurnPump(1000, 'B');
       TurnLEDRing(true, 'A');
       TurnLEDRing(true, 'B');
-    }
-    delay(1000);
+    }*/
   }
   else {
     if (Serial.available() > 0){
@@ -229,7 +236,6 @@ void loop() {
         //#GET_MOISTURE#A/B
         char plant = msg.substring(10)[0];
         int mois = GetMoisture(plant);
-        WriteToLCD(String(mois));
         Serial.print("#MOISTURE#" + String(mois));
         delay(100);
       }

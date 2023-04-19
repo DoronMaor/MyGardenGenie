@@ -174,22 +174,3 @@ class ArduinoRobot:
             print("Light has turned on from Arduino")
         else:
             print("Light has turned off from Arduino")
-
-    # region POC
-    def get_joystick_cords(self, rec=False):
-        """
-        #For POC# gets the cords of the joystick.
-        :param rec:
-        :return:
-        """
-        m = "#JOYSTICK#"
-        return self.send_and_receive(m, rec)
-
-    def set_test_led(self, mode: bool, rec=False):
-        """
-        #For POC# - sets the little led on and off.
-        """
-        m = "#T_LED#" + ("1" if mode else "0")
-        return self.send_and_receive(m, rec)
-
-    # endregion

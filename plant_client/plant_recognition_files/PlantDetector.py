@@ -57,7 +57,11 @@ class PlantDetector:
             i += 1
             detected_objects.append(detected_object)
             if i == num_plants:
+                original_image.close()
+                os.remove(input_image_path)
                 return i
+        original_image.close()
+        os.remove(input_image_path)
         return i
 
     def detect_plants_for_analysis(self, input_image_path, output_image_path, num_plants=2, distance_threshold=10):
@@ -66,6 +70,8 @@ class PlantDetector:
         original_image = Image.open(input_image_path)
         i = 0
         detected_objects = []
+        letters_map = {0: 'A', 1: 'B', 2: 'C'}
+
         for eachObject in detections:
             print(eachObject["name"], " : ", eachObject["percentage_probability"], "%")
             if "plant" not in eachObject["name"] and "vase" not in eachObject["name"]:
@@ -99,10 +105,13 @@ class PlantDetector:
             crop_img = original_image.crop((x1, y1, x2, y2))
 
             # Save the cropped image
-            crop_img.save(output_image_path[:-4] + "_" + mgf.get_plant_name(d[i+1]) + ".jpg")
+            crop_img.save(output_image_path[:-4] + "_" + mgf.get_plant_name(letters_map[i+1]) + ".jpg")
             i += 1
             if i == num_plants:
+                os.remove(input_image_path)
                 return i
+        os.remove(input_image_path)
+
         return i
 
 

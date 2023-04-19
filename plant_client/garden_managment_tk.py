@@ -57,6 +57,8 @@ class GardenManagement():
         remote_message_headers = ["garden_action", "remote_stop"]
 
         while True:
+            if self.do_plant_recognition:
+                continue
             message = self.get_message() if mes is None else mes
             if message is None:
                 continue
@@ -132,45 +134,6 @@ class GardenManagement():
         # Wait for the listen thread to finish
         listen_thread.join()
         self.status = "Not Active"
-
-        """
-        routine_thread = threading.Thread(target=timer_thread, args=(mgf.get_routine_interval(),))
-        routine_thread.start()
-
-        picture_thread = threading.Thread(target=timer_thread, args=(mgf.get_picture_interval(),))
-        picture_thread.start()
-
-        # Create a thread for message listening
-        listen_thread = threading.Thread(target=self.listen_for_messages)
-        listen_thread.start()
-        print("Main loop active!")
-        # Start an infinite loop to continuously listen for messages
-        while self.active_loop:
-            if not routine_thread.is_alive() and not mgf.get_remote_connection():
-                print("Time for check up")
-                # Get the automatic mode of both plants
-                plantA_state = mgf.get_automatic_mode("plantA.mgg")
-                plantB_state = mgf.get_automatic_mode("plantB.mgg")
-                # Do the check up routine for both plants
-                pcr.full_routine_checkup(plantA_state, plantB_state, self.gardener, self.event_logger)
-                # Start the hourly routine thread
-                routine_thread = threading.Thread(target=timer_thread, args=(mgf.get_routine_interval(),))
-                routine_thread.start()
-
-            if not picture_thread.is_alive():
-                print("Taking picture for later analysis")
-                self.plant_recognition_manager.take_picture("analysis")
-
-                picture_thread = threading.Thread(target=timer_thread, args=(mgf.get_picture_interval(),))
-                picture_thread.start()
-
-            if self.do_plant_recognition:
-                print("Plant Recognitino!")
-                self.plant_recognition_manager.run(current_plants=mgf.check_plant_files())
-                self.do_plant_recognition = False
-
-        listen_thread.join()
-        """
 
 
 if __name__ == '__main__':

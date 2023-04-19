@@ -1,9 +1,9 @@
+from tkinter.constants import *
+import mgg_functions as mgf
+import os.path
 import sys
 import tkinter as tk
 import tkinter.ttk as ttk
-from tkinter.constants import *
-import os.path
-import mgg_functions as mgf
 
 _script = sys.argv[0]
 _location = os.path.dirname(_script)

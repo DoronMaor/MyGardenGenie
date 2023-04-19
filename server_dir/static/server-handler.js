@@ -44,7 +44,7 @@ class ServerHandlerSockIO {
 
   async wait_for_response() {
     while (!this.hasOwnProperty("response")) {
-      await new Promise((r) => setTimeout(r, 10));
+      await new Promise((r) => setTimeout(r, 100));
     }
     if (this.response) {
       const response = this.response;
