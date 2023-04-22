@@ -100,6 +100,13 @@
         value="{{ search_id|default('') }}"
         hidden
       />
+      <label for="plant-selection">Select a Plant:</label>
+      <select id="plant-selection" name="plant_name">
+        {% for plant_name in plant_names %}
+        <option value="{{ plant_name }}">{{ plant_name }}</option>
+        {% endfor %}
+        <option value="all">All</option>
+      </select>
 
       <button type="submit">Submit</button>
     </form>

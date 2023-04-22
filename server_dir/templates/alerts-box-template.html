@@ -1,0 +1,16 @@
+<div class="container">
+  <h3>Important Messages</h3>
+  <div class="alerts-container">
+    {% if alerts %} {% for alert in alerts %}
+    <form method="POST" action="/checked_alert" class="my-form">
+      <div class="alert">
+        <button class="close-btn" type="submit">&times;</button>
+        <p class="title" id="title" name="title">{{ alert.title }}</p>
+        <p class="details" id="details" name="details">{{ alert.details }}</p>
+        <input type="hidden" name="title" value="{{ alert.title }}" />
+        <input type="hidden" name="details" value="{{ alert.details }}" />
+      </div>
+    </form>
+    {% endfor %} {% endif %}
+  </div>
+</div>

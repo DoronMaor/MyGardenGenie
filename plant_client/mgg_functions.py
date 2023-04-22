@@ -190,7 +190,7 @@ def get_plant_dict(plant: str) -> dict:
                     plant_dict[key] = value
         return plant_dict
     except:
-        return None
+        return {"Error": None}
 
 
 def update_moisture_light_values(server_handler):
@@ -205,7 +205,8 @@ def update_moisture_light_values(server_handler):
     """
     for plant_letter in ['A', 'B']:
         filename = f"plant{plant_letter}.mgg"
-
+        if not os.path.exists(filename):
+            continue
         # Get the plant dictionary and moisture and light values from server_handler.
         plant_dict = get_plant_dict(plant_letter)
         light_level, light_hours, moisture_level = server_handler.get_light_moisture_values(plant_dict["PLANT_TYPE"])

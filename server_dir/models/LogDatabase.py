@@ -48,7 +48,9 @@ class LogDatabase:
             print(e)
             return False
 
-    def get_events_by_date(self, user_id, start_date, end_date):
+    def get_events_by_date(self, user_id, start_date, end_date, plant_name=None):
+        plant_name = None if plant_name == "all" else plant_name
+
         user_events = self.events[str(user_id[:-1])]
 
         # convert start_date and end_date to datetime objects
@@ -57,8 +59,12 @@ class LogDatabase:
 
         # build your MongoDB query based on the date range and user ID
         query = {
-            "time": {"$gte": start_datetime, "$lte": end_datetime}
+            "time": {"$gte": start_datetime, "$lte": end_datetime},
         }
+
+        # add plant name to the query if provided
+        if plant_name:
+            query["action.1.0"] = plant_name
 
         # execute the query and get all matching log events
         logs = user_events.find(query)
@@ -236,13 +242,14 @@ class LogDatabase:
 
     ###
 
-    def add_alert(self, user_id, alert):
+    def add_alert(self, user_id, title, details):
         try:
             alerts = self.alerts[str(user_id[:-1])]
 
             calert = {
                 "user_id": user_id,
-                "alert": alert,
+                "title": title,
+                "details": details,
             }
 
             alerts.insert_one(calert)
@@ -250,6 +257,15 @@ class LogDatabase:
         except Exception as e:
             print(e)
             return False
+
+    def get_alerts(self, user_id):
+        try:
+            alerts = self.alerts[str(user_id[:-1])]
+            user_alerts = list(alerts.find({"user_id": user_id}))
+            return user_alerts
+        except Exception as e:
+            print(e)
+            return []
 
     def get_and_delete_alerts(self, user_id):
         try:
@@ -260,3 +276,12 @@ class LogDatabase:
         except Exception as e:
             print(e)
             return []
+
+    def delete_alert(self, user_id, title, details):
+        try:
+            alerts = self.alerts[str(user_id[:-1])]
+            result = alerts.delete_one({"user_id": user_id, "title": title, "details": details})
+            return result.deleted_count == 1
+        except Exception as e:
+            print(e)
+            return False

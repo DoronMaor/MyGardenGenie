@@ -29,6 +29,7 @@ class ServerHandlerSockIO:
         self.client_type = client_type
         self.time_out = time_out
         self.client_id = None
+        self.active = True
 
     # region GENERAL
 
@@ -56,6 +57,8 @@ class ServerHandlerSockIO:
 
     def wait_for_response(self):
         while not hasattr(self, 'response'):
+            if not self.active:
+                return None
             pass
         if self.response:
             response = self.response

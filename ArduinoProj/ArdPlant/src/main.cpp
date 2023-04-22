@@ -23,13 +23,13 @@
 
 // Define pins
 // #define LED_SCREEN_PIN            2 // [orange->main SCL] [white->main SDL]
-#define WATER_PUMP_RELAY_PIN_A    12 // [purple->12] [gray->ground]
-#define WATER_PUMP_RELAY_PIN_B    5 // [purple->5] [gray->ground]
-#define LED_PIN_A                 6 // [green->ground] [red->5v] [brown->6]
-#define LED_PIN_B                 7 // [green->ground] [orange->5v] [brown->7]
-#define LIGHT_SENS_PIN_A          A0 // [yellow->5v] [purple->SDA] [blue->SCL] [white->ground]
-#define MOISTURE_PIN_A            A2 //Analog in -> [A0] comparator [L: blue and gray]
-#define MOISTURE_PIN_B            A3 //Analog in -> [A0] comparator [L: yellow and purple]
+#define WATER_PUMP_RELAY_PIN_A    9 // [purple->9] [gray->ground] [black->5v]
+#define WATER_PUMP_RELAY_PIN_B    8 // [purple->8] [gray->ground][blue->5v]
+#define LED_PIN_A                 10 // [green->ground] [orange->5v] [brown->10]
+#define LED_PIN_B                 11 // [green->ground] [red->5v] [brown->11]
+#define LIGHT_SENS_PIN_A          A0 // [yellow->5v not connected] [purple->SDA] [blue->SCL] [white->ground]
+#define MOISTURE_PIN_A            A2 // [A2->white->A0] [black->ground] [orange->3.3v] comparator [L: blue and gray]
+#define MOISTURE_PIN_B            A3 // [A3->yellow->A0] [black->ground] [red->3.3v] comparator [L: yellow and purple]
 
 #define LED_RING_PIXELS     12
 const int LED_COLOR[] = {204, 51, 255};
@@ -180,8 +180,6 @@ float GetLightSensor() {
   float lux = LightMeterA.readLightLevel();
   Serial.print("Light: ");
   Serial.print(lux);
-  Serial.println(" lx");
-
 
   return lux;
 }
@@ -192,7 +190,7 @@ void serialFlush() {
   }
 }
 
-const bool testingMode = true;
+const bool testingMode = false;
 
 void loop() {
 
@@ -203,22 +201,13 @@ void loop() {
     int mb = GetMoisture('B');
     float l = GetLightSensor();
     WriteToLCD("MoisA:" + String(ma) + "/" + "MoisB:" + String(mb)+ "/" + "Light:" + String(l));
-    delay(1000);
-    /*TurnPump(1000, 'A');
+    //Serial.print("MoisA:" + String(ma) + "/" + "MoisB:" + String(mb)+ "/" + "Light:" + String(l));
+    TurnPump(1000, 'A');
     TurnPump(1000, 'B');
-    *//**/
-    //TurnLEDRing(true, 'A');
-    //TurnLEDRing(true, 'B');
 
-    /*if (false)
-    {
-      float l = GetLightSensor();
-      WriteToLCD("Light: " + String(l));
-      TurnPump(1000, 'A');
-      TurnPump(1000, 'B');
-      TurnLEDRing(true, 'A');
-      TurnLEDRing(true, 'B');
-    }*/
+    TurnLEDRing(true, 'A');
+    TurnLEDRing(true, 'B');
+    delay(1000);
   }
   else {
     if (Serial.available() > 0){
@@ -270,50 +259,5 @@ void loop() {
         }
     }
   }
-
-
-/*
-  if (Serial.available() > 0){
-    String msg = Serial.readStringUntil('\n');
-
-    if (msg.substring(0, 5) == "#LCD#")
-    {
-    // #LCD#text
-        WriteToLCD(msg.substring(5));
-    }
-  else if (msg.substring(0, 9) == "#MOISTURE#")
-  {
-    //#GET_MOISTURE#A/B
-    String plant = msg.substring(9);
-    int mois = GetMoisture(plant);
-    Serial.print("#MOISTURE#" + m.ToString());
-  }
-  else if (msg.substring(0, 7) == "#LIGHT#")
-  {
-    //#GET_LIGHT#A/B
-    String m = msg.substring(7);
-    int mois = GetLightSensor(m);
-    Serial.print("#LIGHT#" + m.ToString());
-  }
-  else if (msg.substring(0, 8) == "#T_PUMP#")
-  {
-    //#T_PUMP#10/[time];A/B
-    String m = msg.substring(8);
-    TurnPump((int)(m[0] + m[1]), m.substring(2));
-  }
-  else if (msg.substring(0, 11) == "#T_LEDRING#")
-  {
-    //#T_LEDRING#0/1;A/B
-    String m = msg.substring(11);
-    if (m[0] == '0')
-      TurnLEDRing(true, m.substring(2));
-    else if (m[0] == '1')
-      TurnLEDRing(false, m.substring(2));
-  }
-    else
-    {
-        Serial.print("ERROR" + msg);
-    }
-  }*/
 
 }

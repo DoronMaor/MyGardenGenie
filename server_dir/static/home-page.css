@@ -30,3 +30,100 @@
 .features-image img {
   width: 100%;
 }
+
+.container {
+  width: fit-content;
+  height: 10%;
+  margin: 20px auto;
+  padding: 10px;
+  background-color: #ffffff6a;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.alerts-container {
+  height: 300px;
+  width: 600px;
+  overflow: auto;
+}
+
+.alert {
+  padding: 20px;
+  background: linear-gradient(270deg, #ff8585c0 0%, #f48a8aaf 100%);
+  border-radius: 999px;
+  margin: 4px;
+  box-shadow: 1px 1px 7px rgb(199, 199, 199);
+  position: relative;
+  transition: all 0.2s ease-in-out; /* add a transition effect for the hover animation */
+  transition: all 0.2s ease-in-out;
+}
+
+.alert p {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #282828;
+  border-radius: 45px;
+  text-shadow: 1px 1px 3px rgb(255, 255, 255);
+  text-align: center;
+}
+
+.alert p.time {
+  font-size: 14px;
+  font-weight: 400;
+  color: #555;
+}
+
+@media only screen and (max-width: 500px) {
+  .alerts-container {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
+
+.alert p.title {
+  font-size: 14px;
+  font-weight: 400;
+  color: #555;
+}
+
+.close-btn {
+  position: absolute;
+  top: 30%;
+  right: 20px;
+  transform: translateY(-50%);
+  padding: 0;
+  margin: 0;
+  border: none;
+  background-color: transparent;
+  font-size: 20px;
+  color: #ff0000;
+  cursor: pointer;
+  font-size: 30px;
+  text-shadow: 2px 2px 4px rgb(255, 255, 255);
+  transition: all 0.2s ease-in-out;
+  background: none;
+}
+
+.close-btn:hover {
+  color: #fff;
+  background: none;
+}
+
+.my-form {
+  display: flex;
+  margin: 0px auto;
+  padding: 0px;
+  background-color: #ffffff00;
+  box-shadow: 0 0px 0px rgba(255, 255, 255, 0);
+}
+
+.my-form button {
+  display: inline-block;
+  background-color: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.3s ease;
+}
+
+.my-form button:hover {
+  background-color: #ffffff00;
+}

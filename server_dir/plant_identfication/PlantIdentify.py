@@ -45,11 +45,14 @@ class PlantIdentify:
             with open("test_plant", "wb") as f:
                 pickle.dump(response, f)
 
-        return response["suggestions"][0]
+        return (response["suggestions"][0], self.format_names(response["suggestions"][0]))
 
     def format_names(self, api_output):
-        names = [api_output["plant_name"]] + api_output["plant_details"]["common_names"] + \
-                [api_output["plant_details"]["scientific_name"]]
+        plant_name = api_output.get('plant_name', '')
+        common_names = api_output.get('plant_details', {}).get('common_names', [])
+        scientific_name = api_output.get('plant_details', {}).get('scientific_name', '')
+        names = [plant_name] + common_names + [scientific_name]
+
         lowered_names = []
         for name in names:
             name = name.lower()
@@ -60,10 +63,3 @@ class PlantIdentify:
         names = self.format_names(api_output)
         plant = self.PlantLocator.search_plants(names)
         return plant
-
-
-if __name__ == '__main__':
-    p = PlantIdentify("fLBl0xbtSnB4UPyp6Qtblo" + "apUFJbQRAbxyAZMrM048ZYTvWw94")
-    nms = p.identify_plant()
-
-    p.search_for_plant(nms)

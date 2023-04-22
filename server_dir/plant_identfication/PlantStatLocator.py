@@ -26,12 +26,13 @@ class PlantStatLocator:
             if result:
                 results.append(result)
                 break
-        if results == []:
+        if not results:
             results_dict = {
-                "PLANT_TYPE": "DEFAULT",
-                "LIGHT_LVL": "HIGH",
-                "LIGHT_HOURS": "14",
-                "MOISTURE_LVL": "MOIST",
+                "FOUND": "FALSE",
+                "PLANT_TYPE": -1,
+                "LIGHT_LVL": -1,
+                "LIGHT_HOURS": -1,
+                "MOISTURE_LVL": -1,
             }
             return results_dict
         print(results)
@@ -41,5 +42,6 @@ class PlantStatLocator:
             "LIGHT_HOURS": results[0][2],
             "MOISTURE_LVL": results[0][3],
         }
+        results_dict["OKAY_VALUES"] = False if -1 in results_dict.values() else True
+
         return results_dict
-    

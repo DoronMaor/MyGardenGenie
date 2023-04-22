@@ -15,42 +15,6 @@ def extract_plant_data(response):
 
     return plant_dict
 
-
-def extract_plant_data_tkOLD(response):
-    print("Extract")
-    plant_recognition_data, gardening_data = response[1]['recognition'], response[1]['gardening']
-
-    # Create a Tkinter window for the form
-    root = tk.Tk()
-    root.title("Plant Data Form")
-
-    # Create the form labels and input fields
-    plant_name_label = tk.Label(root, text="Plant Name:")
-    plant_name_entry = tk.Entry(root)
-    plant_name_label.grid(row=0, column=0)
-    plant_name_entry.grid(row=0, column=1)
-
-    # Create a function to be called when the form is submitted
-    def submit_form():
-        plant_dict = {"PLANT_NAME": plant_name_entry.get(),
-                      "PLANT_TYPE": plant_recognition_data["plant_name"],
-                      "LIGHT_LVL": gardening_data["LIGHT_LVL"],
-                      "LIGHT_HOURS": gardening_data["LIGHT_HOURS"],
-                      "MOISTURE_LVL": gardening_data["MOISTURE_LVL"],
-                      "MODE": "AUTOMATIC"}
-        root.plant_dict = plant_dict  # Store the plant_dict in an instance variable of the root window
-        root.destroy()  # Close the form window
-
-    # Create the submit button
-    submit_button = tk.Button(root, text="Submit", command=submit_form)
-    submit_button.grid(row=1, column=1)
-
-    # Block the program until the form is submitted
-    root.mainloop()
-
-    # Retrieve the plant_dict from the root window and return it
-    return root.plant_dict
-
 def extract_plant_data_tk(response):
     """
     Extracts plant data from a given API response and displays it in a Tkinter form.
@@ -75,26 +39,30 @@ def extract_plant_data_tk(response):
     plant_name_entry.grid(row=0, column=1, padx=5, pady=5)
 
     plant_type_label = tk.Label(root, text="Plant Type:")
-    plant_type_entry = tk.Entry(root, state="readonly")
+    plant_type_entry = tk.Entry(root)
     plant_type_entry.insert(0, str(plant_recognition_data["plant_name"]))
+    plant_type_entry.configure(state="readonly")
     plant_type_label.grid(row=1, column=0, padx=5, pady=5)
     plant_type_entry.grid(row=1, column=1, padx=5, pady=5)
 
     light_lvl_label = tk.Label(root, text="Light Level:")
-    light_lvl_entry = tk.Entry(root, state="readonly")
+    light_lvl_entry = tk.Entry(root)
     light_lvl_entry.insert(0, str(gardening_data["LIGHT_LVL"]))
+    light_lvl_entry.configure(state="readonly")
     light_lvl_label.grid(row=2, column=0, padx=5, pady=5)
     light_lvl_entry.grid(row=2, column=1, padx=5, pady=5)
 
     light_hours_label = tk.Label(root, text="Light Hours:")
-    light_hours_entry = tk.Entry(root, state="readonly")
+    light_hours_entry = tk.Entry(root)
     light_hours_entry.insert(0, str(gardening_data["LIGHT_HOURS"]))
+    light_hours_entry.configure(state="readonly")
     light_hours_label.grid(row=3, column=0, padx=5, pady=5)
     light_hours_entry.grid(row=3, column=1, padx=5, pady=5)
 
     moisture_lvl_label = tk.Label(root, text="Moisture Level:")
-    moisture_lvl_entry = tk.Entry(root, state="readonly")
+    moisture_lvl_entry = tk.Entry(root)
     moisture_lvl_entry.insert(0, str(gardening_data["MOISTURE_LVL"]))
+    moisture_lvl_entry.configure(state="readonly")
     moisture_lvl_label.grid(row=4, column=0, padx=5, pady=5)
     moisture_lvl_entry.grid(row=4, column=1, padx=5, pady=5)
 
@@ -159,6 +127,7 @@ class PlantRecognitionManager:
 
         plant_num = self.plant_detector.detect_plants(input_image_path, output_image_path, num_plants)
         self.process_detected_plants(detect=plant_num>=1)  # plant_num != current_plants)
+        print("Done plant recognition")
 
     def process_detected_plants(self, detect=True):
         """
@@ -211,3 +180,6 @@ class PlantRecognitionManager:
             pass
 
 
+# c = ('plant_recognition', {'recognition': {'id': 424864995, 'plant_name': 'Alliaria petiolata', 'plant_details': {'common_names': ['garlic mustard', 'jack-by-the-hedge', 'garlic root', 'hedge garlic', 'sauce-alone', 'jack-in-the-bush', 'penny hedge', "poor man's mustard"], 'url': 'https://en.wikipedia.org/wiki/Alliaria_petiolata', 'language': 'en', 'scientific_name': 'Alliaria petiolata', 'structured_name': {'genus': 'alliaria', 'species': 'petiolata'}}, 'probability': 0.3385635679832361, 'confirmed': False, 'similar_images': [{'id': '12ef76b8c74eb1fc45a3449c4d92af3e', 'similarity': 0.3025616020820692, 'url': 'https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/images/12e/f76b8c74eb1fc45a3449c4d92af3e.jpg', 'url_small': 'https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/images/12e/f76b8c74eb1fc45a3449c4d92af3e.small.jpg'}, {'id': 'd1a28f2c0d313893f54ac5b9dbdb755a', 'similarity': 0.22736933549426822, 'url': 'https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/images/d1a/28f2c0d313893f54ac5b9dbdb755a.jpg', 'url_small': 'https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/images/d1a/28f2c0d313893f54ac5b9dbdb755a.small.jpg'}]}, 'gardening': {'PLANT_TYPE': 'DEFAULT', 'LIGHT_LVL': 'HIGH', 'LIGHT_HOURS': '14', 'MOISTURE_LVL': 'MOIST'}})
+
+# extract_plant_data_tk(c)

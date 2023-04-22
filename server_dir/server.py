@@ -1,5 +1,7 @@
 import base64
 import datetime
+import random
+
 import cv2
 from flask import Flask, request, redirect, render_template, g, url_for, session, Response, jsonify
 from flask_socketio import SocketIO, emit
@@ -24,8 +26,8 @@ plant_user_table = PlantUserList()
 db = SQLUserManager("dbs/")
 log_db = LogDatabase()
 plant_table_db = PlantManagerDB("dbs/")
-plant_identifier = PlantIdentify("5CHZ8TnzXgrbYOioi0Ewf9j"+"RFwWKCFtH9UbiYkqwjlgdUtBCnl")
-plant_health_detector = PlantHealthDetector("5CHZ8TnzXgrbYOioi0Ewf9j"+"RFwWKCFtH9UbiYkqwjlgdUtBCnl")
+plant_identifier = PlantIdentify("5CHZ8TnzXgrbYOioi0Ewf9j" + "RFwWKCFtH9UbiYkqwjlgdUtBCnl")
+plant_health_detector = PlantHealthDetector("5CHZ8TnzXgrbYOioi0Ewf9j" + "RFwWKCFtH9UbiYkqwjlgdUtBCnl")
 
 
 # region gets
@@ -49,13 +51,13 @@ def get_plant_table_db():
 
 def get_plant_identifier():
     if "plant_identifier" not in g:
-        g.plant_identifier = PlantIdentify("5CHZ8TnzXgrbYOioi0Ewf9j"+"RFwWKCFtH9UbiYkqwjlgdUtBCnl")
+        g.plant_identifier = PlantIdentify("5CHZ8TnzXgrbYOioi0Ewf9j" + "RFwWKCFtH9UbiYkqwjlgdUtBCnl")
     return g.plant_identifier
 
 
 def get_plant_health_detector():
     if "plant_health_detector" not in g:
-        g.plant_health_detector = PlantHealthDetector("5CHZ8TnzXgrbYOioi0Ewf9j"+"RFwWKCFtH9UbiYkqwjlgdUtBCnl")
+        g.plant_health_detector = PlantHealthDetector("5CHZ8TnzXgrbYOioi0Ewf9j" + "RFwWKCFtH9UbiYkqwjlgdUtBCnl")
     return g.plant_health_detector
 
 
@@ -71,6 +73,11 @@ def string_to_hash(s):
     sha_s = hash_obj.hexdigest()
     return sha_s
 
+def get_plant_name_for_html(plant_dict, action_details):
+    try:
+        return plant_dict[action_details[0][0]]['PLANT_NAME']
+    except:
+        return "-Deleted plant %s-" % action_details[0][0]
 
 def format_logs_for_html(logs, current_id=None):
     formatted_logs = []
@@ -100,11 +107,11 @@ def format_logs_for_html(logs, current_id=None):
             elif action_type == 'get_light_level':
                 formatted_log['action'] = f"Read light level"
             elif action_type == 'get_moisture':
-                formatted_log['action'] = f"Read moisture to {plant_dict[action_details[0][0]]['PLANT_NAME']}"
+                formatted_log['action'] = f"Read moisture to {get_plant_name_for_html(plant_dict, action_details)}"
             elif action_type == 'led_ring':
-                formatted_log['action'] = f"Turned LED to {plant_dict[action_details[0][0]]['PLANT_NAME']}"
+                formatted_log['action'] = f"Turned LED to {get_plant_name_for_html(plant_dict, action_details)}"
             elif action_type == 'add_water':
-                formatted_log['action'] = f"Watered {plant_dict[action_details[0][0]]['PLANT_NAME']}"
+                formatted_log['action'] = f"Watered {get_plant_name_for_html(plant_dict, action_details)}"
             else:
                 formatted_log['action'] = f"{action_type}, {action_details}"
         else:
@@ -182,16 +189,43 @@ def index():
 
     logged = is_logged()
     alerts = ""
-
     if logged:
-        alerts = "Welcome back %s!" % session['username']
-        log_alerts = get_log_db().get_and_delete_alerts(session['id'])
-        if log_alerts:
-            alerts = log_alerts
+        # Set default alert message
+        alerts = [{"title": "No messages", "details": "Everything is functioning correctly :)"}]
+
+        # Get alerts for the current user
+        user_alerts = get_log_db().get_alerts(session['id'])
+
+        # If there are alerts for the current user, use them instead of the default message
+        if user_alerts:
+            alerts = user_alerts
+
+            # If the user is an admin, also get alerts for all users and append them to the list of alerts
+            if session['admin']:
+                admin_alerts = get_log_db().get_alerts("admin")
+                if admin_alerts:
+                    alerts += admin_alerts
+
+        elif session['admin']:
+            admin_alerts = get_log_db().get_alerts("admin")
+            if admin_alerts:
+                alerts = admin_alerts
 
     print("alerts", alerts)
 
     return render_template("home-page.html", logged=logged, alerts=alerts)
+
+
+@app.route('/checked_alert', methods=['POST'])
+def handle_checked_alert():
+    print(request.form['title'], request.form['details'])
+    title = request.form['title']
+    details = request.form['details']
+    get_log_db().delete_alert(session['id'], title, details)
+    if session['admin']:
+        get_log_db().delete_alert("admin", title, details)
+
+    return redirect(url_for('index'))
 
 
 @app.route('/logout', methods=['GET'])
@@ -244,69 +278,100 @@ def reports_page():
     if request.method == 'POST':
         return "No post yet?"
 
+    plant_names = get_db().get_plants_by_similar_id(current_id)
+    try:
+        plant_names_lst = [plant["PLANT_NAME"] for plant in plant_names]
+    except:
+        plant_names_lst = []
+    plant_dict = get_db().get_plants_by_similar_id(current_id, as_plant_dict=True)
+
     # get the date or date range from the request parameters
-    plant_name = request.args.get('plant_name') if request.args.get(
-        'plant_name') is not None else "Reem"
+    try:
+        plant_name = request.args.get('plant_name') if request.args.get(
+            'plant_name') is not None else (plant_names[0]["PLANT_NAME"] if plant_names else None)
+    except:
+        plant_name = None
 
     start_date = request.args.get('start_date') if request.args.get(
         'start_date') is not None else datetime.date.today().strftime("%Y-%m-%d")
     end_date = request.args.get('end_date') if request.args.get(
         'end_date') is not None else datetime.date.today().strftime("%Y-%m-%d")
 
-    logs = format_logs_for_html(db.get_events_by_date(current_id, start_date, end_date))
+    try:
+        plant_letter = next((k for k, v in plant_dict.items() if v['PLANT_NAME'] == plant_name), None)
+    except:
+        plant_letter = ""
+
+    logs = format_logs_for_html(db.get_events_by_date(current_id, start_date, end_date, plant_name=plant_letter))
     print(start_date, end_date)
     print(logs)
 
     # growth
     html_growth_graph = db.plot_growth_percentage(user_id=current_id, plant_name=plant_name,
-                                               start_date=start_date, end_date=end_date)
+                                                  start_date=start_date, end_date=end_date)
 
     html_light_moisture_graph = db.moisture_light_plot(user_id=current_id, plant_name=plant_name,
-                                               start_date=start_date, end_date=end_date)
+                                                       start_date=start_date, end_date=end_date)
 
     # render your template and pass the log events to it
     return render_template('reports-page.html', logs=logs, logged=is_logged(), start_date=start_date,
                            end_date=end_date, log_count=len(logs),
-                           growth_graph=html_growth_graph, light_moisture_graph=html_light_moisture_graph)
+                           growth_graph=html_growth_graph,
+                           light_moisture_graph=html_light_moisture_graph, plant_names=plant_names_lst)
+
 
 @app.route('/admin_reports', methods=['GET', 'POST'])
 def admin_reports_page():
-    if not is_logged() or not session['admin']:
+    if not is_logged():
         return redirect(url_for('index', logged=is_logged()))
-
     current_id = session['id'] if request.args.get('user_id_num') is None else request.args.get('user_id_num') + "A"
-
     db = get_log_db()
     if request.method == 'POST':
         return "No post yet?"
 
+    plant_names = get_db().get_plants_by_similar_id(current_id)
+    try:
+        plant_names_lst = [plant["PLANT_NAME"] for plant in plant_names]
+    except:
+        plant_names_lst = []
+    plant_dict = get_db().get_plants_by_similar_id(current_id, as_plant_dict=True)
+
     # get the date or date range from the request parameters
-    plant_name = request.args.get('plant_name') if request.args.get(
-        'plant_name') is not None else "Reem"
+    try:
+        plant_name = request.args.get('plant_name') if request.args.get(
+            'plant_name') is not None else (plant_names[0]["PLANT_NAME"] if plant_names else None)
+    except:
+        plant_name = None
 
     start_date = request.args.get('start_date') if request.args.get(
         'start_date') is not None else datetime.date.today().strftime("%Y-%m-%d")
     end_date = request.args.get('end_date') if request.args.get(
         'end_date') is not None else datetime.date.today().strftime("%Y-%m-%d")
 
-    logs = format_logs_for_html(db.get_events_by_date(current_id, start_date, end_date), current_id=current_id)
+    try:
+        plant_letter = next((k for k, v in plant_dict.items() if v['PLANT_NAME'] == plant_name), None)
+    except:
+        plant_letter = ""
+
+    logs = format_logs_for_html(db.get_events_by_date(current_id, start_date, end_date, plant_name=plant_letter))
     print(start_date, end_date)
     print(logs)
 
     # growth
     html_growth_graph = db.plot_growth_percentage(user_id=current_id, plant_name=plant_name,
-                                               start_date=start_date, end_date=end_date)
+                                                  start_date=start_date, end_date=end_date)
 
     html_light_moisture_graph = db.moisture_light_plot(user_id=current_id, plant_name=plant_name,
-                                               start_date=start_date, end_date=end_date)
+                                                       start_date=start_date, end_date=end_date)
 
     # render your template and pass the log events to it
     return render_template('admin-reports-page.html', logs=logs, logged=is_logged(), start_date=start_date,
                            end_date=end_date, log_count=len(logs),
-                           growth_graph=html_growth_graph, light_moisture_graph=html_light_moisture_graph,
-                           username=get_db().get_username_by_id(current_id), search_options=get_db().get_unique_user_ids(),
+                           growth_graph=html_growth_graph,
+                           light_moisture_graph=html_light_moisture_graph, plant_names=plant_names_lst,
+                           username=get_db().get_username_by_id(current_id),
+                           search_options=get_db().get_unique_user_ids(),
                            search_id=current_id)
-
 
 
 @app.route('/remove_plant', methods=['POST'])
@@ -345,8 +410,6 @@ def update_all_plants_table():
             db_table.update_db(request.form)
         else:  # add
             db_table.add_plant_from_form(request.form)
-
-    # Handle unexpected button value
 
     return render_template("admin-plants-page.html", logged=is_logged(), plants=db_table.get_all_plants_dict())
 
@@ -404,7 +467,7 @@ def handle_remote_stop(pickled_data):
 @socketio.on('set_auto_mode')
 def handle_set_auto_mode(pickled_data):
     data = pickle_to_data(pickled_data)
-    mode_data, user_id  = (data[0], data[1]), data[-1]
+    mode_data, user_id = (data[0], data[1]), data[-1]
     s = plant_user_table.get_sock("plant", user_id)
     send_message(s, "set_auto_mode", mode_data)
 
@@ -441,6 +504,7 @@ def handle_login(pickled_data):
     data = pickle_to_data(pickled_data)
     res = get_db().login(data[0], string_to_hash(data[1]))
     send_response("login", res[:2])
+    session['id'] = res[0]
 
 
 @socketio.on('add_plant')
@@ -468,6 +532,7 @@ def handle_light_moisture_values(pickled_data):
     values_tuple = get_plant_table_db().get_plant(message_data)[1:]
     send_response("get_light_moisture_values", values_tuple)
 
+
 # endregion
 
 # region ALERTS
@@ -479,8 +544,12 @@ def handle_alert(pickled_data):
     sA, sB = plant_user_table.get_sock("both_users", user_id)
     print("Sending alerts to ", sA, sB)
     # Emit the 'alert' event to the client
+    if sA is None or sB is None:
+        get_log_db().add_alert(user_id, title="Alert from plant client on %s"
+                                              % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), details=message_data)
     socketio.emit('alert', {'message': message_data}, room=sA)
     socketio.emit('alert', {'message': message_data}, room=sB)
+
 
 # endregion
 
@@ -508,8 +577,16 @@ def handle_video_stop(pickled_data):
 @socketio.on('plant_recognition')
 def plant_recognition(pickled_data):
     data = pickle_to_data(pickled_data)
-    recognition = get_plant_identifier().identify_plant(zipped_b64_image=data[0], testing=False)
-    gardening = get_plant_identifier().search_for_plant(recognition)
+    recognition, plant_names = get_plant_identifier().identify_plant(zipped_b64_image=data[0], testing=False)
+    gardening = get_plant_table_db().search_plant_from_list(plant_names)
+
+
+    if gardening is None or not gardening.get("OKAY_VALUES"): # missing in DB, register alerts
+        missing_message = "Sorry, we don't have any gardening data available for this plant, so we won't be able to take care of it automatically. Please wait until an admin is taking care of the situation."
+        admin_missing_message = "We don't have any gardening data available for this plant, so we won't be able to take care of it automatically. Taking care of the situation."
+        get_log_db().add_alert(user_id=session['id'], title="Missing Plant Data for %s" % gardening["PLANT_TYPE"], details=missing_message)
+        get_log_db().add_alert(user_id="admin", title="Missing Plant Data for %s" % gardening["PLANT_TYPE"], details=admin_missing_message)
+
     send_response('plant_recognition', {'recognition': recognition, 'gardening': gardening})
 
 
@@ -518,10 +595,10 @@ def plant_recognition(pickled_data):
     data = pickle_to_data(pickled_data)
     message_data, user_id = data[0], data[-1]
     health_assessment = get_plant_health_detector().assess_health(zipped_b64_image=message_data, testing=False)
-    get_log_db().add_alert(user_id=user_id, alert=health_assessment)
+    get_log_db().add_alert(user_id=user_id, title="title", details=health_assessment)
+
 
 # endregion
-
 
 # region LOG EVENTS
 @socketio.on('log_event')
@@ -537,8 +614,10 @@ def handle_log_event(pickled_data):
     message_data, user_id = data[0], data[-1]
     state = log_db.add_growth_args(*message_data)
 
+
 # endregion
 
 if __name__ == '__main__':
     # socketio.start_background_task(target=generate_frames)
     socketio.run(app, allow_unsafe_werkzeug=True)
+

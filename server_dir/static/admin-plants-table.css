@@ -1,0 +1,37 @@
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 150px;
+}
+
+.logo-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  color: #fff;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.update-button {
+  background-color: #007bff;
+}
+
+.delete-button {
+  background-color: #dc3545;
+}
+
+.logo-button:focus {
+  outline: none;
+}
+
+.fa-edit,
+.fa-trash-alt {
+  font-size: 20px;
+}

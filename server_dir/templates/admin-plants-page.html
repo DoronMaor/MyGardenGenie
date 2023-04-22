@@ -9,6 +9,10 @@
       rel="stylesheet"
       href="{{url_for('static', filename='general.css')}}"
     />
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='general.css')}}"
+    />
   </head>
   <body>
     <h1>Plants Table</h1>
@@ -21,8 +25,12 @@
           <th>Moisture</th>
           <th>Actions</th>
         </tr>
-        {% for plant in plants %}
+        {% for plant in plants %} {% if plant['missing'] %}
+        <tr class="missing-plant-table" style="background-color: #fdcfcf">
+          {% else %}
+        </tr>
         <tr>
+          {% endif %}
           <td>{{ plant['type'] }}</td>
 
           <td>
@@ -69,10 +77,16 @@
         </tr>
         {% endfor %}
         <tr>
-          <td><input type="text" name="type" /></td>
-          <td><input type="number" name="light" /></td>
-          <td><input type="number" name="moisture" /></td>
-          <td><input type="number" name="light_hours" /></td>
+          <td><input type="text" name="type" placeholder="Plant type" /></td>
+          <td>
+            <input type="number" name="light" placeholder="Light Level" />
+          </td>
+          <td>
+            <input type="number" name="moisture" placeholder="Moisture Level" />
+          </td>
+          <td>
+            <input type="number" name="light_hours" placeholder="Light Hours" />
+          </td>
 
           <td><button type="submit" name="add" value="add">Add</button></td>
         </tr>

@@ -48,6 +48,6 @@ class PlantHealthDetector:
                 name = disease["name"]
                 description = disease["disease_details"]["description"]
                 suggestions.append({"name": name, "description": description})
-            return suggestions
+            return suggestions[0]
         else:
-            return "Plant is healthy!"
+            return [{"Plant is healthy!": "Nothing to worry about"}][0]

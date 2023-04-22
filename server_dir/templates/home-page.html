@@ -11,13 +11,7 @@
     />
     <title>MGG</title>
   </head>
-  {% include 'nav-template.html' %} {% block nav %} {% endblock %} {% include
-  'alert-popup-template.html' %} {% block alert %} {% endblock %} {% if alerts
-  %}
-  <script>
-    showMessage("{{alerts}}", (showTime = 10000));
-  </script>
-  {% else %} {% endif %}
+  {% include 'nav-template.html' %} {% block nav %} {% endblock %}
   <body>
     <!-- hero section -->
     <section class="hero">
@@ -27,11 +21,13 @@
           Our IoT-based remote monitoring and care solution for home gardening
           ensures your plants receive the optimal care they need to thrive.
         </p>
-        <button class="cta-button">Get started</button>
+
+        {% if logged %} {% include 'alerts-box-template.html' %} {% block
+        alert_box %} {% endblock %} {% endif %}
       </div>
       <div class="hero-image">
         <img
-          src="https://via.placeholder.com/600x400"
+          src="{{url_for('static', filename='images/mainphoto.png')}}"
           alt="MyGardenGenie in action"
         />
       </div>
@@ -42,38 +38,38 @@
       <h2>Features</h2>
       <div class="feature-list">
         <div class="feature-item">
-          <img
-            src="https://via.placeholder.com/100x100"
-            alt="Lighting control"
-          />
           <h3>Lighting control</h3>
           <p>
             Control the lighting for your plants remotely with our advanced
             lighting system.
           </p>
+          <img
+            src="{{url_for('static', filename='images/led.png')}}"
+            alt="Lighting control"
+          />
         </div>
         <div class="feature-item">
-          <img
-            src="https://via.placeholder.com/100x100"
-            alt="Humidity control"
-          />
           <h3>Watering control</h3>
           <p>
             Never worry about over or under watering your plants again with our
             automated watering system.
           </p>
         </div>
+        <img
+          src="{{url_for('static', filename='images/waterpump.png')}}"
+          alt="Humidity control"
+        />
         <div class="feature-item">
-          <img
-            src="https://via.placeholder.com/100x100"
-            alt="Watering control"
-          />
           <h3>Remote Control</h3>
           <p>
             Have the ability to connect to your plants from afar whenever you
             want including live video streaming.
           </p>
         </div>
+        <img
+          src="{{url_for('static', filename='images/connect.png')}}"
+          alt="Remote control"
+        />
       </div>
     </section>
 
@@ -85,6 +81,8 @@
         <p>
           Sign up for a free account and start caring for your plants with ease.
         </p>
+        </div>
+        <div class="signup-content"></div>
         <div class="container">
           <form
             action="/"
@@ -107,6 +105,8 @@
             <input type="text" id="code" name="code" /><br /><br />
             <input type="submit" value="Signup" class="cta-button" />
           </form>
+        </div>
+        <div class="container">
           <form
             action="/"
             method="post"

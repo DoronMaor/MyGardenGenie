@@ -7,6 +7,11 @@ def format_plants_for_html(plants):
     formatted_plants = []
     for plant in plants:
         formatted_plant = {}
+        if -1 in plant or "-1" in plant:
+            formatted_plant['missing'] = True
+        else:
+            formatted_plant['missing'] = False
+
         formatted_plant['type'] = plant[0]
         formatted_plant['light'] = plant[1]
         formatted_plant['light_hours'] = plant[2]
@@ -86,6 +91,12 @@ class PlantManagerDB:
                 plant_attr = split_plant[1]
             except:
                 print( plant, value)
+                if plant == 'delete':
+                    self.cur.execute(
+                        'DELETE FROM plants_conditions WHERE type = ?',
+                        (value,)
+                    )
+                continue
             # Handle update requests
             if plant_attr == 'light':
                 self.cur.execute(
@@ -122,7 +133,7 @@ class PlantManagerDB:
             (plant_type,)
         )
 
-    def get_plant(self, plant_type):
+    def get_plant(self, plant_type, add_new=True):
         self.cur.execute(
             '''
             SELECT * FROM plants_conditions
@@ -131,8 +142,8 @@ class PlantManagerDB:
             (plant_type,)
         )
         results = self.cur.fetchone()
-        if results is None:
-            self.add_plant(plant_type=plant_type, light=60, light_hours=14, moisture=300)
+        if results is None and add_new:
+            self.add_plant(plant_type=plant_type, light=-1, light_hours=-1, moisture=-1)
             return self.get_plant(plant_type)
         return results
 
@@ -147,3 +158,23 @@ class PlantManagerDB:
     def get_all_plants_dict(self):
         plants = self.get_all_plants()
         return format_plants_for_html(plants)
+
+    def search_plant_from_list(self, plant_list):
+        results = []
+        for plant in plant_list:
+            result = self.get_plant(plant, add_new=False)
+            if result:
+                results = result
+                break
+        if not results:
+            results = self.get_plant(plant_list[0], add_new=True)
+        print(results)
+        results_dict = {
+            "PLANT_TYPE": results[0],
+            "LIGHT_LVL": results[1],
+            "LIGHT_HOURS": results[2],
+            "MOISTURE_LVL": results[3],
+        }
+        results_dict["OKAY_VALUES"] = False if -1 in results_dict.values() else True
+
+        return results_dict
