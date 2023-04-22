@@ -18,7 +18,7 @@ def hysteresis_water_handling(plant: str, low_threshold: int, high_threshold: in
         None
     """
     if high_threshold == -1:
-        mgf.set_mode("plant%s.mgg" % plant, new_mode="False")
+        mgf.set_mode("plant%s.mgg" % plant, new_mode="MANUAL")
         return
 
     start_time = time.monotonic()
@@ -50,7 +50,7 @@ def hysteresis_lighting_handling(plant: str, low_threshold: int, gardener, event
         None
     """
     if low_threshold == -1:
-        mgf.set_mode("plant%s.mgg" % plant, new_mode="False")
+        mgf.set_mode("plant%s.mgg" % plant, new_mode="MANUAL")
         return
     light_level = gardener.get_light_level(plant)
     if light_level < low_threshold and not gardener.get_led_ring(plant):
@@ -79,6 +79,6 @@ def full_routine_checkup(plantA_state: str, plantB_state: str, gardener, event_l
     if not testing:
         if plantA_state == "AUTOMATIC":
             routine("A", gardener, event_logger)
-        return
+
         if plantB_state == "AUTOMATIC":
             routine("B", gardener, event_logger)

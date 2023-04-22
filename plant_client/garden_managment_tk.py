@@ -24,7 +24,7 @@ def home_page(garden_management, frame=None, win=None):
     t_frame = home_page_tk.start_up(garden_management)
 
 def create_login_form():
-    return "3", "3"
+    return "9", "9"
 
 class GardenManagement:
     def __init__(self):

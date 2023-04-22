@@ -137,7 +137,7 @@ class PlantManagerDB:
         self.cur.execute(
             '''
             SELECT * FROM plants_conditions
-            WHERE type = ?
+            WHERE LOWER(type) = ?
             ''',
             (plant_type,)
         )
