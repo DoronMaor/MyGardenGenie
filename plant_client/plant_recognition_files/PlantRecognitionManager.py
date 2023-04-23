@@ -15,6 +15,7 @@ def extract_plant_data(response):
 
     return plant_dict
 
+
 def extract_plant_data_tk(response):
     """
     Extracts plant data from a given API response and displays it in a Tkinter form.
@@ -110,9 +111,9 @@ def download_resnet_model():
 
 class PlantRecognitionManager:
     def __init__(self, server_handler):
+        download_resnet_model()
         self.server_handler = server_handler
         self.picture_grabber = PictureGrabber()
-        download_resnet_model()
         self.plant_detector = PlantDetector()
 
     def take_picture(self, purpose=""):
@@ -126,7 +127,7 @@ class PlantRecognitionManager:
         self.take_picture()
 
         plant_num = self.plant_detector.detect_plants(input_image_path, output_image_path, num_plants)
-        self.process_detected_plants(detect=plant_num>=1)  # plant_num != current_plants)
+        self.process_detected_plants(detect=plant_num >= 1)  # plant_num != current_plants)
         print("Done plant recognition")
 
     def process_detected_plants(self, detect=True):
@@ -146,7 +147,7 @@ class PlantRecognitionManager:
         counter = 0
         # A dictionary to map integers to letters for naming the plants
         letters_map = {0: 'A', 1: 'B', 2: 'C'}
-
+        plants = []
         # Loop through the files in the directory
         for filename in os.listdir(directory):
             # Process only the detection files with a filename starting with "detection_" and only the first two files
@@ -159,11 +160,14 @@ class PlantRecognitionManager:
                         print("Sent image")
                         response = self.server_handler.send_image_recognition(zlib.compress(base64_image.encode()))
                         print(response)
+                        if response[1]['gardening']["PLANT_TYPE"] in plants:
+                            response = self.server_handler.send_image_recognition(zlib.compress(base64_image.encode()))
 
                         # Extract the plant data from the server response using a Tkinter form
                         plant_dict = extract_plant_data_tk(response)
                         # Add the plant data to the dictionary with a letter name corresponding to the counter value
                         add_plant_dict(plant_dict, letters_map[counter])
+                        plants.append(plant_dict["PLANT_TYPE"])
 
                         # Register the plant data in the server
                         self.server_handler.register_plant(plant_dict)
@@ -178,7 +182,6 @@ class PlantRecognitionManager:
             os.remove("plant_recognition_files\\all_plants.jpg")
         except:
             pass
-
 
 # c = ('plant_recognition', {'recognition': {'id': 424864995, 'plant_name': 'Alliaria petiolata', 'plant_details': {'common_names': ['garlic mustard', 'jack-by-the-hedge', 'garlic root', 'hedge garlic', 'sauce-alone', 'jack-in-the-bush', 'penny hedge', "poor man's mustard"], 'url': 'https://en.wikipedia.org/wiki/Alliaria_petiolata', 'language': 'en', 'scientific_name': 'Alliaria petiolata', 'structured_name': {'genus': 'alliaria', 'species': 'petiolata'}}, 'probability': 0.3385635679832361, 'confirmed': False, 'similar_images': [{'id': '12ef76b8c74eb1fc45a3449c4d92af3e', 'similarity': 0.3025616020820692, 'url': 'https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/images/12e/f76b8c74eb1fc45a3449c4d92af3e.jpg', 'url_small': 'https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/images/12e/f76b8c74eb1fc45a3449c4d92af3e.small.jpg'}, {'id': 'd1a28f2c0d313893f54ac5b9dbdb755a', 'similarity': 0.22736933549426822, 'url': 'https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/images/d1a/28f2c0d313893f54ac5b9dbdb755a.jpg', 'url_small': 'https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/images/d1a/28f2c0d313893f54ac5b9dbdb755a.small.jpg'}]}, 'gardening': {'PLANT_TYPE': 'DEFAULT', 'LIGHT_LVL': 'HIGH', 'LIGHT_HOURS': '14', 'MOISTURE_LVL': 'MOIST'}})
 

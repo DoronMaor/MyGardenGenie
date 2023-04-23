@@ -77,6 +77,7 @@ def full_routine_checkup(plantA_state: str, plantB_state: str, gardener, event_l
     """Checks the specified plants for any necessary routine maintenance, based on their current state."""
 
     if not testing:
+        return
         if plantA_state == "AUTOMATIC":
             routine("A", gardener, event_logger)
 

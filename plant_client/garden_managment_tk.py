@@ -15,6 +15,7 @@ import tk_frame.home_page as home_page_tk
 import tkinter as tk
 from tkinter import ttk
 
+
 def timer_thread(duration):
     time.sleep(duration)
     return True
@@ -23,13 +24,14 @@ def timer_thread(duration):
 def home_page(garden_management, frame=None, win=None):
     t_frame = home_page_tk.start_up(garden_management)
 
+
 def create_login_form():
-    return "9", "9"
+    return "user", "123"
 
 class GardenManagement:
     def __init__(self):
         self.gardener = Gardener()
-        self.server_handler = ServerHandlerSockIO(server_ip="127.0.0.1", port=5000, client_type="plant", time_out=3)
+        self.server_handler = ServerHandlerSockIO(server_ip="172.16.163.53", port=5000, client_type="plant", time_out=3)
 
         # usm.sign_up(server_handler)
         usrname, pss = create_login_form()
@@ -63,41 +65,40 @@ class GardenManagement:
         remote_message_headers = ["garden_action", "remote_stop"]
 
         while self.active_loop:
-            if self.do_plant_recognition:
-                continue
-            message = self.get_message() if mes is None else mes
-            if message is None:
-                continue
-            try:
-                action_header, action_data = analyze_message(message)
-            except:
-                continue
+            if not self.do_plant_recognition:
+                message = self.get_message() if mes is None else mes
+                if message is None:
+                    continue
+                try:
+                    action_header, action_data = analyze_message(message)
+                except:
+                    continue
 
-            if action_header in remote_message_headers:
-                self.remote_handler.set_current_message(message)
+                if action_header in remote_message_headers:
+                    self.remote_handler.set_current_message(message)
 
-                if action_header == "remote_stop" and self.remote_handler.connected_accounts == 0:
-                    mgf.set_remote_connection(False)
-                    self.status = "Active" if self.active_loop else "Not Active"
-                continue
+                    if action_header == "remote_stop" and self.remote_handler.connected_accounts == 0:
+                        mgf.set_remote_connection(False)
+                        self.status = "Active" if self.active_loop else "Not Active"
+                    continue
 
-            if action_header == "remote_start":
-                mgf.set_remote_connection(True)
-                self.remote_handler.start_remote_loop(action_data)
-                self.status = "Remote Control"
-            elif action_header == "video_start":
-                print("Starting video...")
-                t = threading.Thread(target=self.video_streamer.start)
-                t.start()
-                self.server_handler.send_alert("Video streaming started successfully, video will soon be shown on "
-                                               "screen")
+                if action_header == "remote_start":
+                    mgf.set_remote_connection(True)
+                    self.remote_handler.start_remote_loop(action_data)
+                    self.status = "Remote Control"
+                elif action_header == "video_start":
+                    print("Starting video...")
+                    t = threading.Thread(target=self.video_streamer.start)
+                    t.start()
+                    self.server_handler.send_alert("Video streaming started successfully, video will soon be shown on "
+                                                   "screen")
 
-            elif action_header == "video_stop":
-                self.video_streamer.stop()
-            elif action_header == "get_plant_dict":
-                self.server_handler.send_plants_names(plant_dict=mgf.get_letter_plant_dict(), request_id=action_data)
-            else:
-                print("Couldn't analyze this message: ", message)
+                elif action_header == "video_stop":
+                    self.video_streamer.stop()
+                elif action_header == "get_plant_dict":
+                    self.server_handler.send_plants_names(plant_dict=mgf.get_letter_plant_dict(), request_id=action_data)
+                else:
+                    print("Couldn't analyze this message: ", message)
 
     def routine_checkup(self):
         if not mgf.get_remote_connection():
@@ -152,8 +153,6 @@ class GardenManagement:
             self.server_handler.active = True
 
 
-
-
 if __name__ == '__main__':
     garden_management = GardenManagement()
     thread = threading.Thread(target=garden_management.main_loop)
@@ -161,4 +160,3 @@ if __name__ == '__main__':
     thread.start()
 
     home_page(garden_management)
-

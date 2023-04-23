@@ -65,7 +65,7 @@ class PlantManagerDB:
             ''',
             (plant_type, light, light_hours, moisture)
         )
-        self.conn.commit()
+        #self.conn.commit()
 
     def add_plant_from_form(self, data):
         self.add_plant(data["type"], data["light"], data["light_hours"], data["moisture"])
@@ -132,6 +132,7 @@ class PlantManagerDB:
             ''',
             (plant_type,)
         )
+        self.conn.commit()
 
     def get_plant(self, plant_type, add_new=True):
         self.cur.execute(
@@ -139,7 +140,7 @@ class PlantManagerDB:
             SELECT * FROM plants_conditions
             WHERE LOWER(type) = ?
             ''',
-            (plant_type,)
+            (plant_type.lower(),)
         )
         results = self.cur.fetchone()
         if results is None and add_new:

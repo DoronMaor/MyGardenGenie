@@ -1,3 +1,4 @@
+
 import base64
 import datetime
 import random
@@ -588,6 +589,7 @@ def plant_recognition(pickled_data):
         get_log_db().add_alert(user_id="admin", title="Missing Plant Data for %s" % gardening["PLANT_TYPE"], details=admin_missing_message)
 
     send_response('plant_recognition', {'recognition': recognition, 'gardening': gardening})
+    send_response('plant_recognition', {'recognition': recognition, 'gardening': gardening})
 
 
 @socketio.on('plant_health')
@@ -619,5 +621,6 @@ def handle_log_event(pickled_data):
 
 if __name__ == '__main__':
     # socketio.start_background_task(target=generate_frames)
-    socketio.run(app, allow_unsafe_werkzeug=True)
+    #socketio.run(app, allow_unsafe_werkzeug=True, host='192.168.56.1')
+    socketio.run(app, allow_unsafe_werkzeug=True, host='172.16.163.53')
 
