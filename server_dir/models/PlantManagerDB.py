@@ -1,6 +1,7 @@
 import sqlite3 as lite
 import os
 import pickle
+import time
 
 
 def format_plants_for_html(plants):
@@ -135,18 +136,23 @@ class PlantManagerDB:
         self.conn.commit()
 
     def get_plant(self, plant_type, add_new=True):
-        self.cur.execute(
-            '''
-            SELECT * FROM plants_conditions
-            WHERE LOWER(type) = ?
-            ''',
-            (plant_type.lower(),)
-        )
-        results = self.cur.fetchone()
-        if results is None and add_new:
-            self.add_plant(plant_type=plant_type, light=-1, light_hours=-1, moisture=-1)
-            return self.get_plant(plant_type)
-        return results
+        results=None
+        while results is None:
+            self.cur.execute(
+                '''
+                SELECT * FROM plants_conditions
+                WHERE type = ?
+                ''',
+                (plant_type,)
+            )
+            results = self.cur.fetchone()
+            self.conn.commit()
+
+            if results is None and add_new:
+                self.add_plant(plant_type=plant_type, light=-1, light_hours=-1, moisture=-1)
+                time.sleep(0.2)
+            else:
+                return results
 
     def get_all_plants(self):
         self.cur.execute(

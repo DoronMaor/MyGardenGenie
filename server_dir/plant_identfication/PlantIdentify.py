@@ -51,7 +51,7 @@ class PlantIdentify:
         plant_name = api_output.get('plant_name', '')
         common_names = api_output.get('plant_details', {}).get('common_names', [])
         scientific_name = api_output.get('plant_details', {}).get('scientific_name', '')
-        names = [plant_name] + common_names + [scientific_name]
+        names = [plant_name] + (common_names if common_names is not None else []) + [scientific_name]
 
         lowered_names = []
         for name in names:

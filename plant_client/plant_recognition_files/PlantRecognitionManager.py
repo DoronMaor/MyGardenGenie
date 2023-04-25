@@ -167,7 +167,7 @@ class PlantRecognitionManager:
                         plant_dict = extract_plant_data_tk(response)
                         # Add the plant data to the dictionary with a letter name corresponding to the counter value
                         add_plant_dict(plant_dict, letters_map[counter])
-                        plants.append(plant_dict["PLANT_TYPE"])
+                        plants.append(response[1]['gardening']["PLANT_TYPE"])
 
                         # Register the plant data in the server
                         self.server_handler.register_plant(plant_dict)

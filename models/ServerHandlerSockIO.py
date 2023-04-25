@@ -135,6 +135,10 @@ class ServerHandlerSockIO:
         mes = ("plant_recognition", zipped_b64_image)
         return self.send_and_receive(mes)
 
+    def send_plant_health(self, zipped_b64_images):
+        mes = ("plant_health", zipped_b64_images)
+        self.send(mes)
+
     # endregion
 
     # region EVENTS

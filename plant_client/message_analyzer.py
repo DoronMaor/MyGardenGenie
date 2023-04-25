@@ -120,5 +120,7 @@ def analyze_message(message):
             return handle_get_message(message)
         elif "video_" in header:
             return handle_video_message(message)
+        elif "plant_health" in header:
+            return "plant_health", "start"
     else:
         return None, None

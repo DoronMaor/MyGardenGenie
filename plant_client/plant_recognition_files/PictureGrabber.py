@@ -71,9 +71,10 @@ class PictureGrabber:
                     compress_image(f_name)
                     self.plant_detector.detect_plants_for_analysis(input_image_path=f_name, output_image_path=f_name)
                     delete.append(f_name)
+                    break
                 except:
                     pass
-                break
+
         self.cap.release()
 
         for file in delete:

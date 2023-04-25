@@ -12,9 +12,9 @@ import tk_frame.home_page_support as home_page_support
 
 _bgcolor = '#d9d9d9'  # X11 color: 'gray85'
 _fgcolor = '#000000'  # X11 color: 'black'
-_compcolor = 'gray40' # X11 color: #666666
-_ana1color = '#c3c3c3' # Closest X11 color: 'gray76'
-_ana2color = 'beige' # X11 color: #f5f5dc
+_compcolor = 'gray40'  # X11 color: #666666
+_ana1color = '#c3c3c3'  # Closest X11 color: 'gray76'
+_ana2color = 'beige'  # X11 color: #f5f5dc
 _tabfg1 = 'black'
 _tabfg2 = 'black'
 _tabbg1 = 'grey75'
@@ -30,21 +30,21 @@ _style_code_ran = 0
 def _style_code():
     global _style_code_ran
     if _style_code_ran:
-       return
+        return
     style = ttk.Style()
     if sys.platform == "win32":
-       style.theme_use('winnative')
-    style.configure('.',background=_bgcolor)
-    style.configure('.',foreground=_fgcolor)
-    style.configure('.',font=_font16)
-    style.map('.',background =
-       [('selected', _compcolor), ('active',_ana2color)])
+        style.theme_use('winnative')
+    style.configure('.', background=_bgcolor)
+    style.configure('.', foreground=_fgcolor)
+    style.configure('.', font=_font16)
+    style.map('.', background=
+    [('selected', _compcolor), ('active', _ana2color)])
     if _bgmode == 'dark':
-       style.map('.',foreground =
-         [('selected', 'white'), ('active','white')])
+        style.map('.', foreground=
+        [('selected', 'white'), ('active', 'white')])
     else:
-       style.map('.',foreground =
-         [('selected', 'black'), ('active','black')])
+        style.map('.', foreground=
+        [('selected', 'black'), ('active', 'black')])
     _style_code_ran = 1
 
 
@@ -56,7 +56,7 @@ class HomePage:
         top.geometry("814x476+505+207")
         top.minsize(120, 1)
         top.maxsize(3604, 1061)
-        top.resizable(1,  1)
+        top.resizable(1, 1)
         top.title("MyGardenGenie - Plant Client")
         top.configure(background="#d9d9d9")
         top.configure(highlightbackground="#d9d9d9")
@@ -64,10 +64,10 @@ class HomePage:
 
         self.top = top
 
-        self.menubar = tk.Menu(top,font="TkMenuFont",bg=_bgcolor,fg=_fgcolor)
-        top.configure(menu = self.menubar)
+        self.menubar = tk.Menu(top, font="TkMenuFont", bg=_bgcolor, fg=_fgcolor)
+        top.configure(menu=self.menubar)
 
-        self.menubar.add_command(compound='left',label='Exit')
+        self.menubar.add_command(compound='left', label='Exit')
         self.bg_frame = tk.Frame(self.top)
         self.bg_frame.place(relx=0.0, rely=0.0, relheight=1.0, relwidth=1.0)
         self.bg_frame.configure(relief='groove')
@@ -93,7 +93,7 @@ class HomePage:
         self.mgg_logo.configure(foreground="#000000")
         self.mgg_logo.configure(highlightbackground="#d9d9d9")
         self.mgg_logo.configure(highlightcolor="black")
-        photo_location = os.path.join(_location,"LogoTK.png")
+        photo_location = os.path.join(_location, "LogoTK.png")
         global _img0
         _img0 = tk.PhotoImage(file=photo_location)
         self.mgg_logo.configure(image=_img0)
@@ -133,11 +133,11 @@ class HomePage:
         self.plant_B_label.configure(text='''Plant B''')
         _style_code()
         self.TSeparator1 = ttk.Separator(self.bg_frame)
-        self.TSeparator1.place(relx=0.5, rely=0.176,  relheight=0.655)
+        self.TSeparator1.place(relx=0.5, rely=0.176, relheight=0.655)
         self.TSeparator1.configure(orient="vertical")
         self.plant_A_text = tk.Text(self.bg_frame)
         self.plant_A_text.place(relx=0.012, rely=0.294, relheight=0.55
-                , relwidth=0.473)
+                                , relwidth=0.473)
         self.plant_A_text.configure(background="white")
         self.plant_A_text.configure(font=_font14)
         self.plant_A_text.configure(foreground="black")
@@ -149,7 +149,7 @@ class HomePage:
         self.plant_A_text.configure(wrap="word")
         self.plant_B_text = tk.Text(self.bg_frame)
         self.plant_B_text.place(relx=0.516, rely=0.294, relheight=0.55
-                , relwidth=0.473)
+                                , relwidth=0.473)
         self.plant_B_text.configure(background="white")
         self.plant_B_text.configure(cursor="fleur")
         self.plant_B_text.configure(font=_font14)
@@ -187,65 +187,62 @@ class HomePage:
         self.active_btn.configure(relief="solid")
         self.active_btn.configure(text='''Active''')
 
-        self.active_btn.configure(command=lambda: toggle_active(garden_management, self))
-        self.plant_recog_btn.configure(command=lambda: toggle_plant_recognition(garden_management, self))
-        update_strings(garden_management, self)
+        self.active_btn.configure(command=lambda: self.toggle_active(garden_management))
+        self.plant_recog_btn.configure(command=lambda: self.toggle_plant_recognition(garden_management))
+        self.update_strings(garden_management)
 
+    def format_plant_info(self, info_dict):
+        if info_dict == {"PLANT_NAME": "No plant"} or info_dict == {"Error": None}:
+            return ""
+        plant_name = info_dict['PLANT_NAME']
+        plant_type = info_dict['PLANT_TYPE']
+        light_lvl = info_dict['LIGHT_LVL']
+        light_hours = info_dict['LIGHT_HOURS']
+        moisture_lvl = info_dict['MOISTURE_LVL']
+        mode = info_dict['MODE']
 
-def format_plant_info(info_dict):
-    if info_dict == {"PLANT_NAME": "No plant"} or info_dict == {"Error": None}:
-        return ""
-    plant_name = info_dict['PLANT_NAME']
-    plant_type = info_dict['PLANT_TYPE']
-    light_lvl = info_dict['LIGHT_LVL']
-    light_hours = info_dict['LIGHT_HOURS']
-    moisture_lvl = info_dict['MOISTURE_LVL']
-    mode = info_dict['MODE']
+        formatted_str = f"Plant name: {plant_name}\n"
+        formatted_str += f"Plant type: {plant_type}\n"
+        formatted_str += f"Light level: {light_lvl}\n"
+        formatted_str += f"Light hours: {light_hours}\n"
+        formatted_str += f"Moisture level: {moisture_lvl}\n"
+        formatted_str += f"Mode: {mode}\n"
 
-    formatted_str = f"Plant name: {plant_name}\n"
-    formatted_str += f"Plant type: {plant_type}\n"
-    formatted_str += f"Light level: {light_lvl}\n"
-    formatted_str += f"Light hours: {light_hours}\n"
-    formatted_str += f"Moisture level: {moisture_lvl}\n"
-    formatted_str += f"Mode: {mode}\n"
+        return formatted_str
 
-    return formatted_str
+    def set_status(self, status_str):
+        self.status_label.configure(text='''Status: %s''' % status_str)
 
+    def toggle_plant_recognition(self, garden_management):
+        self.set_status("Plant Recognition")
+        garden_management.do_plant_recognition = True
+        self.update_strings(garden_management, status_change=False)
 
-def set_status(home_page_obj, status_str):
-    home_page_obj.status_label.configure(text='''Status: %s''' % status_str)
+    def toggle_active(self, garden_management):
+        current = garden_management.change_active()
+        self.update_strings(garden_management)
+        self.set_status("Active" if current else "Not Active")
 
+    def update_strings(self, garden_management, status_change=True):
+        if status_change:
+            self.set_status(garden_management.status)
 
-def toggle_plant_recognition(garden_management, home_page_obj):
-    set_status(home_page_obj, "Plant Recognition")
-    garden_management.do_plant_recognition = True
-    update_strings(garden_management, home_page_obj, status_change=False)
+        plant_dict_A = mgf.get_plant_dict("A")
+        plant_dict_B = mgf.get_plant_dict("B")
+        if type(plant_dict_B) == bool:
+            plant_dict_B = {"PLANT_NAME": "No plant"}
+        if type(plant_dict_A) == bool:
+            plant_dict_A = {"PLANT_NAME": "No plant"}
+        self.plant_A_label.configure(text=plant_dict_A.get('PLANT_NAME', "No plant"))
+        self.plant_B_label.configure(text=plant_dict_B.get('PLANT_NAME', "No plant"))
 
+        self.plant_A_text.delete('1.0', END)
+        self.plant_A_text.insert(INSERT, self.format_plant_info(plant_dict_A))
+        self.plant_B_text.delete('1.0', END)
+        self.plant_B_text.insert(INSERT, self.format_plant_info(plant_dict_B))
 
-def toggle_active(garden_management,  home_page_obj):
-    current = garden_management.change_active()
-    update_strings(garden_management,  home_page_obj)
-    set_status(home_page_obj, "Active" if current else "Not Active")
-
-
-def update_strings(garden_management, home_page_obj, status_change=True):
-    if status_change:
-        set_status(home_page_obj, garden_management.status)
-
-    plant_dict_A = mgf.get_plant_dict("A")
-    plant_dict_B = mgf.get_plant_dict("B")
-    if type(plant_dict_B) == bool:
-        plant_dict_B = {"PLANT_NAME": "No plant"}
-    if type(plant_dict_A) == bool:
-        plant_dict_A = {"PLANT_NAME": "No plant"}
-    home_page_obj.plant_A_label.configure(text=plant_dict_A.get('PLANT_NAME', "No plant"))
-    home_page_obj.plant_B_label.configure(text=plant_dict_B.get('PLANT_NAME', "No plant"))
-
-    home_page_obj.plant_A_text.insert(INSERT, format_plant_info(plant_dict_A))
-    home_page_obj.plant_B_text.insert(INSERT, format_plant_info(plant_dict_B))
-
-    home_page_obj.active_btn.configure(text="Active" if garden_management.active_loop == True else "Not Active")
-    home_page_obj.active_btn.configure(background="#a0c2ab" if garden_management.active_loop == True else "#f57056")
+        self.active_btn.configure(text="Active" if garden_management.active_loop == True else "Not Active")
+        self.active_btn.configure(background="#a0c2ab" if garden_management.active_loop == True else "#f57056")
 
 
 def start_up(garden_management):

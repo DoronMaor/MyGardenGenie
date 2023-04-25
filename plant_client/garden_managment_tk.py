@@ -11,10 +11,10 @@ import plant_care_routine as pcr
 import time
 from plant_recognition_files.PlantRecognitionManager import PlantRecognitionManager
 import sched
-import tk_frame.home_page as home_page_tk
+import tk_frame.home_page_support as home_page_tk_sprt
 import tkinter as tk
 from tkinter import ttk
-
+from client_models.PlantHealthSupport import PlantHealthSupport
 
 def timer_thread(duration):
     time.sleep(duration)
@@ -22,25 +22,65 @@ def timer_thread(duration):
 
 
 def home_page(garden_management, frame=None, win=None):
-    t_frame = home_page_tk.start_up(garden_management)
+    w1, root = home_page_tk_sprt.main(garden_management)
+    garden_management.home_obj = w1
+    root.mainloop()
 
 
 def create_login_form():
-    return "user", "123"
+    return {
+            "USERNAME": "user",
+            "PASSWORD": "123",
+        }
+    def submit_form():
+        login_dict = {
+            "USERNAME": username_entry.get(),
+            "PASSWORD": password_entry.get(),
+        }
+        root.login_dict = login_dict  # Store the plant_dict in an instance variable of the root window
+        root.destroy()  # Close the form window
+
+    root = tk.Tk()
+    root.title("Login Form")
+
+    # Create the form labels and input fields
+    username_label = tk.Label(root, text="Username:")
+    username_entry = tk.Entry(root)
+    username_label.grid(row=0, column=0, padx=5, pady=5)
+    username_entry.grid(row=0, column=1, padx=5, pady=5)
+
+    password_label = tk.Label(root, text="Password:")
+    password_entry = tk.Entry(root, show="*")
+    password_label.grid(row=1, column=0, padx=5, pady=5)
+    password_entry.grid(row=1, column=1, padx=5, pady=5)
+
+    # Create the form submit button
+    submit_button = tk.Button(root, text="Login", command=submit_form)
+    submit_button.grid(row=2, column=1, padx=5, pady=5)
+
+    # Create the login status label
+    login_status_label = tk.Label(root, text="")
+    login_status_label.grid(row=3, column=1, padx=5, pady=5)
+
+    # Start the Tkinter event loop
+    root.mainloop()
+
+    return root.login_dict
 
 class GardenManagement:
     def __init__(self):
         self.gardener = Gardener()
-        self.server_handler = ServerHandlerSockIO(server_ip="172.16.163.53", port=5000, client_type="plant", time_out=3)
+        self.server_handler = ServerHandlerSockIO(server_ip="127.0.0.1", port=5000, client_type="plant", time_out=3)
 
         # usm.sign_up(server_handler)
-        usrname, pss = create_login_form()
-        self.usr = usm.login(self.server_handler, usrname, pss)
+        creds_dict = create_login_form()
+        self.usr = usm.login(self.server_handler, creds_dict['USERNAME'], creds_dict['PASSWORD'])
 
         self.event_logger = EventLogger(self.server_handler)
         self.remote_handler = RemoteControlHandler(self.server_handler, self.gardener, self.usr, self.event_logger)
         self.video_streamer = VideoStreamer()
         self.plant_recognition_manager = PlantRecognitionManager(self.server_handler)
+        self.plant_health_support = PlantHealthSupport(self.server_handler)
         self.s = sched.scheduler(time.time, time.sleep)
 
         #
@@ -57,9 +97,14 @@ class GardenManagement:
         self.active_loop = True
         self.do_plant_recognition = False
         self.status = "Active"
+        self.home_obj = None
+
+        self.routine_event_id = None
+        self.picture_event_id = None
+        self.send_health_pics = False
 
     def get_message(self):
-        return self.server_handler.listen()
+            return self.server_handler.listen()
 
     def listen_for_messages(self, mes=None):
         remote_message_headers = ["garden_action", "remote_stop"]
@@ -97,6 +142,9 @@ class GardenManagement:
                     self.video_streamer.stop()
                 elif action_header == "get_plant_dict":
                     self.server_handler.send_plants_names(plant_dict=mgf.get_letter_plant_dict(), request_id=action_data)
+                elif action_header == "plant_health":
+                    self.s.cancel(self.picture_event_id)  # Cancel the existing event
+                    self.picture_event_id = self.s.enter(0.1, 1, lambda: self.take_picture())
                 else:
                     print("Couldn't analyze this message: ", message)
 
@@ -115,6 +163,9 @@ class GardenManagement:
         if not mgf.get_video_connection() and not mgf.get_remote_connection():
             print("Taking picture for later analysis")
             self.plant_recognition_manager.take_picture("analysis")
+            if self.send_health_pics:
+                print("Health doing")
+                self.plant_health_support.run()
         # Schedule the next picture
         self.s.enter(mgf.get_picture_interval(), 1, self.take_picture)
 
@@ -126,8 +177,8 @@ class GardenManagement:
 
         while True:
             # Schedule the first checkup and picture
-            self.s.enter(mgf.get_routine_interval(), 1, lambda: self.routine_checkup())
-            self.s.enter(mgf.get_picture_interval(), 1, lambda: self.take_picture())
+            self.routine_event_id  = self.s.enter(mgf.get_routine_interval(), 1, lambda: self.routine_checkup())
+            self.picture_event_id = self.s.enter(mgf.get_picture_interval(), 1, lambda: self.take_picture())
 
             listen_thread = threading.Thread(target=self.listen_for_messages)
             listen_thread.start()
@@ -141,6 +192,7 @@ class GardenManagement:
                     self.status = "Plant Recognition"
                     self.plant_recognition_manager.run(current_plants=mgf.check_plant_files())
                     self.do_plant_recognition = False
+                    self.home_obj.update_strings(garden_management)
 
             self.status = "Not Active"
             # Wait for the listen thread to finish

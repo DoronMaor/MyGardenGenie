@@ -184,4 +184,11 @@ class ServerHandlerSockIO {
     const r = this.send_and_receive(mes);
   }
   // endregion
+
+  // home
+  health_assesment() {
+    var m = ["plant_health_web", []];
+    var done = this.send_and_receive(m);
+    return done;
+  }
 }

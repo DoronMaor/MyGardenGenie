@@ -1,6 +1,44 @@
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{{url_for('static', filename='server-handler.js')}}"></script>
+
+<script>
+  var server_handler = new ServerHandlerSockIO(window.location.hostname, 5000);
+  var current_plant = "A";
+  // server_handler.login(sessionStorage.getItem("username"), sessionStorage.getItem("password"));
+  server_handler.login(
+    sessionStorage.getItem("username"),
+    sessionStorage.getItem("password")
+  );
+
+  function sendMessage() {
+    showLoading();
+    server_handler.health_assesment().then(() => {
+      location.reload();
+    });
+  }
+
+  function showLoading() {
+    document.querySelector(".loading-overlay").style.display = "flex";
+  }
+
+  function hideLoading() {
+    document.querySelector(".loading-overlay").style.display = "none";
+  }
+</script>
+
 <div class="container">
   <h3>Important Messages</h3>
+  <button class="cta-button-circle" onclick="location.reload();">
+    <span class="reload">&#x21bb;</span>
+  </button>
+  <button class="cta-button-circle" onclick="sendMessage();">
+    <span class="reload">Plants health assesment</span>
+  </button>
+
   <div class="alerts-container">
+    <div class="loading-overlay">
+      <div class="loading-circle"></div>
+    </div>
     {% if alerts %} {% for alert in alerts %}
     <form method="POST" action="/checked_alert" class="my-form">
       <div class="alert">
@@ -14,3 +52,6 @@
     {% endfor %} {% endif %}
   </div>
 </div>
+<script>
+  hideLoading();
+</script>

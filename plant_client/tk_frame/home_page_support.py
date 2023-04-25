@@ -17,7 +17,7 @@ def main(garden_management, *args):
     global _top1, _w1
     _top1 = root
     _w1 = home_page.HomePage(garden_management, _top1)
-    root.mainloop()
+    return _w1, root
 
 
 if __name__ == '__main__':

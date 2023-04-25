@@ -1,22 +1,18 @@
-
 import base64
 import datetime
 import random
 
-import cv2
+from server_support import *
 from flask import Flask, request, redirect, render_template, g, url_for, session, Response, jsonify
 from flask_socketio import SocketIO, emit
 import select
 import pickle
-import fuckit as fit
 from models.PlantUserList import PlantUserList
 from models.LogDatabase import LogDatabase
 from models.SQLUserManager import SQLUserManager
 from models.PlantManagerDB import PlantManagerDB
-import threading
 from plant_identfication.PlantIdentify import PlantIdentify
 from plant_identfication.PlantHealthDetector import PlantHealthDetector
-import hashlib
 import json
 
 app = Flask(__name__)
@@ -29,6 +25,8 @@ log_db = LogDatabase()
 plant_table_db = PlantManagerDB("dbs/")
 plant_identifier = PlantIdentify("5CHZ8TnzXgrbYOioi0Ewf9j" + "RFwWKCFtH9UbiYkqwjlgdUtBCnl")
 plant_health_detector = PlantHealthDetector("5CHZ8TnzXgrbYOioi0Ewf9j" + "RFwWKCFtH9UbiYkqwjlgdUtBCnl")
+
+connected_clients = {}
 
 
 # region gets
@@ -65,71 +63,8 @@ def get_plant_health_detector():
 # endregion
 
 
-def string_to_hash(s):
-    # Create a hash object
-    hash_obj = hashlib.sha256()
-
-    # Update the hash object with the string
-    hash_obj.update(s.encode("utf-8"))
-    sha_s = hash_obj.hexdigest()
-    return sha_s
-
-def get_plant_name_for_html(plant_dict, action_details):
-    try:
-        return plant_dict[action_details[0][0]]['PLANT_NAME']
-    except:
-        return "-Deleted plant %s-" % action_details[0][0]
-
-def format_logs_for_html(logs, current_id=None):
-    formatted_logs = []
-    db = get_db()
-    current_id = current_id if current_id is not None else session['id']
-    plant_dict = db.get_plants_by_similar_id(current_id, as_plant_dict=True)
-
-    for log in logs:
-        formatted_log = {'time': log['time'].strftime("%Y-%m-%d %H:%M:%S"), 'by': db.get_username_by_id(log['by']),
-                         'level': log['level']}
-        try:
-            formatted_log['images'] = log['image']
-        except:
-            print("No pics")
-
-        if log['level'] == "Automatic":
-            formatted_log['by'] = "Garden Genie"
-
-        if log['action'] is not None:
-            action_type, action_details = log['action'][0], log['action'][1:]
-            if action_type == 'display_text':
-                formatted_log['action'] = f"Displayed text: {action_details[0]}"
-            elif action_type == 'remote_start':
-                formatted_log['action'] = f"Remote control started"
-            elif action_type == 'remote_stop':
-                formatted_log['action'] = f"User disconnected from remote"
-            elif action_type == 'get_light_level':
-                formatted_log['action'] = f"Read light level"
-            elif action_type == 'get_moisture':
-                formatted_log['action'] = f"Read moisture to {get_plant_name_for_html(plant_dict, action_details)}"
-            elif action_type == 'led_ring':
-                formatted_log['action'] = f"Turned LED to {get_plant_name_for_html(plant_dict, action_details)}"
-            elif action_type == 'add_water':
-                formatted_log['action'] = f"Watered {get_plant_name_for_html(plant_dict, action_details)}"
-            else:
-                formatted_log['action'] = f"{action_type}, {action_details}"
-        else:
-            formatted_log['action'] = ''
-        formatted_logs.append(formatted_log)
-    return formatted_logs
-
-
 def is_logged():
     return session.get('id', None)
-
-
-def pickle_to_data(data, slice_num=1):
-    try:
-        return pickle.loads(data)[slice_num:]
-    except:
-        return json.loads(data)[slice_num:]
 
 
 def send_message(client_sid, m_type, m_data):
@@ -150,6 +85,12 @@ def send_response(m_type, m_data):
             emit('response', json.dumps((m_type, m_data)))
     except:
         emit('response', pickle.dumps((m_type, m_data)))
+
+
+@app.before_request
+def before_request():
+    # Store the client's IP address in the clients dictionary
+    connected_clients[request.remote_addr] = request
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -303,7 +244,8 @@ def reports_page():
     except:
         plant_letter = ""
 
-    logs = format_logs_for_html(db.get_events_by_date(current_id, start_date, end_date, plant_name=plant_letter))
+    logs = format_logs_for_html(get_db(), session['id'],
+                                db.get_events_by_date(current_id, start_date, end_date, plant_name=plant_letter))
     print(start_date, end_date)
     print(logs)
 
@@ -354,7 +296,8 @@ def admin_reports_page():
     except:
         plant_letter = ""
 
-    logs = format_logs_for_html(db.get_events_by_date(current_id, start_date, end_date, plant_name=plant_letter))
+    logs = format_logs_for_html(get_db(), session['id'],
+                                db.get_events_by_date(current_id, start_date, end_date, plant_name=plant_letter))
     print(start_date, end_date)
     print(logs)
 
@@ -547,7 +490,8 @@ def handle_alert(pickled_data):
     # Emit the 'alert' event to the client
     if sA is None or sB is None:
         get_log_db().add_alert(user_id, title="Alert from plant client on %s"
-                                              % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), details=message_data)
+                                              % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                               details=message_data)
     socketio.emit('alert', {'message': message_data}, room=sA)
     socketio.emit('alert', {'message': message_data}, room=sB)
 
@@ -581,23 +525,39 @@ def plant_recognition(pickled_data):
     recognition, plant_names = get_plant_identifier().identify_plant(zipped_b64_image=data[0], testing=False)
     gardening = get_plant_table_db().search_plant_from_list(plant_names)
 
-
-    if gardening is None or not gardening.get("OKAY_VALUES"): # missing in DB, register alerts
+    if not gardening.get("OKAY_VALUES"):  # missing in DB, register alerts
         missing_message = "Sorry, we don't have any gardening data available for this plant, so we won't be able to take care of it automatically. Please wait until an admin is taking care of the situation."
         admin_missing_message = "We don't have any gardening data available for this plant, so we won't be able to take care of it automatically. Taking care of the situation."
-        get_log_db().add_alert(user_id=session['id'], title="Missing Plant Data for %s" % gardening["PLANT_TYPE"], details=missing_message)
-        get_log_db().add_alert(user_id="admin", title="Missing Plant Data for %s" % gardening["PLANT_TYPE"], details=admin_missing_message)
+        get_log_db().add_alert(user_id=session['id'], title="Missing Plant Data for %s" % gardening["PLANT_TYPE"],
+                               details=missing_message)
+        get_log_db().add_alert(user_id="admin", title="Missing Plant Data for %s" % gardening["PLANT_TYPE"],
+                               details=admin_missing_message)
 
     send_response('plant_recognition', {'recognition': recognition, 'gardening': gardening})
     send_response('plant_recognition', {'recognition': recognition, 'gardening': gardening})
+
+
+@socketio.on('plant_health_web')
+def plant_recognition(pickled_data):
+    data = pickle_to_data(pickled_data)
+    message_data, user_id = data[0], data[-1]
+    s = plant_user_table.get_sock("plant", session['id'])
+
+    send_message(s, "plant_health", "start")
 
 
 @socketio.on('plant_health')
 def plant_recognition(pickled_data):
     data = pickle_to_data(pickled_data)
     message_data, user_id = data[0], data[-1]
-    health_assessment = get_plant_health_detector().assess_health(zipped_b64_image=message_data, testing=False)
-    get_log_db().add_alert(user_id=user_id, title="title", details=health_assessment)
+    for image in message_data:
+        health_assessment = get_plant_health_detector().assess_health(zipped_b64_image=image, testing=False)
+        get_log_db().add_alert(user_id=user_id, title="title", details=health_assessment)
+    s = plant_user_table.get_sock("user", session['id'])
+
+    send_message(s, "plant_health_web", "done")
+
+
 
 
 # endregion
@@ -621,6 +581,5 @@ def handle_log_event(pickled_data):
 
 if __name__ == '__main__':
     # socketio.start_background_task(target=generate_frames)
-    #socketio.run(app, allow_unsafe_werkzeug=True, host='192.168.56.1')
-    socketio.run(app, allow_unsafe_werkzeug=True, host='172.16.163.53')
-
+    socketio.run(app, allow_unsafe_werkzeug=True)
+    # socketio.run(app, allow_unsafe_werkzeug=True, host='172.16.163.53')

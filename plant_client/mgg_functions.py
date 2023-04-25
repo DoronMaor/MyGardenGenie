@@ -124,6 +124,8 @@ def get_plant_name(filename: str) -> str:
     Returns:
         str: The name of the plant. If the file does not exist or the name cannot be determined, None is returned.
     """
+    filename = filename if len(filename) > 3 else "plant%s.mgg" % filename
+
     if not os.path.isfile(filename):
         return None
 
