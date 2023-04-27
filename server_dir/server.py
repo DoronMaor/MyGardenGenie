@@ -73,16 +73,16 @@ def send_message(client_sid, m_type, m_data):
         if session["client_type"] == "user":
             emit('response', pickle.dumps((m_type, m_data)), room=client_sid)
         else:
-            emit('response', json.dumps((m_type, m_data)), room=client_sid)
+            emit('response', json.dumps((m_type, m_data, generate_new_token(session['id']))), room=client_sid)
     except:
-        emit('response', json.dumps((m_type, m_data)), room=client_sid)
+        emit('response', json.dumps((m_type, m_data, generate_new_token(session['id']))), room=client_sid)
 
 
 def send_response(m_type, m_data):
     print("Sent back:", 'response', (m_type, m_data))
     try:
         if session["client_type"] == "user":
-            emit('response', json.dumps((m_type, m_data)))
+            emit('response', json.dumps((m_type, m_data, generate_new_token(session['id']))))
     except:
         emit('response', pickle.dumps((m_type, m_data)))
 
@@ -369,7 +369,7 @@ def handle_client_type(pickled_data):
     data = pickle_to_data(pickled_data)
     print("Connected:", data, request.sid)
     plant_user_table.add_con_web(c_type=(data[0], data[1]), id_num=data[-1], sock=request.sid)
-    send_response("client_type", "ok")
+    send_response("client_type")
 
 
 # region REMOTE
@@ -556,9 +556,6 @@ def plant_recognition(pickled_data):
     s = plant_user_table.get_sock("user", session['id'])
 
     send_message(s, "plant_health_web", "done")
-
-
-
 
 # endregion
 
