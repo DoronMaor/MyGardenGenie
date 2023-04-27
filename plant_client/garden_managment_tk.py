@@ -70,7 +70,7 @@ def create_login_form():
 class GardenManagement:
     def __init__(self):
         self.gardener = Gardener()
-        self.server_handler = ServerHandlerSockIO(server_ip="127.0.0.1", port=5000, client_type="plant", time_out=3)
+        self.server_handler = ServerHandlerSockIO(server_ip="172.16.163.53", port=5000, client_type="plant", time_out=3)
 
         # usm.sign_up(server_handler)
         creds_dict = create_login_form()

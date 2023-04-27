@@ -68,14 +68,14 @@ class PictureGrabber:
                     f_name = self.get_file_name(path)
                     cv2.imwrite(f_name, photo)
                     time.sleep(0.5)
+                    self.cap.release()
                     compress_image(f_name)
                     self.plant_detector.detect_plants_for_analysis(input_image_path=f_name, output_image_path=f_name)
                     delete.append(f_name)
                     break
-                except:
-                    pass
+                except Exception:
+                    raise
 
-        self.cap.release()
 
         for file in delete:
             os.remove(file)

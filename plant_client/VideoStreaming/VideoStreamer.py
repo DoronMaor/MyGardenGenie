@@ -85,6 +85,7 @@ class VideoStreamer:
             def remove_connection():
                 self.active_connections.remove(r)
                 print(f"Disconnected: {r}")
+                self.stop()
 
             return response
 

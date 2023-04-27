@@ -25,7 +25,7 @@ class ServerHandlerSockIO {
     const pickled_mes = JSON.stringify([...mes, this.client_id]);
     console.log("sent pickled data:", pickled_mes);
     this.sio.emit(mes[0], pickled_mes);
-    return this.listen();
+    return this.wait_for_response();
   }
 
   send(mes, add_id = true) {

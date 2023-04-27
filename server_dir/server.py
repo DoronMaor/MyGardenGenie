@@ -369,7 +369,7 @@ def handle_client_type(pickled_data):
     data = pickle_to_data(pickled_data)
     print("Connected:", data, request.sid)
     plant_user_table.add_con_web(c_type=(data[0], data[1]), id_num=data[-1], sock=request.sid)
-    send_response("client_type")
+    send_response("client_type", "ok")
 
 
 # region REMOTE
@@ -578,5 +578,5 @@ def handle_log_event(pickled_data):
 
 if __name__ == '__main__':
     # socketio.start_background_task(target=generate_frames)
-    socketio.run(app, allow_unsafe_werkzeug=True)
-    # socketio.run(app, allow_unsafe_werkzeug=True, host='172.16.163.53')
+    # socketio.run(app, allow_unsafe_werkzeug=True)
+    socketio.run(app, allow_unsafe_werkzeug=True, host='172.16.163.53')

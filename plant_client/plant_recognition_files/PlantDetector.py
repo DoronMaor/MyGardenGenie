@@ -97,6 +97,7 @@ class PlantDetector:
                 distance = sqrt((center_x - prev_obj["center"][0]) ** 2 + (center_y - prev_obj["center"][1]) ** 2)
                 if distance < distance_threshold and prev_obj["name"] != detected_object["name"]:
                     too_close = True
+                    print("Too close")
                     break
             if too_close:
                 continue
