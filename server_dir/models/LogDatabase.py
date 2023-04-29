@@ -8,6 +8,8 @@ from bson.binary import Binary
 import matplotlib.pyplot as plt
 import datetime
 import pymongo
+import random
+import time
 
 
 class LogDatabase:
@@ -120,8 +122,14 @@ class LogDatabase:
         if end_date is None:
             end_date = datetime.date.today().strftime("%Y-%m-%d")
 
+        input_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+        start_output_str = input_date.strftime('%Y-%m-%dT%H:%M:%S.%f+00:00')
+
+        input_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+        end_output_str = input_date.strftime('%Y-%m-%dT%H:%M:%S.%f+00:00')
+
         # Query growth events within the date range
-        query = {"plant_name": plant_name, "time": {"$gte": start_date, "$lte": end_date}}
+        query = {"plant_name": plant_name, "time": {"$gte": start_output_str, "$lte": end_output_str}}
         projection = {"time": 1, "height_px": 1, "_id": 0}
         results = growth_events.find(query, projection=projection).sort("time")
 
@@ -287,3 +295,21 @@ class LogDatabase:
         except Exception as e:
             print(e)
             return False
+
+
+    def add_fake_growth_data(self, user_id, plant_name):
+        light_levels = [random.randint(500, 1000) for _ in range(10)]
+        moisture_levels = [random.randint(30, 80) for _ in range(10)]
+        height_px = [random.randint(200, 600) for _ in range(10)]
+
+        current_time = datetime.datetime.now().replace(minute=0, second=0, microsecond=0)
+        for i in range(10):
+            cevent_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
+            self.add_growth_args(user_id, plant_name, cevent_time, light_levels[i], moisture_levels[i],
+                                      height_px[i])
+            current_time += datetime.timedelta(hours=1)
+            time.sleep(1)
+
+if __name__ == '__main__':
+    p = LogDatabase()
+    p.add_fake_growth_data("877ef680d0fe4a1ebaaa445f61efb73A", "t")
