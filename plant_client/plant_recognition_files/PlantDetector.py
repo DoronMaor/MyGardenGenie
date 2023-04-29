@@ -106,8 +106,11 @@ class PlantDetector:
             crop_img = original_image.crop((x1, y1, x2, y2))
 
             # Save the cropped image
-            crop_img.save(output_image_path[:-4] + "_" + mgf.get_plant_name(letters_map[i+1]) + ".jpg")
-            i += 1
+            try:
+                p = mgf.get_plant_name(letters_map[i])
+                crop_img.save(output_image_path[:-4] + "_" + (p if p is not None else "") + ".jpg")
+            finally:
+                i += 1
             if i == num_plants:
                 return i
         return i

@@ -61,9 +61,8 @@
             <tr>
               <th>Your Plants</th>
             </tr>
-            {% for plant in user_plants %}
           </thead>
-
+          {% for plant in user_plants %} {% if plant %}
           <tbody>
             <tr class="plant">
               <td>
@@ -84,7 +83,7 @@
               </td>
             </tr>
           </tbody>
-          {% endfor %}
+          {% endif %} {% endfor %}
         </table>
       </div>
     </div>

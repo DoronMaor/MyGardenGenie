@@ -161,7 +161,6 @@ void TurnPump(int dur, char type) {
   else {
     digitalWrite(WATER_PUMP_RELAY_PIN_B, HIGH);
     digitalWrite(WATER_PUMP_RELAY_PIN_A, HIGH);
-    WriteToLCD("Failed TurnPump");
   }
 }
 
@@ -178,9 +177,7 @@ int GetMoisture(char type) {
 float GetLightSensor() {
   int l = -1;
   float lux = LightMeterA.readLightLevel();
-  Serial.print("Light: ");
-  Serial.print(lux);
-
+  //Serial.print("Light: " + String(lux));
   return lux;
 }
 
@@ -202,8 +199,8 @@ void loop() {
     float l = GetLightSensor();
     WriteToLCD("MoisA:" + String(ma) + "/" + "MoisB:" + String(mb)+ "/" + "Light:" + String(l));
     //Serial.print("MoisA:" + String(ma) + "/" + "MoisB:" + String(mb)+ "/" + "Light:" + String(l));
-    TurnPump(1000, 'A');
-    TurnPump(1000, 'B');
+    //TurnPump(1000, 'A');
+    //TurnPump(1000, 'B');
 
     TurnLEDRing(true, 'A');
     TurnLEDRing(true, 'B');
@@ -218,7 +215,6 @@ void loop() {
       {
         // #LCD#text
         WriteToLCD(msg.substring(5));
-        serialFlush();
       }
       else if (msg.substring(0, 10) == "#MOISTURE#")
       {
@@ -232,7 +228,7 @@ void loop() {
       {
         //#GET_LIGHT#
         int light = GetLightSensor();
-        Serial.print("#LIGHT#" + light);
+        Serial.print("#LIGHT#" + String(light));
         delay(100);
       }
       else if (msg.substring(0, 8) == "#T_PUMP#")
@@ -255,7 +251,7 @@ void loop() {
       }
         else
         {
-          Serial.print("ERROR - " + msg );
+          serialFlush();
         }
     }
   }

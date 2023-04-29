@@ -1,5 +1,6 @@
 import base64
 import os
+import re
 from io import BytesIO
 import matplotlib
 matplotlib.use('Agg')
@@ -280,6 +281,7 @@ class LogDatabase:
     def delete_alert(self, user_id, title, details):
         try:
             alerts = self.alerts[str(user_id[:-1])]
+
             result = alerts.delete_one({"user_id": user_id, "title": title, "details": details})
             return result.deleted_count == 1
         except Exception as e:

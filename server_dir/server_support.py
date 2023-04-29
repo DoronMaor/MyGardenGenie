@@ -1,7 +1,6 @@
 import hashlib
 import json
 import pickle
-import jwt
 
 def string_to_hash(s):
     # Create a hash object
@@ -67,12 +66,3 @@ def pickle_to_data(data, slice_num=1):
     except:
         return json.loads(data)[slice_num:]
 
-
-def generate_new_token(id_num):
-    token = jwt.encode({'id_num': id_num}, 'MGG_KEY', algorithm='HS256')
-    return token
-
-
-print(generate_new_token('1'))
-print(generate_new_token('1'))
-print(generate_new_token('1'))

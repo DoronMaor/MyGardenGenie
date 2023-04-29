@@ -70,11 +70,12 @@ def create_login_form():
 class GardenManagement:
     def __init__(self):
         self.gardener = Gardener()
-        self.server_handler = ServerHandlerSockIO(server_ip="172.16.163.53", port=5000, client_type="plant", time_out=3)
+        self.server_handler = ServerHandlerSockIO(server_ip="192.168.0.176", port=5000, client_type="plant", time_out=3)
 
         # usm.sign_up(server_handler)
         creds_dict = create_login_form()
         self.usr = usm.login(self.server_handler, creds_dict['USERNAME'], creds_dict['PASSWORD'])
+        mgf.set_up_plants_server(self.server_handler.get_all_plants())
 
         self.event_logger = EventLogger(self.server_handler)
         self.remote_handler = RemoteControlHandler(self.server_handler, self.gardener, self.usr, self.event_logger)
@@ -145,6 +146,7 @@ class GardenManagement:
                 elif action_header == "plant_health":
                     self.s.cancel(self.picture_event_id)  # Cancel the existing event
                     self.picture_event_id = self.s.enter(0.1, 1, lambda: self.take_picture())
+                    self.send_health_pics = True
                 else:
                     print("Couldn't analyze this message: ", message)
 
@@ -166,6 +168,7 @@ class GardenManagement:
             if self.send_health_pics:
                 print("Health doing")
                 self.plant_health_support.run()
+                self.send_health_pics = False
         # Schedule the next picture
         self.s.enter(mgf.get_picture_interval(), 1, self.take_picture)
 

@@ -4,6 +4,24 @@ import os
 
 # region PLANTS
 
+def clear_plants_files(letter=None):
+    if letter is not None:
+        try:
+            os.remove("plant%s.mgg" % letter)
+        except OSError:
+            pass
+        return
+
+    try:
+        os.remove("plantA.mgg")
+    except OSError:
+        pass
+    try:
+        os.remove("plantB.mgg")
+    except OSError:
+        pass
+
+
 def get_available_filename():
     """Finds the first available filename in a list of filenames"""
     file_names = ["plantA.mgg", "plantB.mgg"]
@@ -36,6 +54,13 @@ def add_plant(plant_name: str, plant_type: str, light_hours: int, moisture: str,
     with open(filename, "x") as f:
         for idx, header in enumerate(headers):
             f.write(header + content[idx] + "\n")
+
+
+def set_up_plants_server(server_response):
+    clear_plants_files()
+    for plant in server_response[1]:
+        if plant is not None:
+            add_plant_dict(plant)
 
 
 def add_plant_dict(plant_dict: dict, num: str = None):

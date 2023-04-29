@@ -73,16 +73,16 @@ def send_message(client_sid, m_type, m_data):
         if session["client_type"] == "user":
             emit('response', pickle.dumps((m_type, m_data)), room=client_sid)
         else:
-            emit('response', json.dumps((m_type, m_data, generate_new_token(session['id']))), room=client_sid)
+            emit('response', json.dumps((m_type, m_data)), room=client_sid)
     except:
-        emit('response', json.dumps((m_type, m_data, generate_new_token(session['id']))), room=client_sid)
+        emit('response', json.dumps((m_type, m_data)), room=client_sid)
 
 
 def send_response(m_type, m_data):
     print("Sent back:", 'response', (m_type, m_data))
     try:
         if session["client_type"] == "user":
-            emit('response', json.dumps((m_type, m_data, generate_new_token(session['id']))))
+            emit('response', json.dumps((m_type, m_data)))
     except:
         emit('response', pickle.dumps((m_type, m_data)))
 
@@ -222,7 +222,7 @@ def reports_page():
 
     plant_names = get_db().get_plants_by_similar_id(current_id)
     try:
-        plant_names_lst = [plant["PLANT_NAME"] for plant in plant_names]
+        plant_names_lst = [plant["PLANT_NAME"] for plant in plant_names if plant is not None]
     except:
         plant_names_lst = []
     plant_dict = get_db().get_plants_by_similar_id(current_id, as_plant_dict=True)
@@ -274,7 +274,7 @@ def admin_reports_page():
 
     plant_names = get_db().get_plants_by_similar_id(current_id)
     try:
-        plant_names_lst = [plant["PLANT_NAME"] for plant in plant_names]
+        plant_names_lst = [plant["PLANT_NAME"] for plant in plant_names if plant is not None]
     except:
         plant_names_lst = []
     plant_dict = get_db().get_plants_by_similar_id(current_id, as_plant_dict=True)
@@ -466,6 +466,18 @@ def handle_register_plant(pickled_data):
     get_db().add_plant(user_id, plant_data)
 
 
+@socketio.on('get_all_plants')
+def handle_get_all_plants(pickled_data):
+    data = pickle_to_data(pickled_data)
+    user_id, data = data[-1], data[0]
+    user_plants = get_db().get_plants_by_similar_id(session['id'])
+
+    send_response("get_all_plants_response", user_plants)
+
+
+
+
+
 # endregion
 
 # region PLANT SQL
@@ -552,7 +564,7 @@ def plant_recognition(pickled_data):
     message_data, user_id = data[0], data[-1]
     for image in message_data:
         health_assessment = get_plant_health_detector().assess_health(zipped_b64_image=image, testing=False)
-        get_log_db().add_alert(user_id=user_id, title="title", details=health_assessment)
+        get_log_db().add_alert(user_id=user_id, title=health_assessment['name'], details=health_assessment['description'])
     s = plant_user_table.get_sock("user", session['id'])
 
     send_message(s, "plant_health_web", "done")
@@ -579,4 +591,4 @@ def handle_log_event(pickled_data):
 if __name__ == '__main__':
     # socketio.start_background_task(target=generate_frames)
     # socketio.run(app, allow_unsafe_werkzeug=True)
-    socketio.run(app, allow_unsafe_werkzeug=True, host='172.16.163.53')
+    socketio.run(app, allow_unsafe_werkzeug=True, host='192.168.0.176')

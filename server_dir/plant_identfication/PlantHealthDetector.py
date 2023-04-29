@@ -50,4 +50,4 @@ class PlantHealthDetector:
                 suggestions.append({"name": name, "description": description})
             return suggestions[0]
         else:
-            return [{"Plant is healthy!": "Nothing to worry about"}][0]
+            return [{"name": "Plant is healthy!", "description": "Nothing to worry about"}][0]

@@ -174,4 +174,8 @@ class ServerHandlerSockIO:
             self.client_id = id
         mes = ("client_type", self.client_type, get_ip())
         r = self.send_and_receive(mes)
+
+    def get_all_plants(self):
+        mes = ("get_all_plants", None)
+        return self.send_and_receive(mes)
     # endregion

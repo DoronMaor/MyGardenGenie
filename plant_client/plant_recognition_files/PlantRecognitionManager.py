@@ -148,6 +148,10 @@ class PlantRecognitionManager:
         # A dictionary to map integers to letters for naming the plants
         letters_map = {0: 'A', 1: 'B', 2: 'C'}
         plants = []
+
+        if detect:
+            clear_plants_files()
+
         # Loop through the files in the directory
         for filename in os.listdir(directory):
             # Process only the detection files with a filename starting with "detection_" and only the first two files
@@ -165,12 +169,13 @@ class PlantRecognitionManager:
 
                         # Extract the plant data from the server response using a Tkinter form
                         plant_dict = extract_plant_data_tk(response)
-                        # Add the plant data to the dictionary with a letter name corresponding to the counter value
-                        add_plant_dict(plant_dict, letters_map[counter])
-                        plants.append(response[1]['gardening']["PLANT_TYPE"])
 
                         # Register the plant data in the server
                         self.server_handler.register_plant(plant_dict)
+
+                        # Add the plant data to the dictionary with a letter name corresponding to the counter value
+                        add_plant_dict(plant_dict, letters_map[counter])
+                        plants.append(response[1]['gardening']["PLANT_TYPE"])
 
                         # Remove the detection file from the directory
                 os.remove(filename)

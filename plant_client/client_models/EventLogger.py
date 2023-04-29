@@ -171,6 +171,10 @@ class EventLogger:
     def write_event(self, event, send_now=True, event_type="event"):
         """ Writes the event as a pickle file to the events folder"""
         try:
+            # create directory if it doesn't exist
+            if not os.path.exists(self.dir):
+                os.makedirs(self.dir)
+
             with open(os.path.join(self.dir, '%s_%s.pickle' % (event_type, generate_random_string())), 'wb') as f:
                 pickle.dump(event, f)
             if send_now:
