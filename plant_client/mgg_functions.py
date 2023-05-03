@@ -280,8 +280,6 @@ def get_routine_interval(filename: str = "global.mgg") -> int:
                 pass
     return 60
 
-
-
 def get_picture_interval(filename: str = "global.mgg") -> int:
     """
     Retrieves the time interval of taking pictures for a plant check up from a file.
@@ -302,6 +300,15 @@ def get_picture_interval(filename: str = "global.mgg") -> int:
                 pass
     return 40
 
+def set_test_mode_string(filename: str = "global.mgg") -> None:
+    with open(filename, 'r') as f:
+        contents = f.read()
+
+    updated_contents = re.sub(r'ROUTINE_INTER:.*', f'ROUTINE_INTER: {20}', contents)
+    updated_contents = re.sub(r'PICTURE_INTER:.*', f'PICTURE_INTER: {50}', updated_contents)
+
+    with open(filename, 'w') as f:
+        f.write(updated_contents)
 
 def get_remote_connection(filename: str = "global.mgg") -> bool:
     """
@@ -337,7 +344,6 @@ def set_remote_connection(mode: bool, filename: str = "global.mgg") -> None:
     with open(filename, 'w') as f:
         f.write(updated_contents)
 
-
 def get_video_connection(filename: str = "global.mgg") -> bool:
     """
     Gets the state of a video connection from the specified file.
@@ -357,7 +363,6 @@ def get_video_connection(filename: str = "global.mgg") -> bool:
     else:
         return False
 
-
 def set_video_connection(mode: bool, filename: str = "global.mgg") -> None:
     """
     Sets the state of a video connection in the specified file.
@@ -373,7 +378,6 @@ def set_video_connection(mode: bool, filename: str = "global.mgg") -> None:
 
     with open(filename, 'w') as f:
         f.write(updated_contents)
-
 
 def set_id(id_num: int, filename: str = "global.mgg") -> None:
     """Set the ID number for the connection in the specified file.
@@ -413,4 +417,26 @@ def get_id(filename: str = "global.mgg") -> str:
         return match.group(1)
     else:
         return None
+
+def get_testing_mode(filename: str = "global.mgg") -> bool:
+    """Get the Testing mode state from the specified file.
+
+       Args:
+           filename (str, optional): The filename to read the current mode from. Defaults to "global.mgg".
+
+       Returns:
+           str: The test mode state as a bool, False as default.
+       """
+    # Read the contents of the file
+    with open(filename, 'r') as f:
+        contents = f.read()
+
+    match = re.search(r'TESTING_MODE:\s*(.*)', contents)
+
+    # Return the ID number if it exists in the file, or None if it does not
+    if match:
+        return match.group(1).strip().lower() == "true"
+    else:
+        return False
+
 # endregion

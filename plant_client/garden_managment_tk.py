@@ -15,6 +15,7 @@ import tk_frame.home_page_support as home_page_tk_sprt
 import tkinter as tk
 from tkinter import ttk
 from client_models.PlantHealthSupport import PlantHealthSupport
+from PIL import Image, ImageTk
 
 def timer_thread(duration):
     time.sleep(duration)
@@ -28,10 +29,10 @@ def home_page(garden_management, frame=None, win=None):
 
 
 def create_login_form():
-    return {
-            "USERNAME": "user",
-            "PASSWORD": "123",
-        }
+    #return {
+    #        "USERNAME": "user",
+    #        "PASSWORD": "123",
+    #    }
     def submit_form():
         login_dict = {
             "USERNAME": username_entry.get(),
@@ -40,29 +41,47 @@ def create_login_form():
         root.login_dict = login_dict  # Store the plant_dict in an instance variable of the root window
         root.destroy()  # Close the form window
 
+    # Create the Tkinter form
     root = tk.Tk()
-    root.title("Login Form")
+    root.title("MGG - Login Form")
 
-    # Create the form labels and input fields
-    username_label = tk.Label(root, text="Username:")
-    username_entry = tk.Entry(root)
+    # Set the color scheme
+    bg_color = '#f9f9f9'
+    label_color = '#00030e'
+    input_color = '#ffffff'
+    button_color = '#adc559'
+
+    # Set the background color of the form
+    root.configure(bg=bg_color)
+
+    # Create the form labels and input fields with the color scheme
+    username_label = tk.Label(root, text="Username:", bg=bg_color, fg=label_color)
+    username_entry = tk.Entry(root, bg=input_color)
     username_label.grid(row=0, column=0, padx=5, pady=5)
     username_entry.grid(row=0, column=1, padx=5, pady=5)
 
-    password_label = tk.Label(root, text="Password:")
-    password_entry = tk.Entry(root, show="*")
+    password_label = tk.Label(root, text="Password:", bg=bg_color, fg=label_color)
+    password_entry = tk.Entry(root, show="*", bg=input_color)
     password_label.grid(row=1, column=0, padx=5, pady=5)
     password_entry.grid(row=1, column=1, padx=5, pady=5)
 
-    # Create the form submit button
-    submit_button = tk.Button(root, text="Login", command=submit_form)
+    # Create the form submit button with the color scheme
+    submit_button = tk.Button(root, text="Login", bg=button_color, fg=input_color, command=submit_form)
     submit_button.grid(row=2, column=1, padx=5, pady=5)
 
-    # Create the login status label
-    login_status_label = tk.Label(root, text="")
+    # Create the login status label with the color scheme
+    login_status_label = tk.Label(root, text="", bg=bg_color, fg=label_color)
     login_status_label.grid(row=3, column=1, padx=5, pady=5)
 
-    # Start the Tkinter event loop
+    # Set the color of the grid
+    root.grid_columnconfigure(0, weight=1)
+    root.grid_columnconfigure(1, weight=1)
+    root.grid_rowconfigure(0, weight=1)
+    root.grid_rowconfigure(1, weight=1)
+    root.grid_rowconfigure(2, weight=1)
+    root.grid_rowconfigure(3, weight=1)
+
+    # Run the main loop
     root.mainloop()
 
     return root.login_dict
@@ -103,6 +122,10 @@ class GardenManagement:
         self.routine_event_id = None
         self.picture_event_id = None
         self.send_health_pics = False
+
+    def testing_mode_setup(self):
+        if not mgf.get_testing_mode():
+            mgf.set
 
     def get_message(self):
             return self.server_handler.listen()

@@ -251,7 +251,7 @@ def reports_page():
 
     # growth
     html_growth_graph = db.plot_growth_percentage(user_id=current_id, plant_name=plant_name,
-                                                  start_date=start_date, end_date=end_date)
+                                                  start_date=start_date, end_date=end_date, logs=logs)
 
     html_light_moisture_graph = db.moisture_light_plot(user_id=current_id, plant_name=plant_name,
                                                        start_date=start_date, end_date=end_date)
@@ -303,7 +303,7 @@ def admin_reports_page():
 
     # growth
     html_growth_graph = db.plot_growth_percentage(user_id=current_id, plant_name=plant_name,
-                                                  start_date=start_date, end_date=end_date)
+                                                  start_date=start_date, end_date=end_date, logs=logs)
 
     html_light_moisture_graph = db.moisture_light_plot(user_id=current_id, plant_name=plant_name,
                                                        start_date=start_date, end_date=end_date)

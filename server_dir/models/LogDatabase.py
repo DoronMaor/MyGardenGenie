@@ -113,7 +113,7 @@ class LogDatabase:
             print(e)
             return 1
 
-    def plot_growth_percentage(self, user_id, plant_name, start_date=None, end_date=None):
+    def plot_growth_percentage(self, user_id, plant_name, logs, start_date=None, end_date=None):
         growth_events = self.growth[str(user_id[:-1])]
 
         # Set default values for start and end dates
@@ -126,10 +126,12 @@ class LogDatabase:
         start_output_str = input_date.strftime('%Y-%m-%dT%H:%M:%S.%f+00:00')
 
         input_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
-        end_output_str = input_date.strftime('%Y-%m-%dT%H:%M:%S.%f+00:00')
+        end_output_str = input_date.strftime('%Y-%m-%dT%H:%M:%S.%f+10:00')
 
         # Query growth events within the date range
-        query = {"plant_name": plant_name, "time": {"$gte": start_output_str, "$lte": end_output_str}}
+        query = {"plant_name": plant_name,
+                 "time": {"$gte": datetime.datetime.strptime(start_output_str, '%Y-%m-%dT%H:%M:%S.%f+00:00'),
+                          "$lte": datetime.datetime.strptime(end_output_str, '%Y-%m-%dT%H:%M:%S.%f+10:00')}}
         projection = {"time": 1, "height_px": 1, "_id": 0}
         results = growth_events.find(query, projection=projection).sort("time")
 
@@ -143,13 +145,67 @@ class LogDatabase:
             growth_data.append((time, growth_percentage))
 
         # Plot the data and encode the image as a base64 string
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(10, 6))
         x = [datetime.datetime.strptime(str(data[0]), "%Y-%m-%d %H:%M:%S") for data in growth_data]
         y = [data[1] for data in growth_data]
         ax.plot(x, y)
         ax.set_xlabel("Time")
         ax.set_ylabel("Growth Percentage")
         ax.set_title("Plant Growth Over Time")
+
+        manual_x = []
+        manual_y = []
+        auto_x = []
+        auto_y = []
+        manual_labels = []
+        auto_labels = []
+
+        for log in logs:
+            log_time = datetime.datetime.strptime(log['time'], "%Y-%m-%d %H:%M:%S")
+            if "watering" in  log["action"]:
+                range_start = log_time - datetime.timedelta(minutes=40)
+                range_end = log_time + datetime.timedelta(minutes=40)
+                matching_growth_data = [(datetime.datetime.strptime(str(data[0]), "%Y-%m-%d %H:%M:%S"), data[1]) for
+                                        data in growth_data if range_start <= datetime.datetime.strptime(str(data[0]),
+                                                                                                         "%Y-%m-%d %H:%M:%S") <= range_end]
+                if matching_growth_data:
+                    growth_time, growth_percentage = max(matching_growth_data, key=lambda x: x[1])
+                    if log["level"] == "Manual":
+                        manual_x.append(growth_time)
+                        manual_y.append(growth_percentage)
+                        manual_labels.append("Watering")
+                    else:
+                        auto_x.append(growth_time)
+                        auto_y.append(growth_percentage)
+                        auto_labels.append("Watering")
+            elif "LED" in log["action"]:
+                range_start = log_time - datetime.timedelta(minutes=40)
+                range_end = log_time + datetime.timedelta(minutes=40)
+                matching_growth_data = [(datetime.datetime.strptime(str(data[0]), "%Y-%m-%d %H:%M:%S"), data[1]) for
+                                        data in growth_data if range_start <= datetime.datetime.strptime(str(data[0]),
+                                                                                                         "%Y-%m-%d %H:%M:%S") <= range_end]
+                if matching_growth_data:
+                    growth_time, growth_percentage = max(matching_growth_data, key=lambda x: x[1])
+                    if log["level"] == "Manual":
+                        manual_x.append(growth_time)
+                        manual_y.append(growth_percentage)
+                        manual_labels.append("LED Ring")
+                    else:
+                        auto_x.append(growth_time)
+                        auto_y.append(growth_percentage)
+                        auto_labels.append("LED Ring")
+
+        ax.scatter(manual_x, manual_y, color='r', label='Manual', marker='o')
+        ax.scatter(auto_x, auto_y, color='g', label='Automatic', marker='o')
+
+        for i, txt in enumerate(manual_labels):
+            ax.annotate(txt, (manual_x[i], manual_y[i]), xytext=(-20, 20), textcoords='offset points', ha='center',
+                        va='bottom')
+        for i, txt in enumerate(auto_labels):
+            ax.annotate(txt, (auto_x[i], auto_y[i]), xytext=(20, -20), textcoords='offset points', ha='center',
+                        va='top')
+
+        ax.legend()
 
         # Encode the image as a base64 string
         buffer = BytesIO()
@@ -170,8 +226,16 @@ class LogDatabase:
         if end_date is None:
             end_date = datetime.date.today().strftime("%Y-%m-%d")
 
+        input_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+        start_output_str = input_date.strftime('%Y-%m-%dT%H:%M:%S.%f+00:00')
+
+        input_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+        end_output_str = input_date.strftime('%Y-%m-%dT%H:%M:%S.%f+10:00')
+
         # Query growth events within the date range
-        query = {"plant_name": plant_name, "time": {"$gte": start_date, "$lte": end_date}}
+        query = {"plant_name": plant_name,
+                 "time": {"$gte": datetime.datetime.strptime(start_output_str, '%Y-%m-%dT%H:%M:%S.%f+00:00'),
+                          "$lte": datetime.datetime.strptime(end_output_str, '%Y-%m-%dT%H:%M:%S.%f+10:00')}}
         projection = {"time": 1, "light_level": 1, "moisture_level": 1, "_id": 0}
         results = growth_events.find(query, projection=projection).sort("time")
 
@@ -310,6 +374,30 @@ class LogDatabase:
             current_time += datetime.timedelta(hours=1)
             time.sleep(1)
 
+    def add_fake_action_data(self, user_id):
+        # Define some sample data
+        plant_names = ["A", "B"]
+        actions = [("watering", random.choice(plant_names)),
+                   ("led_ring", [random.choice(plant_names), random.choice([True, False])])]
+        levels = ["Automatic", "Manual"]
+        start_date = datetime.datetime(2023, 4, 29, 9, 0, 0)
+        end_date = datetime.datetime(2023, 4, 30, 17, 0, 0)
+        delta = datetime.timedelta(minutes=10)
+
+        # Generate fake data for each time interval
+        current_time = start_date
+        while current_time <= end_date:
+            # Generate a random level and action
+            level = random.choice(levels)
+            action = random.choice(actions)
+
+            # Insert the event into the database
+            self.add_action_args(user_id, current_time.strftime("%Y-%m-%d %H:%M:%S"), level, action, None)
+
+            # Increment the current time by 30 minutes
+            current_time += delta
+
+
 if __name__ == '__main__':
     p = LogDatabase()
-    p.add_fake_growth_data("877ef680d0fe4a1ebaaa445f61efb73A", "t")
+    p.add_fake_action_data("877ef680d0fe4a1ebaaa445f61efb73A")
