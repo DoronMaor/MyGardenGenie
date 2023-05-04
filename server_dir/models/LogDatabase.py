@@ -360,7 +360,6 @@ class LogDatabase:
             print(e)
             return False
 
-
     def add_fake_growth_data(self, user_id, plant_name):
         light_levels = [random.randint(500, 1000) for _ in range(10)]
         moisture_levels = [random.randint(30, 80) for _ in range(10)]
@@ -380,8 +379,8 @@ class LogDatabase:
         actions = [("watering", random.choice(plant_names)),
                    ("led_ring", [random.choice(plant_names), random.choice([True, False])])]
         levels = ["Automatic", "Manual"]
-        start_date = datetime.datetime(2023, 4, 29, 9, 0, 0)
-        end_date = datetime.datetime(2023, 4, 30, 17, 0, 0)
+        start_date = datetime.datetime(2023, 4, 1, 9, 0, 0)
+        end_date = datetime.datetime(2023, 5, 5, 0, 0, 0)
         delta = datetime.timedelta(minutes=10)
 
         # Generate fake data for each time interval
@@ -400,4 +399,5 @@ class LogDatabase:
 
 if __name__ == '__main__':
     p = LogDatabase()
-    p.add_fake_action_data("877ef680d0fe4a1ebaaa445f61efb73A")
+    p.add_fake_growth_data("cd98f4217e49468883465451e9ae41dA", "fake0")
+    p.add_fake_action_data("cd98f4217e49468883465451e9ae41dA")

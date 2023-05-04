@@ -591,4 +591,4 @@ def handle_log_event(pickled_data):
 if __name__ == '__main__':
     # socketio.start_background_task(target=generate_frames)
     # socketio.run(app, allow_unsafe_werkzeug=True)
-    socketio.run(app, allow_unsafe_werkzeug=True, host='192.168.0.176')
+    socketio.run(app, allow_unsafe_werkzeug=True, host='172.16.67.125')
