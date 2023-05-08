@@ -135,21 +135,6 @@ class PlantRecognitionManager:
     def run(self, input_image_path="plant_recognition_files\\all_plants.jpg", output_image_path="", num_plants=2,
             current_plants=0):
 
-        plant_dict = extract_plant_data_tk_fake(0)
-
-        # Register the plant data in the server
-        self.server_handler.register_plant(plant_dict)
-
-        add_plant_dict(plant_dict, "A")
-
-        plant_dict = extract_plant_data_tk_fake(1)
-
-        # Register the plant data in the server
-        self.server_handler.register_plant(plant_dict)
-
-        add_plant_dict(plant_dict, "B")
-
-        return None
         self.take_picture()
 
         plant_num = self.plant_detector.detect_plants(input_image_path, output_image_path, num_plants)

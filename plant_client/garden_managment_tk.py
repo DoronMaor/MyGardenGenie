@@ -17,6 +17,7 @@ from tkinter import ttk
 from client_models.PlantHealthSupport import PlantHealthSupport
 from PIL import Image, ImageTk
 
+
 def timer_thread(duration):
     time.sleep(duration)
     return True
@@ -30,7 +31,7 @@ def home_page(garden_management, frame=None, win=None):
 
 def create_login_form():
     #return {
-    #        "USERNAME": "user",
+    #        "USERNAME": "user1",
     #        "PASSWORD": "123",
     #    }
     def submit_form():
@@ -86,6 +87,7 @@ def create_login_form():
 
     return root.login_dict
 
+
 class GardenManagement:
     def __init__(self, server_ip):
         self.gardener = Gardener()
@@ -94,7 +96,7 @@ class GardenManagement:
         # usm.sign_up(server_handler)
         creds_dict = create_login_form()
         self.usr = usm.login(self.server_handler, creds_dict['USERNAME'], creds_dict['PASSWORD'])
-        #mgf.set_up_plants_server(self.server_handler.get_all_plants())
+        mgf.set_up_plants_server(self.server_handler.get_all_plants())
 
         self.event_logger = EventLogger(self.server_handler)
         self.remote_handler = RemoteControlHandler(self.server_handler, self.gardener, self.usr, self.event_logger)
@@ -125,10 +127,10 @@ class GardenManagement:
 
     def testing_mode_setup(self):
         if not mgf.get_testing_mode():
-            mgf.set
+            mgf.set_test_mode_string()
 
     def get_message(self):
-            return self.server_handler.listen()
+        return self.server_handler.listen()
 
     def listen_for_messages(self, mes=None):
         remote_message_headers = ["garden_action", "remote_stop"]
@@ -165,7 +167,8 @@ class GardenManagement:
                 elif action_header == "video_stop":
                     self.video_streamer.stop()
                 elif action_header == "get_plant_dict":
-                    self.server_handler.send_plants_names(plant_dict=mgf.get_letter_plant_dict(), request_id=action_data)
+                    self.server_handler.send_plants_names(plant_dict=mgf.get_letter_plant_dict(),
+                                                          request_id=action_data)
                 elif action_header == "plant_health":
                     self.s.cancel(self.picture_event_id)  # Cancel the existing event
                     self.picture_event_id = self.s.enter(0.1, 1, lambda: self.take_picture())
@@ -203,7 +206,7 @@ class GardenManagement:
 
         while True:
             # Schedule the first checkup and picture
-            self.routine_event_id  = self.s.enter(mgf.get_routine_interval(), 1, lambda: self.routine_checkup())
+            self.routine_event_id = self.s.enter(mgf.get_routine_interval(), 1, lambda: self.routine_checkup())
             self.picture_event_id = self.s.enter(mgf.get_picture_interval(), 1, lambda: self.take_picture())
 
             listen_thread = threading.Thread(target=self.listen_for_messages)
@@ -236,5 +239,4 @@ if __name__ == '__main__':
     thread = threading.Thread(target=garden_management.main_loop)
     thread.daemon = True
     thread.start()
-
     home_page(garden_management)
