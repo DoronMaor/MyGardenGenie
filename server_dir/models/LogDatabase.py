@@ -401,3 +401,4 @@ if __name__ == '__main__':
     p = LogDatabase()
     p.add_fake_growth_data("cd98f4217e49468883465451e9ae41dA", "fake0")
     p.add_fake_action_data("cd98f4217e49468883465451e9ae41dA")
+c
