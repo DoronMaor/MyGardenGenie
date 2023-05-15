@@ -50,13 +50,13 @@ def get_plant_table_db():
 
 def get_plant_identifier():
     if "plant_identifier" not in g:
-        g.plant_identifier = PlantIdentify("5CHZ8TnzXgrbYOioi0Ewf9j" + "RFwWKCFtH9UbiYkqwjlgdUtBCnl")
+        g.plant_identifier = PlantIdentify("7NpFZAXR5eLtcS0SVplWfmvD" + "M8kMlE4LpMRRxEGeFDBwF8BA64")
     return g.plant_identifier
 
 
 def get_plant_health_detector():
     if "plant_health_detector" not in g:
-        g.plant_health_detector = PlantHealthDetector("5CHZ8TnzXgrbYOioi0Ewf9j" + "RFwWKCFtH9UbiYkqwjlgdUtBCnl")
+        g.plant_health_detector = PlantHealthDetector("7NpFZAXR5eLtcS0SVplWfmvD" + "M8kMlE4LpMRRxEGeFDBwF8BA64")
     return g.plant_health_detector
 
 
@@ -153,9 +153,16 @@ def index():
             if admin_alerts:
                 alerts = admin_alerts
 
-    print("alerts", alerts)
+    alerts_no_dups = []
+    # removing the duplicate entry
+    for i in range(len(alerts)):
+        if alerts[i] not in alerts[i + 1:]:
+            alerts_no_dups.append(alerts[i])
 
-    return render_template("home-page.html", logged=logged, alerts=alerts)
+    print("alerts list", alerts)
+    print("alerts no dups", alerts_no_dups)
+
+    return render_template("home-page.html", logged=logged, alerts=alerts_no_dups)
 
 
 @app.route('/checked_alert', methods=['POST'])
@@ -470,7 +477,7 @@ def handle_register_plant(pickled_data):
 def handle_get_all_plants(pickled_data):
     data = pickle_to_data(pickled_data)
     user_id, data = data[-1], data[0]
-    user_plants = get_db().get_plants_by_similar_id(session['id'])
+    user_plants = get_db().get_plants_by_similar_id(user_id)
 
     send_response("get_all_plants_response", user_plants)
 
@@ -591,4 +598,4 @@ def handle_log_event(pickled_data):
 if __name__ == '__main__':
     # socketio.start_background_task(target=generate_frames)
     # socketio.run(app, allow_unsafe_werkzeug=True)
-    socketio.run(app, allow_unsafe_werkzeug=True, host='192.168.0.176')
+    socketio.run(app, allow_unsafe_werkzeug=True, host='localhost')

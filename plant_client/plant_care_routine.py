@@ -26,7 +26,7 @@ def hysteresis_water_handling(plant: str, low_threshold: int, high_threshold: in
         gardener.add_water(plant, 1)
         time.sleep(1.5)
         elapsed_time = time.monotonic() - start_time
-        if elapsed_time > 60:
+        if elapsed_time > 5:
             # Timeout after 60 seconds
             break
 
@@ -76,10 +76,11 @@ def routine(plant: str, gardener, event_logger):
 def full_routine_checkup(plantA_state: str, plantB_state: str, gardener, event_logger, testing=False):
     """Checks the specified plants for any necessary routine maintenance, based on their current state."""
 
-    if not testing:
+    if testing:
         return
-        if plantA_state == "AUTOMATIC":
-            routine("A", gardener, event_logger)
 
-        if plantB_state == "AUTOMATIC":
-            routine("B", gardener, event_logger)
+    if plantA_state == "AUTOMATIC":
+        routine("A", gardener, event_logger)
+
+    if plantB_state == "AUTOMATIC":
+        routine("B", gardener, event_logger)

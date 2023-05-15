@@ -89,6 +89,16 @@ def extract_plant_data_tk(response):
 
     # Return the plant dictionary stored in the root window
     return root.plant_dict
+def extract_plant_data_tk_fake(n = 0):
+    plant_dict = {
+        "PLANT_NAME": "fake" + str(n),
+        "PLANT_TYPE": "Mentha" + str(n),
+        "LIGHT_LVL": "300",
+        "LIGHT_HOURS": "300",
+        "MOISTURE_LVL": "300",
+        "MODE": "AUTOMATIC"
+    }
+    return plant_dict
 
 
 def download_resnet_model():
@@ -124,6 +134,7 @@ class PlantRecognitionManager:
 
     def run(self, input_image_path="plant_recognition_files\\all_plants.jpg", output_image_path="", num_plants=2,
             current_plants=0):
+
         self.take_picture()
 
         plant_num = self.plant_detector.detect_plants(input_image_path, output_image_path, num_plants)

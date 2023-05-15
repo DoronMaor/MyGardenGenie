@@ -73,6 +73,7 @@ class SQLUserManager:
         pickled_result = self.cursor.fetchone()[3]
         results = pickle.loads(pickled_result)
         plants = results
+        changed = False
 
         if not plants:
             plants = [None, None]
@@ -86,6 +87,7 @@ class SQLUserManager:
                 # Put the new plant in the results where it belongs
                 results[i] = plant_dict
                 plants = results
+                changed = True
                 break
 
         # Look for the same PLANT_TYPE as the plant_dict
@@ -94,6 +96,16 @@ class SQLUserManager:
                 # Replace the old plant with the new one
                 results[i] = plant_dict
                 plants = results
+                changed = True
+
+        if not changed:
+            plants = [None, None]
+            for i, plant in enumerate(results):
+                if plant is None:
+                    # Put the new plant in the results where it belongs
+                    results[i] = plant_dict
+                    plants = results
+                    break
 
         self.update_user(id_num, pickle.dumps(plants))
     def remove_plant(self, id_num, plant_name):
