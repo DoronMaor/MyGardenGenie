@@ -67,7 +67,10 @@ class LogDatabase:
 
         # add plant name to the query if provided
         if plant_name:
-            query["action.1.0"] = plant_name
+            query["$or"] = [
+                {"action.1": plant_name},
+                {"action.1.0": plant_name}
+            ]
 
         # execute the query and get all matching log events
         logs = user_events.find(query)
@@ -162,7 +165,7 @@ class LogDatabase:
 
         for log in logs:
             log_time = datetime.datetime.strptime(log['time'], "%Y-%m-%d %H:%M:%S")
-            if "watering" in  log["action"]:
+            if "water" in  log["action"]:
                 range_start = log_time - datetime.timedelta(minutes=40)
                 range_end = log_time + datetime.timedelta(minutes=40)
                 matching_growth_data = [(datetime.datetime.strptime(str(data[0]), "%Y-%m-%d %H:%M:%S"), data[1]) for
@@ -376,7 +379,7 @@ class LogDatabase:
     def add_fake_action_data(self, user_id):
         # Define some sample data
         plant_names = ["A", "B"]
-        actions = [("watering", random.choice(plant_names)),
+        actions = [("add_water", random.choice(plant_names)),
                    ("led_ring", [random.choice(plant_names), random.choice([True, False])])]
         levels = ["Automatic", "Manual"]
         start_date = datetime.datetime(2023, 4, 1, 9, 0, 0)
@@ -399,5 +402,5 @@ class LogDatabase:
 
 if __name__ == '__main__':
     p = LogDatabase()
-    p.add_fake_growth_data("cd98f4217e49468883465451e9ae41dA", "fake0")
+    p.add_fake_growth_data("cd98f4217e49468883465451e9ae41dA", "Plant1")
     p.add_fake_action_data("cd98f4217e49468883465451e9ae41dA")

@@ -1,7 +1,7 @@
 intervention bug dates?
 video streaming 2 clicks first time bug
 bug pictures show in log screen
-
+admin reports check
 
 when plants updated, actually update them in PC - check needed
 Admin plant table - duplicates cause upper case - check needed

@@ -50,7 +50,7 @@ def format_logs_for_html(db, session_id, logs, current_id=None):
                 formatted_log['action'] = f"Read moisture to {get_plant_name_for_html(plant_dict, action_details)}"
             elif action_type == 'led_ring':
                 formatted_log['action'] = f"Turned LED to {get_plant_name_for_html(plant_dict, action_details)}"
-            elif action_type == 'add_water':
+            elif action_type == 'add_water' or action_type == 'watering':
                 formatted_log['action'] = f"Watered {get_plant_name_for_html(plant_dict, action_details)}"
             else:
                 formatted_log['action'] = f"{action_type}, {action_details}"
