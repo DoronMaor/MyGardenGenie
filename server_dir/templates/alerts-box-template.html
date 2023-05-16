@@ -41,10 +41,19 @@
     </div>
     {% if alerts %} {% for alert in alerts %}
     <form method="POST" action="/checked_alert" class="my-form">
+      {% if not alert.title == "No messages" %}
       <div class="alert">
         <button class="close-btn" type="submit">&times;</button>
         <p class="title" id="title" name="title">{{ alert.title }}</p>
         <p class="details" id="details" name="details">{{ alert.details }}</p>
+        {% else %}
+        <div class="alert-green">
+
+        <p class="title" id="title" name="title">{{ alert.title }}</p>
+        <p class="details" id="details" name="details">{{ alert.details }}</p>
+
+        {% endif %}
+
         <input type="hidden" name="title" value="{{ alert.title }}" />
         <input type="hidden" name="details" value="{{ alert.details }}" />
       </div>

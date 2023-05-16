@@ -1,2 +1,2 @@
-U: user1
+U: user
 P: 123

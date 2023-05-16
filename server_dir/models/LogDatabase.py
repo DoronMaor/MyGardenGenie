@@ -138,76 +138,62 @@ class LogDatabase:
         projection = {"time": 1, "height_px": 1, "_id": 0}
         results = growth_events.find(query, projection=projection).sort("time")
 
-        # Convert height_px to growth_percentage
+        # Get the oldest height in pixels
         oldest_height_px = self.get_oldest_height_px(user_id, plant_name)
-        growth_data = []
+
+        # Prepare growth data
+        growth_data_points = []
         for result in results:
             height_px = result["height_px"]
             growth_percentage = (height_px - oldest_height_px) / oldest_height_px * 100
             time = result["time"]
-            growth_data.append((time, growth_percentage))
+            growth_data_points.append((time, growth_percentage))
 
-        # Plot the data and encode the image as a base64 string
+        # Prepare intervention data
+        intervention_points = []
+        colors = []
+        labels = []
+        for intervention in logs:
+            intervention_time = datetime.datetime.strptime(intervention["time"], "%Y-%m-%d %H:%M:%S")
+            action = intervention["action"]
+            if action.startswith("Watered"):
+                color = "blue"
+            elif action.startswith("Turned LED"):
+                color = "green"
+            else:
+                color = "red"  # Default color for other interventions
+
+            # Find the growth data point closest to the intervention time
+            closest_point = min(growth_data_points, key=lambda x: abs(x[0] - intervention_time))
+            intervention_points.append((intervention_time, closest_point[1]))
+            colors.append(color)
+            labels.append(action)
+
+        # Plot the data
         fig, ax = plt.subplots(figsize=(10, 6))
-        x = [datetime.datetime.strptime(str(data[0]), "%Y-%m-%d %H:%M:%S") for data in growth_data]
-        y = [data[1] for data in growth_data]
-        ax.plot(x, y)
+        x_growth = [data[0] for data in growth_data_points]
+        y_growth = [data[1] for data in growth_data_points]
+        ax.plot(x_growth, y_growth, label="Growth", color="orange")
+
+        for i in range(len(intervention_points)):
+            ax.scatter(intervention_points[i][0], intervention_points[i][1],
+                       c=colors[i], s=100)
+
+        # Create a single legend for all intervention actions
+        legend_labels = ["LED", "Watered"]
+        legend_handles = [plt.Line2D([], [], marker='o', color='w', markerfacecolor=color, markersize=8)
+                          for color in set(colors)]
+        ax.legend(legend_handles, legend_labels)
+
+        # Add labels to the intervention dots
+        for i in range(len(intervention_points)):
+            ax.annotate(labels[i], (intervention_points[i][0], intervention_points[i][1]),
+                        xytext=(10, 10), textcoords='offset points', color="black", fontsize=10)
+
+        # Set axes labels and title
         ax.set_xlabel("Time")
         ax.set_ylabel("Growth Percentage")
         ax.set_title("Plant Growth Over Time")
-
-        manual_x = []
-        manual_y = []
-        auto_x = []
-        auto_y = []
-        manual_labels = []
-        auto_labels = []
-
-        for log in logs:
-            log_time = datetime.datetime.strptime(log['time'], "%Y-%m-%d %H:%M:%S")
-            if "water" in  log["action"]:
-                range_start = log_time - datetime.timedelta(minutes=40)
-                range_end = log_time + datetime.timedelta(minutes=40)
-                matching_growth_data = [(datetime.datetime.strptime(str(data[0]), "%Y-%m-%d %H:%M:%S"), data[1]) for
-                                        data in growth_data if range_start <= datetime.datetime.strptime(str(data[0]),
-                                                                                                         "%Y-%m-%d %H:%M:%S") <= range_end]
-                if matching_growth_data:
-                    growth_time, growth_percentage = max(matching_growth_data, key=lambda x: x[1])
-                    if log["level"] == "Manual":
-                        manual_x.append(growth_time)
-                        manual_y.append(growth_percentage)
-                        manual_labels.append("Watering")
-                    else:
-                        auto_x.append(growth_time)
-                        auto_y.append(growth_percentage)
-                        auto_labels.append("Watering")
-            elif "LED" in log["action"]:
-                range_start = log_time - datetime.timedelta(minutes=40)
-                range_end = log_time + datetime.timedelta(minutes=40)
-                matching_growth_data = [(datetime.datetime.strptime(str(data[0]), "%Y-%m-%d %H:%M:%S"), data[1]) for
-                                        data in growth_data if range_start <= datetime.datetime.strptime(str(data[0]),
-                                                                                                         "%Y-%m-%d %H:%M:%S") <= range_end]
-                if matching_growth_data:
-                    growth_time, growth_percentage = max(matching_growth_data, key=lambda x: x[1])
-                    if log["level"] == "Manual":
-                        manual_x.append(growth_time)
-                        manual_y.append(growth_percentage)
-                        manual_labels.append("LED Ring")
-                    else:
-                        auto_x.append(growth_time)
-                        auto_y.append(growth_percentage)
-                        auto_labels.append("LED Ring")
-
-        ax.scatter(manual_x, manual_y, color='r', label='Manual', marker='o')
-        ax.scatter(auto_x, auto_y, color='g', label='Automatic', marker='o')
-
-        for i, txt in enumerate(manual_labels):
-            ax.annotate(txt, (manual_x[i], manual_y[i]), xytext=(-20, 20), textcoords='offset points', ha='center',
-                        va='bottom')
-        for i, txt in enumerate(auto_labels):
-            ax.annotate(txt, (auto_x[i], auto_y[i]), xytext=(20, -20), textcoords='offset points', ha='center',
-                        va='top')
-
         ax.legend()
 
         # Encode the image as a base64 string
@@ -363,44 +349,45 @@ class LogDatabase:
             print(e)
             return False
 
-    def add_fake_growth_data(self, user_id, plant_name):
-        light_levels = [random.randint(500, 1000) for _ in range(10)]
-        moisture_levels = [random.randint(30, 80) for _ in range(10)]
-        height_px = [random.randint(200, 600) for _ in range(10)]
+    def add_fake_growth_data(self, user_id, plant_name, start_date, end_date):
+        n = 100
+        light_levels = [random.randint(500, 1000) for _ in range(n)]
+        moisture_levels = [random.randint(30, 80) for _ in range(n)]
+        height_px = [random.randint(200, 600) for _ in range(n)]
 
-        current_time = datetime.datetime.now().replace(minute=0, second=0, microsecond=0)
-        for i in range(10):
-            cevent_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
-            self.add_growth_args(user_id, plant_name, cevent_time, light_levels[i], moisture_levels[i],
-                                      height_px[i])
-            current_time += datetime.timedelta(hours=1)
-            time.sleep(1)
+        current_time = start_date.replace(minute=0, second=0, microsecond=0)
+        delta = datetime.timedelta(hours=1)
+        date_format = "%Y-%m-%d %H:%M:%S"
 
-    def add_fake_action_data(self, user_id):
-        # Define some sample data
+        for i in range(n):
+            current_time_str = current_time.strftime(date_format)
+            self.add_growth_args(user_id, plant_name, current_time_str, light_levels[i], moisture_levels[i],
+                                 height_px[i])
+            current_time += delta
+            time.sleep(0.1)
+
+    def add_fake_action_data(self, user_id, start_date, end_date):
         plant_names = ["A", "B"]
-        actions = [("add_water", random.choice(plant_names)),
-                   ("led_ring", [random.choice(plant_names), random.choice([True, False])])]
         levels = ["Automatic", "Manual"]
-        start_date = datetime.datetime(2023, 4, 1, 9, 0, 0)
-        end_date = datetime.datetime(2023, 5, 5, 0, 0, 0)
-        delta = datetime.timedelta(minutes=10)
+        delta = datetime.timedelta(hours=1)
+        date_format = "%Y-%m-%d %H:%M:%S"
 
-        # Generate fake data for each time interval
         current_time = start_date
         while current_time <= end_date:
-            # Generate a random level and action
+            action = random.choice([
+                ("add_water", random.choice(plant_names)),
+                ("led_ring", [random.choice(plant_names), random.choice([True, False])])
+            ])
             level = random.choice(levels)
-            action = random.choice(actions)
-
-            # Insert the event into the database
-            self.add_action_args(user_id, current_time.strftime("%Y-%m-%d %H:%M:%S"), level, action, None)
-
-            # Increment the current time by 30 minutes
+            current_time_str = current_time.strftime(date_format)
+            self.add_action_args(user_id, current_time_str, level, action, None)
             current_time += delta
-
 
 if __name__ == '__main__':
     p = LogDatabase()
-    p.add_fake_growth_data("cd98f4217e49468883465451e9ae41dA", "Plant1")
-    p.add_fake_action_data("cd98f4217e49468883465451e9ae41dA")
+
+    start_date = datetime.datetime(2023, 5, 15, 9, 0, 0)
+    end_date = datetime.datetime(2023, 5, 18, 0, 0, 0)
+
+    p.add_fake_growth_data("cd98f4217e49468883465451e9ae41dA", "Plant1", start_date, end_date)
+    p.add_fake_action_data("cd98f4217e49468883465451e9ae41dA", start_date, end_date)

@@ -57,6 +57,33 @@
   transition: all 0.2s ease-in-out;
 }
 
+.alert-green {
+  padding: 20px;
+  background: linear-gradient(270deg, #85ff99c0 0%, #98f48aaf 100%);
+  border-radius: 999px;
+  margin: 4px;
+  box-shadow: 1px 1px 7px rgb(199, 199, 199);
+  position: relative;
+  transition: all 0.2s ease-in-out; /* add a transition effect for the hover animation */
+  transition: all 0.2s ease-in-out;
+}
+
+.alert-green p {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #282828;
+  border-radius: 45px;
+  text-shadow: 1px 1px 3px rgb(255, 255, 255);
+  text-align: center;
+}
+
+.alert-green p.time {
+  font-size: 14px;
+  font-weight: 400;
+  color: #555;
+}
+
 .alert p {
   margin: 0;
   font-size: 18px;

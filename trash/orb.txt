@@ -1,12 +1,13 @@
-intervention bug dates?
-video streaming 2 clicks first time bug
+intervention bug dates
 bug pictures show in log screen
-admin reports check
 
 when plants updated, actually update them in PC - check needed
 Admin plant table - duplicates cause upper case - check needed
+video streaming 2 clicks first time bug - check needed
 
 make alerts fix bugs when admin V
+admin reports check V
+reports default green no red V
 
 ===
 Presentation ideas [test mode]:

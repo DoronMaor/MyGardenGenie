@@ -243,7 +243,7 @@ class GardenManagement:
 
 
 if __name__ == '__main__':
-    garden_management = GardenManagement("127.0.0.1")
+    garden_management = GardenManagement("192.168.0.176")
     thread = threading.Thread(target=garden_management.main_loop)
     thread.daemon = True
     thread.start()
