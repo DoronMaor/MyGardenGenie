@@ -362,6 +362,10 @@ def update_all_plants_table():
         else:  # add
             db_table.add_plant_from_form(request.form)
 
+    for sid in plant_user_table.get_all_plants():
+        send_message(sid, "update_params", "update_params")
+
+
     return render_template("admin-plants-page.html", logged=is_logged(), plants=db_table.get_all_plants_dict())
 
 
@@ -482,9 +486,6 @@ def handle_get_all_plants(pickled_data):
     send_response("get_all_plants_response", user_plants)
 
 
-
-
-
 # endregion
 
 # region PLANT SQL
@@ -546,7 +547,7 @@ def plant_recognition(pickled_data):
 
     if not gardening.get("OKAY_VALUES"):  # missing in DB, register alerts
         missing_message = "Sorry, we don't have any gardening data available for this plant, so we won't be able to take care of it automatically. Please wait until an admin is taking care of the situation."
-        admin_missing_message = "We don't have any gardening data available for this plant, so we won't be able to take care of it automatically. Taking care of the situation."
+        admin_missing_message = "We don't have any gardening data available for this plant, so we won't be able to take care of it automatically. Take care of the situation."
         get_log_db().add_alert(user_id=session['id'], title="Missing Plant Data for %s" % gardening["PLANT_TYPE"],
                                details=missing_message)
         get_log_db().add_alert(user_id="admin", title="Missing Plant Data for %s" % gardening["PLANT_TYPE"],
@@ -593,9 +594,13 @@ def handle_log_event(pickled_data):
     state = log_db.add_growth_args(*message_data)
 
 
+
+
 # endregion
 
 if __name__ == '__main__':
     # socketio.start_background_task(target=generate_frames)
     # socketio.run(app, allow_unsafe_werkzeug=True)
-    socketio.run(app, allow_unsafe_werkzeug=True, host='localhost')
+    socketio.run(app, allow_unsafe_werkzeug=True, host='127.0.0.1')
+
+

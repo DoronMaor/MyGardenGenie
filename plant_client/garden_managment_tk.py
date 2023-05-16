@@ -124,6 +124,7 @@ class GardenManagement:
         self.routine_event_id = None
         self.picture_event_id = None
         self.send_health_pics = False
+        self.update_ui = False
 
     def testing_mode_setup(self):
         if not mgf.get_testing_mode():
@@ -173,6 +174,9 @@ class GardenManagement:
                     self.s.cancel(self.picture_event_id)  # Cancel the existing event
                     self.picture_event_id = self.s.enter(0.1, 1, lambda: self.take_picture())
                     self.send_health_pics = True
+
+                elif action_header == "update_params":
+                    mgf.update_moisture_light_values(self.server_handler)
                 else:
                     print("Couldn't analyze this message: ", message)
 
@@ -221,7 +225,11 @@ class GardenManagement:
                     self.status = "Plant Recognition"
                     self.plant_recognition_manager.run(current_plants=mgf.check_plant_files())
                     self.do_plant_recognition = False
+                    self.update_ui = True
+
+                if self.update_ui:
                     self.home_obj.update_strings(garden_management)
+                    self.update_ui = False
 
             self.status = "Not Active"
             # Wait for the listen thread to finish

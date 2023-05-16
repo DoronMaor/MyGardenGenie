@@ -1,3 +1,4 @@
+import re
 import sqlite3 as lite
 import os
 import pickle
@@ -64,12 +65,12 @@ class PlantManagerDB:
             INSERT INTO plants_conditions (type, light, light_hours, moisture)
             VALUES (?, ?, ?, ?)
             ''',
-            (plant_type, light, light_hours, moisture)
+            (self.format_plant_type(plant_type), light, light_hours, moisture)
         )
         #self.conn.commit()
 
     def add_plant_from_form(self, data):
-        self.add_plant(data["type"], data["light"], data["light_hours"], data["moisture"])
+        self.add_plant(self.format_plant_type(data["type"]), data["light"], data["light_hours"], data["moisture"])
 
     def update_plant(self, plant_type, light, light_hours, moisture):
         self.cur.execute(
@@ -78,17 +79,48 @@ class PlantManagerDB:
             SET type = ?, light = ?, light_hours = ?, moisture = ?
             WHERE type = ?
             ''',
-            (plant_type, light, light_hours, moisture, plant_type)
+            (plant_type, light, light_hours, moisture, self.format_plant_type(plant_type))
         )
 
-    def update_db(self, data):
+    def format_plant_type(self, plant_type):
+        # Convert to title case
+        plant_type = plant_type.lower()
+        plant_type = plant_type.title()
 
+        # Remove leading/trailing spaces
+        plant_type = plant_type.strip()
+
+        # Remove multiple spaces
+        plant_type = re.sub(r'\s+', ' ', plant_type)
+
+        return plant_type
+
+    def update_plant_types(self):
+        self.cur.execute('SELECT type FROM plants_conditions')
+        rows = self.cur.fetchall()
+
+        for row in rows:
+            plant_type = row[0]
+            formatted_type = self.format_plant_type(plant_type)
+
+            if formatted_type != plant_type:
+                self.cur.execute(
+                    '''
+                    UPDATE plants_conditions
+                    SET type = ?
+                    WHERE type = ?
+                    ''',
+                    (formatted_type, plant_type)
+                )
+                self.conn.commit()
+
+    def update_db(self, data):
         # Loop through each plant in the form data
         for plant, value in list(data.items())[:-4]:
             # Split the plant name into its type and attribute
             try:
                 split_plant = plant.strip().split('/')
-                plant_type = split_plant[0].strip()
+                plant_type = self.format_plant_type(split_plant[0].strip())
                 plant_attr = split_plant[1]
             except:
                 print( plant, value)
@@ -122,6 +154,8 @@ class PlantManagerDB:
                     (plant_type,)
                 )
 
+        self.update_plant_types()
+
         # Commit changes and close connection
         self.conn.commit()
 
@@ -131,7 +165,7 @@ class PlantManagerDB:
             DELETE FROM plants_conditions
             WHERE type = ?
             ''',
-            (plant_type,)
+            (self.format_plant_type(plant_type),)
         )
         self.conn.commit()
 
@@ -143,7 +177,7 @@ class PlantManagerDB:
                 SELECT * FROM plants_conditions
                 WHERE type = ?
                 ''',
-                (plant_type,)
+                (self.format_plant_type(plant_type),)
             )
             results = self.cur.fetchone()
             self.conn.commit()

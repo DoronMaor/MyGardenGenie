@@ -1,8 +1,10 @@
-when plants updated, actually update them in PC
-Admin plant table - duplicates cause upper case
 intervention bug dates?
 video streaming 2 clicks first time bug
 bug pictures show in log screen
+
+
+when plants updated, actually update them in PC - check needed
+Admin plant table - duplicates cause upper case - check needed
 
 make alerts fix bugs when admin V
 

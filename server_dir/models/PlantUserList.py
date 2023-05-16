@@ -60,3 +60,13 @@ class PlantUserList:
                 return pc.get_stream_ip()
 
         return "127.0.0.1"
+
+
+    def get_all_plants(self):
+        plants_sid = []
+        for i in self.dict:
+            pc = self.dict[i]
+            psock = pc.get_plant_sock()
+            plants_sid.append(psock)
+
+        return plants_sid

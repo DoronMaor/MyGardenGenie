@@ -233,4 +233,3 @@ class SQLUserManager:
         return unique_user_ids
 
 
-
