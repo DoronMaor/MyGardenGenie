@@ -363,7 +363,8 @@ def update_all_plants_table():
             db_table.add_plant_from_form(request.form)
 
     for sid in plant_user_table.get_all_plants():
-        send_message(sid, "update_params", "update_params")
+        socketio.emit('response', pickle.dumps(("update_params", "update_params")), room=sid)
+
 
 
     return render_template("admin-plants-page.html", logged=is_logged(), plants=db_table.get_all_plants_dict())

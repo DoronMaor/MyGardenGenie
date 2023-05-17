@@ -113,23 +113,34 @@
 
     <h3>{{ log_count }} results</h3>
     <div class="logs-container">
-      {% for log in logs %}
+      {% for log in logs %} {% set random_id = "log_" ~ loop.index %}
+
       <div class="log">
         {% if log.images %}
         <img
-          src="{{url_for('static', filename='images/imgIcon.png')}}"
+          src="{{ url_for('static', filename='images/imgIcon.png') }}"
           alt="Image Icon"
           width="30px"
           class="img-icon"
-          onclick="toggleImages()"
+          id="{{ random_id }}"
+          onclick="toggleImages('{{ random_id }}')"
+          <!--
+          Pass
+          the
+          id
+          to
+          the
+          function
+          --
         />
-        {% endif %}
+        /> {% endif %}
         <p class="time">{{ log.time }}</p>
         <p class="by">{{ log.by }}</p>
         <p class="level">{{ log.level }}</p>
         <p class="action">{{ log.action }}</p>
         {% if log.images %}
-        <div class="log-images">
+        <div class="log-images" id="images_{{ random_id }}">
+          <!-- Add a unique ID for the images container -->
           {% for image in log.images %}
           <img
             class="log-image"
@@ -143,8 +154,8 @@
       {% endfor %}
     </div>
     <script>
-      function toggleImages() {
-        var imagesContainer = document.querySelector(".log-images");
+      function toggleImages(id) {
+        var imagesContainer = document.querySelector("#images_" + id); // Find the images container based on the ID
         if (imagesContainer.style.display === "block") {
           imagesContainer.style.display = "none";
         } else {
@@ -152,13 +163,28 @@
         }
       }
     </script>
+
     <!-- Growth Graph -->
     <h2>Growth Graph</h2>
+    {% if growth_graph %}
     <img src="{{ growth_graph }}" alt="Growth Chart" />
+    {% else %}
+    <img
+      src="{{url_for('static', filename='images/nograph.jpg')}}"
+      alt="Growth Chart"
+    />
+    {% endif %}
 
     <!-- Light and Moisture Graph -->
     <h2>Light and Moisture Graph</h2>
+    {% if light_moisture_graph %}
     <img src="{{ light_moisture_graph }}" alt="Light Moisture Chart" />
+    {% else %}
+    <img
+      src="{{url_for('static', filename='images/nograph.jpg')}}"
+      alt="Growth Chart"
+    />
+    {% endif %}
   </div>
 
   <!-- Footer -->

@@ -153,6 +153,10 @@ class LogDatabase:
         intervention_points = []
         colors = []
         labels = []
+
+        if not growth_data_points:
+            return None
+
         for intervention in logs:
             intervention_time = datetime.datetime.strptime(intervention["time"], "%Y-%m-%d %H:%M:%S")
             action = intervention["action"]
@@ -235,6 +239,9 @@ class LogDatabase:
             time = datetime.datetime.strptime(str(result["time"]), "%Y-%m-%d %H:%M:%S")
             moisture_data.append((time, result["moisture_level"]))
             light_data.append((time, result["light_level"]))
+
+        if not light_data:
+            return None
 
         # Plot the data and encode the image as a base64 string
         # Set the figure size

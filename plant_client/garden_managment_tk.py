@@ -209,6 +209,9 @@ class GardenManagement:
         self.active_loop = not self.active_loop
         return self.active_loop
 
+    def turn_blitz_mode(self):
+        self.blitz_mode = True
+
     def main_loop(self):
 
         while True:

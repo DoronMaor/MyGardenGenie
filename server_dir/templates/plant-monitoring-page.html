@@ -190,20 +190,22 @@
     });
 
     videoModeBtn.addEventListener("click", () => {
-      if (videoScreen.style.display == "block") {
-        videoModeBtn.textContent = "Start Video Mode";
-        videoScreen.style.display = "none";
-        server_handler.stop_receiving("127.0.0.1", 8080);
-        video.src = "#";
-      } else {
-        videoModeBtn.textContent = "Stop Video Mode";
-        videoScreen.style.display = "block";
-        server_handler.video_start("127.0.0.1", 8080).then((stream_ip) => {
-          $(function () {
-            var video = $("#video")[0];
-            video.src = `http://${stream_ip[1]}:8080/video`;
+      for (let i = 0; i < 3; i++) {
+        if (videoScreen.style.display == "block") {
+          videoModeBtn.textContent = "Start Video Mode";
+          videoScreen.style.display = "none";
+          server_handler.stop_receiving("127.0.0.1", 8080);
+          video.src = "#";
+        } else {
+          videoModeBtn.textContent = "Stop Video Mode";
+          videoScreen.style.display = "block";
+          server_handler.video_start("127.0.0.1", 8080).then((stream_ip) => {
+            $(function () {
+              var video = $("#video")[0];
+              video.src = `http://${stream_ip[1]}:8080/video`;
+            });
           });
-        });
+        }
       }
     });
 

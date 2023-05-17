@@ -78,6 +78,8 @@ class ArduinoRobot:
         """
         print(f"Sending message to Arduino: {msg}")
         self.ser.write(bytes(msg + "\n", 'utf-8'))
+        self.ser.flushInput()  # Clear the input buffer
+
         if rec:
             m = self.ser.readline().decode("utf-8")
             print(f"Received message from Arduino: {m}")

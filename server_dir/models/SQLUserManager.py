@@ -67,47 +67,34 @@ class SQLUserManager:
             result = result[:-1] + (last_element,)
 
         return result
+
+    import pickle
+
     def add_plant(self, id_num, plant_dict):
         query = 'SELECT * FROM users WHERE id = ?'
         self.cursor.execute(query, (id_num,))
         pickled_result = self.cursor.fetchone()[3]
-        results = pickle.loads(pickled_result)
-        plants = results
+
+        if pickled_result:
+            results = pickle.loads(pickled_result)
+            if not results:
+                results = [None, None]
+        else:
+            results = [None, None]
+
         changed = False
 
-        if not plants:
-            plants = [None, None]
-
-        if plants[0] == plants[1]:
-            plants[1] = None
-
-        # Look for a free spot in the results
         for i, plant in enumerate(results):
-            if plant is None:
-                # Put the new plant in the results where it belongs
+            if plant is None or plant['PLANT_TYPE'] == plant_dict['PLANT_TYPE']:
                 results[i] = plant_dict
-                plants = results
                 changed = True
                 break
 
-        # Look for the same PLANT_TYPE as the plant_dict
-        for i, plant in enumerate(results):
-            if plant and plant['PLANT_TYPE'] == plant_dict['PLANT_TYPE']:
-                # Replace the old plant with the new one
-                results[i] = plant_dict
-                plants = results
-                changed = True
-
         if not changed:
-            plants = [None, None]
-            for i, plant in enumerate(results):
-                if plant is None:
-                    # Put the new plant in the results where it belongs
-                    results[i] = plant_dict
-                    plants = results
-                    break
+            results[0] = plant_dict
 
-        self.update_user(id_num, pickle.dumps(plants))
+        self.update_user(id_num, pickle.dumps(results))
+
     def remove_plant(self, id_num, plant_name):
         id_num_base = id_num[:-1]
         lets = ["A", "B", "C"]
