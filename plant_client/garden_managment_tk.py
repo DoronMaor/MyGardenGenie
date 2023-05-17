@@ -125,6 +125,7 @@ class GardenManagement:
         self.picture_event_id = None
         self.send_health_pics = False
         self.update_ui = False
+        self.blitz_mode = False
 
     def testing_mode_setup(self):
         if not mgf.get_testing_mode():
@@ -177,6 +178,7 @@ class GardenManagement:
 
                 elif action_header == "update_params":
                     mgf.update_moisture_light_values(self.server_handler)
+                    self.update_ui = True
                 else:
                     print("Couldn't analyze this message: ", message)
 
@@ -187,7 +189,8 @@ class GardenManagement:
             plantA_state = mgf.get_automatic_mode("plantA.mgg")
             plantB_state = mgf.get_automatic_mode("plantB.mgg")
             # Do the check-up routine for both plants
-            pcr.full_routine_checkup(plantA_state, plantB_state, self.gardener, self.event_logger, testing=False)
+            pcr.full_routine_checkup(plantA_state, plantB_state, self.gardener, self.event_logger,
+                                     testing=False, blitz_mode=self.blitz_mode)
             # Schedule the next checkup
         self.s.enter(mgf.get_routine_interval(), 1, self.routine_checkup)
 
@@ -226,7 +229,17 @@ class GardenManagement:
                     self.plant_recognition_manager.run(current_plants=mgf.check_plant_files())
                     self.do_plant_recognition = False
                     self.update_ui = True
+                
+                if self.blitz_mode:
+                    self.s.cancel(self.routine_event_id)  # Cancel the existing event
+                    self.routine_event_id = self.s.enter(0.1, 1, lambda: self.routine_checkup())
 
+                    self.s.cancel(self.picture_event_id)  # Cancel the existing event
+                    self.picture_event_id = self.s.enter(0.1, 1, lambda: self.take_picture())
+
+                    self.blitz_mode = False
+                
+                
                 if self.update_ui:
                     self.home_obj.update_strings(garden_management)
                     self.update_ui = False

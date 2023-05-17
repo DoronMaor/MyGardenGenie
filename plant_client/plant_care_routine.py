@@ -33,10 +33,72 @@ def hysteresis_water_handling(plant: str, low_threshold: int, high_threshold: in
     # Log watering event
     event_logger.automatic_event_logger(user_id=mgf.get_id(), action_data=("watering", plant), send_now=True)
 
-
-
-
 def hysteresis_lighting_handling(plant: str, low_threshold: int, gardener, event_logger):
+    """
+    Check the light level of the plant and turn on/off the LED ring depending on whether it falls below the low threshold.
+
+    Args:
+        plant (str): The name of the plant to check light level for.
+        low_threshold (int): The minimum light level at which the LED ring should be turned on.
+        gardener (Gardener): An object representing the gardener.
+        event_logger (EventLogger): An object for logging events.
+
+    Returns:
+        None
+    """
+    if low_threshold == -1:
+        mgf.set_mode("plant%s.mgg" % plant, new_mode="MANUAL")
+        return
+    light_level = gardener.get_light_level(plant)
+    if light_level < low_threshold and not gardener.get_led_ring(plant):
+        gardener.set_led_ring(plant, True)
+        event_logger.automatic_event_logger(user_id=mgf.get_id(), action_data=("Turned on LED", plant), send_now=True)
+    elif light_level >= low_threshold and gardener.get_led_ring(plant):
+        gardener.set_led_ring(plant, False)
+        event_logger.automatic_event_logger(user_id=mgf.get_id(), action_data=("Turned off LED", plant), send_now=True)
+
+
+def blitz_hysteresis_water_handling(plant: str, low_threshold: int, high_threshold: int, gardener, event_logger):
+    """
+    Simulated version: Check the moisture level of the plant based on pre-prepared data and add water to it if it falls
+    below the low threshold. Stop adding water when it reaches the high threshold or after 60 seconds of adding water.
+
+    Args:
+        plant (str): The name of the plant to check moisture level for.
+        low_threshold (int): The minimum moisture level at which water should be added to the plant.
+        high_threshold (int): The maximum moisture level at which watering should be stopped.
+        gardener (Gardener): An object representing the gardener.
+        event_logger (EventLogger): An object for logging events.
+
+    Returns:
+        None
+    """
+    if high_threshold == -1:
+        mgf.set_mode("plant%s.mgg" % plant, new_mode="MANUAL")
+        return
+
+    start_time = time.monotonic()
+    elapsed_time = 0
+
+    # Simulated moisture level data
+    moisture_levels = [high_threshold - i * (high_threshold // 8) for i in range(1, 9)] + [0]
+
+    for moisture_level in moisture_levels:
+        if moisture_level < low_threshold or elapsed_time > 60:
+            break
+
+        if moisture_level > high_threshold:
+            elapsed_time += 1
+            continue
+
+        gardener.add_water(plant, 1)
+        elapsed_time += 1.5
+
+    # Log watering event
+    event_logger.automatic_event_logger(user_id=mgf.get_id(), action_data=("watering", plant), send_now=True)
+
+
+def blitz_hysteresis_lighting_handling(plant: str, low_threshold: int, gardener, event_logger):
     """
     Check the light level of the plant and turn on/off the LED ring depending on whether it falls below the low threshold.
 
@@ -73,11 +135,29 @@ def routine(plant: str, gardener, event_logger):
     print(f"- Done routine for plant {plant} -")
 
 
-def full_routine_checkup(plantA_state: str, plantB_state: str, gardener, event_logger, testing=False):
+def routine_blitz(plant: str, gardener, event_logger):
+    """Performs a routine checkup for the specified plant, including hysteresis lighting handling and hysteresis water handling."""
+
+    p_water_low_threshold, p_water_high_threshold = int(mgf.get_plant_dict(plant)["MOISTURE_LVL"])-100, int(mgf.get_plant_dict(plant)["MOISTURE_LVL"])
+    p_light_low_threshold = int(mgf.get_plant_dict(plant)["LIGHT_LVL"])
+
+    blitz_hysteresis_lighting_handling(plant, p_light_low_threshold, gardener, event_logger)
+    blitz_hysteresis_water_handling(plant, p_water_low_threshold, p_water_high_threshold, gardener, event_logger)
+
+    print(f"- Done routine for plant {plant} -")
+
+
+def full_routine_checkup(plantA_state: str, plantB_state: str, gardener, event_logger, testing=False, blitz_mode=False):
     """Checks the specified plants for any necessary routine maintenance, based on their current state."""
 
     if testing:
         return
+    if blitz_mode:
+        if plantA_state == "AUTOMATIC":
+            routine_blitz("A", gardener, event_logger)
+
+        if plantB_state == "AUTOMATIC":
+            routine_blitz("B", gardener, event_logger)
 
     if plantA_state == "AUTOMATIC":
         routine("A", gardener, event_logger)

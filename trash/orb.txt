@@ -11,8 +11,8 @@ reports default green no red V
 
 ===
 Presentation ideas [test mode]:
-    - fake data behind the scenes for 2 graphs
-    - fast routine mode
+    - fake data that looks real for 2 graphs
+    - fake plant test mode -
     -
 
 

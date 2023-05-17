@@ -67,7 +67,7 @@ class HomePage:
         self.menubar = tk.Menu(top, font="TkMenuFont", bg=_bgcolor, fg=_fgcolor)
         top.configure(menu=self.menubar)
 
-        self.menubar.add_command(compound='left', label='Exit')
+        self.menubar.add_command(compound='left', label='Test Routine', command=self.test_routine_action)
         self.bg_frame = tk.Frame(self.top)
         self.bg_frame.place(relx=0.0, rely=0.0, relheight=1.0, relwidth=1.0)
         self.bg_frame.configure(relief='groove')
@@ -243,6 +243,10 @@ class HomePage:
 
         self.active_btn.configure(text="Active" if garden_management.active_loop == True else "Not Active")
         self.active_btn.configure(background="#a0c2ab" if garden_management.active_loop == True else "#f57056")
+
+    def test_routine_action(self):
+        # Perform the desired action here
+        print("Test Routine clicked!")
 
 
 def start_up(garden_management):
