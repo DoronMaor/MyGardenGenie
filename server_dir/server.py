@@ -31,30 +31,60 @@ connected_clients = {}
 
 # region gets
 def get_db():
+    """
+    Retrieves the database instance.
+
+    Returns:
+        SQLUserManager: The database instance.
+    """
     if "db" not in g:
         g.db = SQLUserManager("dbs/")
     return g.db
 
 
 def get_log_db():
+    """
+    Retrieves the log database instance.
+
+    Returns:
+        LogDatabase: The log database instance.
+    """
     if "log_db" not in g:
         g.log_db = LogDatabase()
     return g.log_db
 
 
 def get_plant_table_db():
+    """
+    Retrieves the plant table database instance.
+
+    Returns:
+        PlantManagerDB: The plant table database instance.
+    """
     if "plant_table_db" not in g:
         g.plant_table_db = PlantManagerDB("dbs/")
     return g.plant_table_db
 
 
 def get_plant_identifier():
+    """
+    Retrieves the plant identifier instance.
+
+    Returns:
+        PlantIdentify: The plant identifier instance.
+    """
     if "plant_identifier" not in g:
         g.plant_identifier = PlantIdentify("7NpFZAXR5eLtcS0SVplWfmvD" + "M8kMlE4LpMRRxEGeFDBwF8BA64")
     return g.plant_identifier
 
 
 def get_plant_health_detector():
+    """
+    Retrieves the plant health detector instance.
+
+    Returns:
+        PlantHealthDetector: The plant health detector instance.
+    """
     if "plant_health_detector" not in g:
         g.plant_health_detector = PlantHealthDetector("7NpFZAXR5eLtcS0SVplWfmvD" + "M8kMlE4LpMRRxEGeFDBwF8BA64")
     return g.plant_health_detector
@@ -64,10 +94,22 @@ def get_plant_health_detector():
 
 
 def is_logged():
+    """
+    Check if a user is logged in.
+    Returns:
+        The user's session ID if logged in, None otherwise.
+    """
     return session.get('id', None)
 
 
 def send_message(client_sid, m_type, m_data):
+    """
+    Send a message to a client.
+    Args:
+        client_sid: The session ID of the client.
+        m_type: The type of the message.
+        m_data: The data to be sent.
+    """
     print("Sent:", 'response', (m_type, m_data), "to", client_sid)
     try:
         if session["client_type"] == "user":
@@ -79,6 +121,12 @@ def send_message(client_sid, m_type, m_data):
 
 
 def send_response(m_type, m_data):
+    """
+    Send a response message to a client.
+    Args:
+        m_type: The type of the response.
+        m_data: The data to be sent.
+    """
     print("Sent back:", 'response', (m_type, m_data))
     try:
         if session["client_type"] == "user":
@@ -89,12 +137,20 @@ def send_response(m_type, m_data):
 
 @app.before_request
 def before_request():
-    # Store the client's IP address in the clients dictionary
+    """
+    Function called before handling a request.
+    Stores the client's IP address in the clients dictionary.
+    """
     connected_clients[request.remote_addr] = request
 
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    """
+    Handle the index page.
+    If the request method is POST, process login/signup requests.
+    If the request method is GET, render the home page.
+    """
     if request.method == 'POST':
         db = get_db()
         try:

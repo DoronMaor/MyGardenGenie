@@ -167,7 +167,7 @@ class ArduinoRobot:
             rec: A boolean flag indicating whether to receive a response.
 
         Returns:
-            None.
+            None
 
         """
         message = "#T_LEDRING#" + ("1" if mode else "0") + ";" + plant

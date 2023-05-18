@@ -8,6 +8,15 @@ import zlib
 
 
 def extract_plant_data(response):
+    """
+    Extracts plant data from a given API response.
+
+    Args:
+        response: A dictionary representing the API response.
+
+    Returns:
+        A dictionary representing the extracted plant data.
+    """
     plant_recognition_data, gardening_data = response[1]['recognition'], response[1]['gardening']
     plant_dict = {"PLANT_NAME": input("plant name:"), "PLANT_TYPE": plant_recognition_data["plant_name"],
                   "LIGHT_LVL": gardening_data["LIGHT_LVL"], "LIGHT_HOURS": gardening_data["LIGHT_HOURS"],
@@ -89,7 +98,18 @@ def extract_plant_data_tk(response):
 
     # Return the plant dictionary stored in the root window
     return root.plant_dict
+
+
 def extract_plant_data_tk_fake(n = 0):
+    """
+    Creates a fake plant data dictionary for testing purposes.
+
+    Args:
+        n (int): A number to append to the fake plant data.
+
+    Returns:
+        A dictionary representing the fake plant data.
+    """
     plant_dict = {
         "PLANT_NAME": "fake" + str(n),
         "PLANT_TYPE": "Mentha" + str(n),
@@ -102,6 +122,9 @@ def extract_plant_data_tk_fake(n = 0):
 
 
 def download_resnet_model():
+    """
+    Downloads the ResNet model for plant recognition.
+    """
     try:
         from urllib.request import urlretrieve
     except ImportError:
@@ -127,6 +150,12 @@ class PlantRecognitionManager:
         self.plant_detector = PlantDetector()
 
     def take_picture(self, purpose=""):
+        """
+        Takes a picture using the picture grabber.
+
+        Args:
+            purpose (str): The purpose of taking the picture. Defaults to an empty string.
+        """
         if purpose == "analysis":
             self.picture_grabber.take_a_picture_for_analysis()
         else:
@@ -134,7 +163,15 @@ class PlantRecognitionManager:
 
     def run(self, input_image_path="plant_recognition_files\\all_plants.jpg", output_image_path="", num_plants=2,
             current_plants=0):
+        """
+        Runs the plant recognition process.
 
+        Args:
+            input_image_path (str): Path to the input image file. Defaults to "plant_recognition_files\\all_plants.jpg".
+            output_image_path (str): Path to save the cropped images of the plants.
+            num_plants (int): Maximum number of plants to detect. Defaults to 2.
+            current_plants (int): Number of currently detected plants. Defaults to 0.
+        """
         self.take_picture()
 
         plant_num = self.plant_detector.detect_plants(input_image_path, output_image_path, num_plants)
@@ -143,20 +180,14 @@ class PlantRecognitionManager:
 
     def process_detected_plants(self, detect=True):
         """
-        Process plant detection images by sending them to a remote server for recognition, extracting the plant data from the
-        server response, and registering the plants in the server.
+        Processes the detected plants by sending them to the server for recognition and registering them.
 
         Args:
             detect (bool): Whether to perform plant detection or not. Defaults to True.
-
-        Returns:
-            None
         """
         # Set the directory to the current directory
         directory = '.'
-        # Set a counter to 0 to keep track of the number of processed detection files
         counter = 0
-        # A dictionary to map integers to letters for naming the plants
         letters_map = {0: 'A', 1: 'B', 2: 'C'}
         plants = []
 
@@ -165,7 +196,6 @@ class PlantRecognitionManager:
 
         # Loop through the files in the directory
         for filename in os.listdir(directory):
-            # Process only the detection files with a filename starting with "detection_" and only the first two files
             if filename.startswith("detection_") and counter < 2:
                 # Open the image file for reading
                 with open(os.path.join(directory, filename), 'rb') as image_file:
@@ -180,21 +210,14 @@ class PlantRecognitionManager:
 
                         # Extract the plant data from the server response using a Tkinter form
                         plant_dict = extract_plant_data_tk(response)
-
-                        # Register the plant data in the server
                         self.server_handler.register_plant(plant_dict)
-
-                        # Add the plant data to the dictionary with a letter name corresponding to the counter value
                         add_plant_dict(plant_dict, letters_map[counter])
                         plants.append(response[1]['gardening']["PLANT_TYPE"])
 
-                        # Remove the detection file from the directory
                 os.remove(filename)
 
-                # Increment the counter
                 counter += 1
         try:
-            # Remove the all_plants.jpg file from the directory
             os.remove("plant_recognition_files\\all_plants.jpg")
         except:
             pass

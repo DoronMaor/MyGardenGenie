@@ -3,6 +3,15 @@ import json
 import pickle
 
 def string_to_hash(s):
+    """
+    Generates a SHA256 hash for a given string.
+
+    Args:
+        s (str): The input string.
+
+    Returns:
+        str: The SHA256 hash of the input string.
+    """
     # Create a hash object
     hash_obj = hashlib.sha256()
 
@@ -13,6 +22,16 @@ def string_to_hash(s):
 
 
 def get_plant_name_for_html(plant_dict, action_details):
+    """
+    Retrieves the plant name for HTML representation based on plant dictionary and action details.
+
+    Args:
+        plant_dict (dict): The plant dictionary containing plant information.
+        action_details (list): The action details.
+
+    Returns:
+        str: The plant name for HTML representation.
+    """
     try:
         return plant_dict[action_details[0][0]]['PLANT_NAME']
     except:
@@ -20,6 +39,18 @@ def get_plant_name_for_html(plant_dict, action_details):
 
 
 def format_logs_for_html(db, session_id, logs, current_id=None):
+    """
+    Formats logs for HTML representation.
+
+    Args:
+        db: The database object.
+        session_id: The session ID.
+        logs (list): The list of logs to format.
+        current_id: The current ID.
+
+    Returns:
+        list: The formatted logs.
+    """
     formatted_logs = []
     # db = get_db()
     current_id = current_id if current_id is not None else session_id
@@ -60,7 +91,18 @@ def format_logs_for_html(db, session_id, logs, current_id=None):
     return formatted_logs
 
 
+
 def pickle_to_data(data, slice_num=1):
+    """
+    Converts pickled or JSON serialized data to Python object.
+
+    Args:
+        data: The pickled or JSON serialized data.
+        slice_num (int): The number of slices to remove from the beginning of the data.
+
+    Returns:
+        object: The Python object reconstructed from the data.
+    """
     try:
         return pickle.loads(data)[slice_num:]
     except:

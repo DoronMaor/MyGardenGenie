@@ -26,6 +26,9 @@ def get_ip():
 
 class VideoStreamer:
     def __init__(self):
+        """
+        Initializes the VideoStreamer class.
+        """
         self.app = Flask(__name__)
         CORS(self.app)
         self.app.secret_key = "MGG_KEY"
@@ -35,6 +38,9 @@ class VideoStreamer:
         self.host = get_ip()
 
     def shutdown_server(self):
+        """
+        Shuts down the video server.
+        """
         print("Shutting down video server")
         func = request.environ.get('werkzeug.server.shutdown')
         if func is None:
@@ -60,6 +66,9 @@ class VideoStreamer:
                    b'Content-Type: image/jpeg\r\n\r\n' + flipped_frame + b'\r\n')
 
     def start(self):
+        """
+        Starts the video streaming server.
+        """
         @self.app.route('/video')
         @cross_origin()
         def video():
@@ -84,6 +93,12 @@ class VideoStreamer:
             threading.Thread(target=self.awake_check, args=()).start()
 
     def stop(self, remove=0):
+        """
+        Stops the video streaming server.
+
+        Parameters:
+        - remove (int): The number of connections to remove.
+        """
         self.active_connections -= remove
         print("left:", self.active_connections)
         if self.active_connections < 1:
@@ -93,6 +108,9 @@ class VideoStreamer:
             self.shutdown_server()
 
     def awake_check(self):
+        """
+        Checks if the server is awake.
+        """
         while True:
             time.sleep(3)
             if (datetime.datetime.now() - self.last_awake_call).total_seconds() > 5:

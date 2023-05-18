@@ -1,7 +1,7 @@
 light sensor not good
+signin error?
 
 fix clean serial - check needed
-video streaming 2 clicks first time bug - working but ugly - check needed - try expect?
 
 make alerts fix bugs when admin - V
 reports default green no red - V
@@ -11,24 +11,7 @@ if graphs empty - V
 Presentation mode button not functioning - V
 bug pictures show in log screen - V
 fix admin log if needed - V
-
-===
-Presentation ideas [test mode]:
-    - fake data that looks real for 2 graphs
-    - fake plant test mode -
-    -
-
-
-
-
-
-
-
-
-
-
-
-
+video streaming 2 clicks first time bug - V
 
 ===
 Presentation steps:

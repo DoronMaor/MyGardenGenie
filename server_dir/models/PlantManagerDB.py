@@ -6,6 +6,15 @@ import time
 
 
 def format_plants_for_html(plants):
+    """
+    Formats the plant data for HTML representation.
+
+    Args:
+        plants (list): List of plants data.
+
+    Returns:
+        list: Formatted plant data.
+    """
     formatted_plants = []
     for plant in plants:
         formatted_plant = {}
@@ -24,17 +33,16 @@ def format_plants_for_html(plants):
 
 class PlantManagerDB:
     """
-    A class that handles sql connection to users data base.
-    Database contains:
-        "type"	TEXT,
-        "light"	INTEGER,
-        "light_hours"	INTEGER,
-        "moisture"	INTEGER
+    A class that handles SQL connection to the plant database.
     """
 
     def __init__(self, db_path=None, file_name="plants_conditions.db"):
         """
-        Initializes the class
+        Initializes the PlantManagerDB class.
+
+        Args:
+            db_path (str): Path to the database file.
+            file_name (str): Name of the database file.
         """
         if not db_path:
             base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -48,18 +56,33 @@ class PlantManagerDB:
 
     def disconnect(self):
         """
-        Disconnects from the database
+        Disconnects from the database.
         """
         self.conn.close()
 
     def db_query(self, query):
         """
-        Executes a query
+        Executes a database query.
+
+        Args:
+            query (str): SQL query to execute.
+
+        Returns:
+            list: Query results.
         """
         self.cur.execute(query)
         return self.cur.fetchall()
 
     def add_plant(self, plant_type, light, light_hours, moisture):
+        """
+        Adds a new plant to the database.
+
+        Args:
+            plant_type (str): Type of the plant.
+            light (int): Light level required by the plant.
+            light_hours (int): Number of light hours required by the plant.
+            moisture (int): Moisture level required by the plant.
+        """
         self.cur.execute(
             '''
             INSERT INTO plants_conditions (type, light, light_hours, moisture)
@@ -67,12 +90,26 @@ class PlantManagerDB:
             ''',
             (self.format_plant_type(plant_type), light, light_hours, moisture)
         )
-        #self.conn.commit()
 
     def add_plant_from_form(self, data):
+        """
+        Adds a new plant to the database from form data.
+
+        Args:
+            data (dict): Form data containing plant information.
+        """
         self.add_plant(self.format_plant_type(data["type"]), data["light"], data["light_hours"], data["moisture"])
 
     def update_plant(self, plant_type, light, light_hours, moisture):
+        """
+        Updates an existing plant in the database.
+
+        Args:
+            plant_type (str): Type of the plant.
+            light (int): Light level required by the plant.
+            light_hours (int): Number of light hours required by the plant.
+            moisture (int): Moisture level required by the plant.
+        """
         self.cur.execute(
             '''
             UPDATE plants_conditions
@@ -83,6 +120,15 @@ class PlantManagerDB:
         )
 
     def format_plant_type(self, plant_type):
+        """
+        Formats the plant type.
+
+        Args:
+            plant_type (str): Type of the plant.
+
+        Returns:
+            str: Formatted plant type.
+        """
         # Convert to title case
         plant_type = plant_type.lower()
         plant_type = plant_type.title()
@@ -96,6 +142,9 @@ class PlantManagerDB:
         return plant_type
 
     def update_plant_types(self):
+        """
+        Updates the plant types in the database.
+        """
         self.cur.execute('SELECT type FROM plants_conditions')
         rows = self.cur.fetchall()
 
@@ -115,22 +164,24 @@ class PlantManagerDB:
                 self.conn.commit()
 
     def update_db(self, data):
-        # Loop through each plant in the form data
+        """
+        Updates the database based on form data.
+
+        Args:
+            data (dict): Form data containing plant information.
+        """
         for plant, value in list(data.items())[:-4]:
-            # Split the plant name into its type and attribute
             try:
                 split_plant = plant.strip().split('/')
                 plant_type = self.format_plant_type(split_plant[0].strip())
                 plant_attr = split_plant[1]
             except:
-                print( plant, value)
                 if plant == 'delete':
                     self.cur.execute(
                         'DELETE FROM plants_conditions WHERE type = ?',
                         (value,)
                     )
                 continue
-            # Handle update requests
             if plant_attr == 'light':
                 self.cur.execute(
                     'UPDATE plants_conditions SET light = ? WHERE type = ?',
@@ -146,8 +197,6 @@ class PlantManagerDB:
                     'UPDATE plants_conditions SET moisture = ? WHERE type = ?',
                     (value, plant_type)
                 )
-
-            # Handle delete requests
             elif plant_attr == 'delete' and value == plant_type:
                 self.cur.execute(
                     'DELETE FROM plants_conditions WHERE type = ?',
@@ -156,10 +205,15 @@ class PlantManagerDB:
 
         self.update_plant_types()
 
-        # Commit changes and close connection
         self.conn.commit()
 
     def delete_plant(self, plant_type):
+        """
+        Deletes a plant from the database.
+
+        Args:
+            plant_type (str): Type of the plant.
+        """
         self.cur.execute(
             '''
             DELETE FROM plants_conditions
@@ -189,6 +243,12 @@ class PlantManagerDB:
                 return results
 
     def get_all_plants(self):
+        """
+        Retrieves all plants from the database.
+
+        Returns:
+            list: All plants data.
+        """
         self.cur.execute(
             '''
             SELECT * FROM plants_conditions
@@ -197,10 +257,25 @@ class PlantManagerDB:
         return self.cur.fetchall()
 
     def get_all_plants_dict(self):
+        """
+        Retrieves all plants from the database as a dictionary.
+
+        Returns:
+            list: All plants data as a dictionary.
+        """
         plants = self.get_all_plants()
         return format_plants_for_html(plants)
 
     def search_plant_from_list(self, plant_list):
+        """
+        Searches for a plant from a list of plant types.
+
+        Args:
+            plant_list (list): List of plant types.
+
+        Returns:
+            dict: Plant information if found, None otherwise.
+        """
         results = []
         for plant in plant_list:
             result = self.get_plant(plant, add_new=False)
@@ -209,7 +284,6 @@ class PlantManagerDB:
                 break
         if not results:
             results = self.get_plant(plant_list[0], add_new=True)
-        print(results)
         results_dict = {
             "PLANT_TYPE": results[0],
             "LIGHT_LVL": results[1],
@@ -219,3 +293,4 @@ class PlantManagerDB:
         results_dict["OKAY_VALUES"] = False if -1 in results_dict.values() else True
 
         return results_dict
+

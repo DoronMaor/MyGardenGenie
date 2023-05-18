@@ -5,6 +5,16 @@ import zlib
 
 
 def compress_encode_images(images_list):
+    """
+    Compresses and encodes a list of images.
+
+    Args:
+        images_list (list): List of image file paths.
+
+    Returns:
+        list: Compressed and encoded images.
+
+    """
     compressed_images = []
     for image_path, _ in images_list:
         with open(image_path, 'rb') as image_file:
@@ -17,10 +27,24 @@ def compress_encode_images(images_list):
 
 class PlantHealthSupport:
     def __init__(self, server_handler):
+        """
+        Initializes the PlantHealthSupport class.
+
+        Args:
+            server_handler: Object representing the server handler.
+
+        """
         self.server_handler = server_handler
         self.images_path = "plant_analysis_pictures\\"
 
     def load_recent_images(self):
+        """
+        Loads the most recent images from a directory.
+
+        Returns:
+            list: List of image file paths and their creation timestamps.
+
+        """
         images = []
         for file in os.listdir(self.images_path):
             if file.endswith('.jpg') or file.endswith('.jpeg') or file.endswith('.png'):
@@ -32,6 +56,12 @@ class PlantHealthSupport:
         return images[:2]
 
     def run(self):
+        """
+        Runs the PlantHealthSupport process.
+
+        Loads recent images, compresses and encodes them, and sends them to the server handler.
+
+        """
         images_lst = self.load_recent_images()
         compressed_lst = compress_encode_images(images_lst)
         self.server_handler.send_plant_health(compressed_lst)

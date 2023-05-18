@@ -9,6 +9,15 @@ from plant_client.plant_recognition_files.PlantDetector import PlantDetector
 
 
 def compress_image(image_file="plant_recognition_files\\all_plants.jpg"):
+    """
+    Compresses the given image file using JPEG format with optimized settings and reduced quality.
+
+    Args:
+        image_file (str): Path to the image file.
+
+    Returns:
+        None
+    """
     filepath = os.path.join(os.getcwd(), image_file)
 
     try:
@@ -27,20 +36,50 @@ def compress_image(image_file="plant_recognition_files\\all_plants.jpg"):
 
 class PictureGrabber:
     def __init__(self, file_name="plant_recognition_files\\all_plants.jpg"):
+        """
+        Initializes the PictureGrabber object.
+
+        Args:
+            file_name (str): Path to the image file.
+        """
         self.cap = None
         self.file_name = file_name
         self.plant_detector = PlantDetector()
 
     def setup_camera(self):
+        """
+        Sets up the camera for capturing images.
+
+        Returns:
+            None
+        """
         self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
         # self.cap = cv2.VideoCapture(0)
 
     def get_file_name(self, path=""):
+        """
+        Generates a file name for the captured image.
+
+        Args:
+            path (str): Directory path where the image will be saved.
+
+        Returns:
+            str: File name for the captured image.
+        """
         if path == "plant_analysis_pictures":
             return "plant_analysis_pictures/" + datetime.now().strftime("%m_%d_%Y-%H_%M_%S") + ".jpg"
         return self.file_name
 
     def take_a_picture(self, path=""):
+        """
+        Takes a picture using the camera and saves it to a file.
+
+        Args:
+            path (str): Directory path where the image will be saved.
+
+        Returns:
+            None
+        """
         self.setup_camera()
         while True:
             ret, photo = self.cap.read()
@@ -58,6 +97,15 @@ class PictureGrabber:
         self.cap.release()
 
     def take_a_picture_for_analysis(self, path="plant_analysis_pictures"):
+        """
+        Takes a picture using the camera, saves it to a file, and performs plant detection analysis on the image.
+
+        Args:
+            path (str): Directory path where the image will be saved.
+
+        Returns:
+            None
+        """
         self.setup_camera()
         delete = []
         while True:

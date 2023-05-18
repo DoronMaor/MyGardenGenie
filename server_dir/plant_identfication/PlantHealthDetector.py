@@ -8,6 +8,12 @@ import requests
 
 class PlantHealthDetector:
     def __init__(self, api_key):
+        """
+        Initializes the PlantHealthDetector with the provided API key.
+
+        Args:
+            api_key (str): The API key for accessing the plant health assessment API.
+        """
         self.api_key = api_key
         self.headers = {
             "Content-Type": "application/json",
@@ -15,6 +21,22 @@ class PlantHealthDetector:
         }
 
     def assess_health(self, image=None, zipped_b64_image=None, testing=True):
+        """
+        Assess the health of a plant based on an image.
+
+        Args:
+            image (bytes): The image data as bytes (optional).
+            zipped_b64_image (bytes): The zipped and base64 encoded image data as bytes (optional).
+            testing (bool): Set to True if testing mode is enabled (optional).
+
+        Returns:
+            dict: A dictionary containing the assessment results with the name and description of the suggested action.
+
+        Note:
+            - Either `image` or `zipped_b64_image` should be provided.
+            - If `testing` is True and a test file exists, it returns the stored response for testing purposes.
+            - If the plant is healthy, it returns a dictionary with the name "Plant is healthy!" and description "Nothing to worry about".
+        """
         if testing:
             if os.path.isfile("test_plant"):
                 with open("test_plant", "rb") as f:

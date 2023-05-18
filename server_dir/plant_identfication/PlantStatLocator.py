@@ -1,11 +1,14 @@
 import os
 import sqlite3
 
-
 class PlantStatLocator:
     def __init__(self, db_path=None, file_name="../dbs/plants_conditions.db"):
         """
-        Initializes the class
+        Initializes the PlantStatLocator class.
+
+        Args:
+            db_path (str): Optional. Path to the database file. If not provided, the default file path will be used.
+            file_name (str): Optional. Name of the database file. Defaults to "../dbs/plants_conditions.db".
         """
         if not db_path:
             base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -18,6 +21,17 @@ class PlantStatLocator:
         self.cursor = self.conn.cursor()
 
     def search_plants(self, plant_list):
+        """
+        Searches for plant conditions in the database for the given list of plants.
+
+        Args:
+            plant_list (list): List of plant names to search for.
+
+        Returns:
+            dict: A dictionary containing the plant conditions. If a plant is found, the dictionary will include the
+                  plant type, light level, light hours, and moisture level. If no plant is found, the dictionary will
+                  contain default values with the "FOUND" key set to "FALSE".
+        """
         results = []
         for plant in plant_list:
             print(plant)

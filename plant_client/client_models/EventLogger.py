@@ -23,11 +23,11 @@ def get_datetime_from_string(datetime_str=""):
     Converts a date and time string to a datetime object.
 
     Args:
-        datetime_str: A string representing a date and time in the format "MM_DD_YYYY_HH_MM_SS" (optional).
-                      If not provided, the current date and time will be used.
+        datetime_str (str): A string representing a date and time in the format "MM_DD_YYYY_HH_MM_SS" (optional).
+                            If not provided, the current date and time will be used.
 
     Returns:
-        A datetime object representing the input date and time string.
+        datetime.datetime: A datetime object representing the input date and time string.
     """
     if datetime_str == "":
         now = datetime.datetime.now()
@@ -35,15 +35,10 @@ def get_datetime_from_string(datetime_str=""):
     else:
         # Extract date and time information from the input string
         date_str, time_str, _ = datetime_str.split("_")
-
-        # Convert date and time strings to datetime objects
         date_obj = datetime.datetime.strptime(date_str, "%m_%d_%Y")
         time_obj = datetime.datetime.strptime(time_str, "%H_%M_%S")
 
-        # Combine date and time objects into a single datetime object
         datetime_obj = datetime.datetime.combine(date_obj.date(), time_obj.time())
-
-        # Convert datetime object to desired output format
         datetime_str = datetime_obj.strftime("%Y-%m-%d %H:%M:%S")
 
     return datetime_str
@@ -70,21 +65,46 @@ def search_files_by_name(filename, folder="plant_analysis_pictures"):
 
 
 def get_image_height(image_path):
+    """
+    Get the height of an image.
+
+    Args:
+        image_path (str): The path to the image file.
+
+    Returns:
+        int: The height of the image in pixels.
+    """
     with Image.open(image_path) as img:
         return img.size[1]
 
 def parse_filename_datetime(filename):
+    """
+    Parse the datetime from a filename.
+
+    Args:
+        filename (str): The filename in the format "MM_DD_YYYY_HH_MM_SS.jpg".
+
+    Returns:
+        datetime.datetime: A datetime object representing the datetime extracted from the filename.
+    """
     # split the filename into its components
     parts = filename.split('_')
-    # extract the date and time components
     date_str = parts[0] + '-' + parts[1] + '-' + parts[2].split('-')[0]
     time_str = parts[2].split('-')[1] + ":" + parts[4] + ':' + parts[3]
-    # combine the date and time strings into a datetime object
     full_str = date_str + ' ' + time_str
     dt = datetime.datetime.strptime(full_str.replace(".jpg", ""), '%m-%d-%Y %H:%M:%S')
     return dt
 
 def get_images_before_time(event_time):
+    """
+    Get the images taken before or at a specified time.
+
+    Args:
+        event_time (str): The target time in the format "YYYY-MM-DD HH:MM:SS".
+
+    Returns:
+        list: A list of base64-encoded image data for the images taken before or at the specified time.
+    """
     encoded_images = []
     for filename in os.listdir("plant_analysis_pictures"):
         if filename.endswith(".jpg"):
@@ -99,31 +119,63 @@ def get_images_before_time(event_time):
                 with open(os.path.join("plant_analysis_pictures", filename), "rb") as f:
                     binary_data = f.read()
 
-                # Encode the binary data as base64 and convert to string
                 encoded_data = base64.b64encode(binary_data).decode('ascii')
-
-                # Add the image data and timestamp to the logs list
                 encoded_images.append(encoded_data)
-
-                # Delete the image file
                 os.remove(os.path.join("plant_analysis_pictures", filename))
 
     return encoded_images
 
 
 def create_action_event(user_id, event_time, level, action):
-    """ Creates an event tuple based on the parameters """
+    """
+    Create an action event tuple based on the parameters.
+
+    Args:
+        user_id (str): The ID of the user.
+        event_time (str): The time of the event in the format "YYYY-MM-DD HH:MM:SS".
+        level (str): The level of the event (e.g., "Manual", "Automatic").
+        action (str): The action performed.
+
+    Returns:
+        tuple: An event tuple representing the action event.
+    """
     cevent = (user_id, event_time, level, action, get_images_before_time(event_time))
     return cevent
 
 
 def create_data_event(user_id, time, moisture, light_lvl, light_hours):
-    """ Creates an event tuple based on the parameters """
+    """
+    Create a data event tuple based on the parameters.
+
+    Args:
+        user_id (str): The ID of the user.
+        time (str): The time of the event in the format "YYYY-MM-DD HH:MM:SS".
+        moisture (str): The moisture level.
+        light_lvl (str): The light level.
+        light_hours (str): The light hours.
+
+    Returns:
+        tuple: An event tuple representing the data event.
+    """
     cevent = (user_id, time, moisture, light_lvl, light_hours)
     return cevent
 
 
 def create_growth_event(user_id, plant_name: str, time: str, light_level, moisture_level, height_px):
+    """
+    Create a growth event tuple based on the parameters.
+
+    Args:
+        user_id (str): The ID of the user.
+        plant_name (str): The name of the plant.
+        time (str): The time of the event in the format "YYYY-MM-DD HH:MM:SS".
+        light_level (str): The light level.
+        moisture_level (str): The moisture level.
+        height_px (int): The height of the plant in pixels.
+
+    Returns:
+        tuple: An event tuple representing the growth event.
+    """
     cevent = (user_id, plant_name, time, light_level, moisture_level, height_px)
     return cevent
 

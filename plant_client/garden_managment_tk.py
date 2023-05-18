@@ -19,21 +19,43 @@ from PIL import Image, ImageTk
 
 
 def timer_thread(duration):
+    """
+       A timer thread that sleeps for the specified duration.
+
+       Parameters:
+       - duration (float): The duration in seconds to sleep.
+
+       Returns:
+       - bool: Always returns True.
+    """
     time.sleep(duration)
     return True
 
 
 def home_page(garden_management, frame=None, win=None):
+    """
+    The main function for the home page of the application.
+
+    Parameters:
+    - garden_management (GardenManagement): An instance of the GardenManagement class.
+    - frame (tkinter.Frame): The frame of the home page.
+    - win (tkinter.Tk): The Tkinter window.
+
+    Returns:
+    - None
+    """
     w1, root = home_page_tk_sprt.main(garden_management)
     garden_management.home_obj = w1
     root.mainloop()
 
 
 def create_login_form():
-    #return {
-    #        "USERNAME": "user1",
-    #        "PASSWORD": "123",
-    #    }
+    """
+    Creates a login form using Tkinter.
+
+    Returns:
+    - dict: A dictionary containing the submitted login form data.
+    """
     def submit_form():
         login_dict = {
             "USERNAME": username_entry.get(),
@@ -90,6 +112,15 @@ def create_login_form():
 
 class GardenManagement:
     def __init__(self, server_ip):
+        """
+        Initializes the GardenManagement class.
+
+        Parameters:
+        - server_ip (str): The IP address of the server.
+
+        Returns:
+        - None
+        """
         self.gardener = Gardener()
         self.server_handler = ServerHandlerSockIO(server_ip=server_ip, port=5000, client_type="plant", time_out=3)
 
@@ -128,13 +159,34 @@ class GardenManagement:
         self.blitz_mode = False
 
     def testing_mode_setup(self):
+        """
+               Sets up the testing mode if it's not already enabled.
+
+               Returns:
+               - None
+        """
         if not mgf.get_testing_mode():
             mgf.set_test_mode_string()
 
     def get_message(self):
+        """
+        Retrieves a message from the server.
+
+        Returns:
+        - str: The message received from the server.
+        """
         return self.server_handler.listen()
 
     def listen_for_messages(self, mes=None):
+        """
+        Listens for messages from the server.
+
+        Parameters:
+        - mes (str): Optional. A message to analyze instead of retrieving one from the server.
+
+        Returns:
+        - None
+        """
         remote_message_headers = ["garden_action", "remote_stop"]
 
         while self.active_loop:
@@ -183,12 +235,17 @@ class GardenManagement:
                     print("Couldn't analyze this message: ", message)
 
     def routine_checkup(self):
+        """
+        Performs routine checkups for the plants.
+
+        Returns:
+        - None
+        """
         if not mgf.get_remote_connection():
             print("Time for check up")
-            # Get the automatic mode of both plants
             plantA_state = mgf.get_automatic_mode("plantA.mgg")
             plantB_state = mgf.get_automatic_mode("plantB.mgg")
-            # Do the check-up routine for both plants
+
             pcr.full_routine_checkup(plantA_state, plantB_state, self.gardener, self.event_logger,
                                      testing=False, blitz_mode=self.blitz_mode)
             self.update_ui = True
@@ -197,6 +254,12 @@ class GardenManagement:
         self.s.enter(mgf.get_routine_interval(), 1, self.routine_checkup)
 
     def take_picture(self):
+        """
+               Takes a picture for later analysis.
+
+               Returns:
+               - None
+        """
         if not mgf.get_video_connection() and not mgf.get_remote_connection():
             print("Taking picture for later analysis")
             self.plant_recognition_manager.take_picture("analysis")
@@ -208,10 +271,22 @@ class GardenManagement:
         self.s.enter(mgf.get_picture_interval(), 1, self.take_picture)
 
     def change_active(self):
+        """
+        Changes the active state of the application.
+
+        Returns:
+        - bool: The updated active state.
+        """
         self.active_loop = not self.active_loop
         return self.active_loop
 
     def turn_blitz_mode(self):
+        """
+        Turns on the blitz mode.
+
+        Returns:
+        - None
+        """
         self.blitz_mode = True
 
     def main_loop(self):
@@ -225,7 +300,6 @@ class GardenManagement:
             listen_thread.start()
             self.status = "Active"
 
-            # Start the infinite loop
             while self.active_loop:
                 # Run scheduled events
                 self.s.run(blocking=False)
@@ -239,10 +313,10 @@ class GardenManagement:
                     self.update_ui = True
                 
                 if self.blitz_mode:
-                    self.s.cancel(self.routine_event_id)  # Cancel the existing event
+                    self.s.cancel(self.routine_event_id)
                     self.routine_event_id = self.s.enter(0.1, 1, lambda: self.routine_checkup())
 
-                    self.s.cancel(self.picture_event_id)  # Cancel the existing event
+                    self.s.cancel(self.picture_event_id)
                     self.picture_event_id = self.s.enter(0.1, 1, lambda: self.take_picture())
 
                     self.blitz_mode = False
@@ -253,7 +327,7 @@ class GardenManagement:
                     self.update_ui = False
 
             self.status = "Not Active"
-            # Wait for the listen thread to finish
+
             self.server_handler.active = False
             listen_thread.join()
             print("Not Active")

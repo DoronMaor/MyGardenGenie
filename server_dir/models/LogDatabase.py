@@ -14,10 +14,11 @@ import time
 
 class LogDatabase:
     def __init__(self):
-        # Connect to the MongoDB server
+        """
+        Initializes a connection to the MongoDB server and sets up the necessary collections.
+        """
         self.client = pymongo.MongoClient("mongodb://localhost:27017/")
 
-        # Get the "logs" database and the "events" collection
         self.db = self.client["Logs"]
         self.events = self.db["events"]
         self.growth = self.db["growth"]
@@ -25,17 +26,47 @@ class LogDatabase:
         self.conditions_tester_users = self.db["conditions_tester_users"]
 
     def insert_event(self, event):
+        """
+        Inserts a log event into the "events" collection.
+
+        Args:
+            event (dict): The log event to be inserted.
+
+        Returns:
+            bool: True if the event was inserted successfully, False otherwise.
+        """
         self.events.insert_one(event)
 
     def find_events(self, query):
+        """
+        Finds log events in the "events" collection that match the given query.
+
+        Args:
+            query (dict): The MongoDB query for finding log events.
+
+        Returns:
+            pymongo.Cursor: A cursor pointing to the result of the find operation.
+        """
         return self.events.find(query)
 
     def add_action_args(self, user_id, time: str, level: str, action: str, encoded_images: list):
+        """
+        Adds action arguments to a log event for a specific user.
+
+        Args:
+            user_id (str): The ID of the user.
+            time (str): The timestamp of the log event in the format "%Y-%m-%d %H:%M:%S".
+            level (str): The level of the log event.
+            action (str): The action performed by the user.
+            encoded_images (list): A list of encoded images related to the log event.
+
+        Returns:
+            bool: True if the action arguments were added successfully, False otherwise.
+        """
         try:
             user_events = self.events[str(user_id[:-1])]
             log_time = datetime.datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
             specify_plant_headers = ["get_moisture", "led_ring", "add_water"]
-
 
             cevent = {
                 "by": user_id,
@@ -50,8 +81,19 @@ class LogDatabase:
         except Exception as e:
             print(e)
             return False
-
     def get_events_by_date(self, user_id, start_date, end_date, plant_name=None):
+        """
+        Retrieves log events for a specific user within a given date range.
+
+        Args:
+            user_id (str): The ID of the user.
+            start_date (str): The start date of the date range in the format "%Y-%m-%d".
+            end_date (str): The end date of the date range in the format "%Y-%m-%d".
+            plant_name (str, optional): The name of the plant. Defaults to None.
+
+        Returns:
+            list: A list of log events matching the query.
+        """
         plant_name = None if plant_name == "all" else plant_name
 
         user_events = self.events[str(user_id[:-1])]
@@ -80,9 +122,32 @@ class LogDatabase:
     ###
 
     def insert_growth_event(self, event):
+        """
+        Inserts a growth event into the "growth" collection.
+
+        Args:
+            event (dict): The growth event to be inserted.
+
+        Returns:
+            bool: True if the event was inserted successfully, False otherwise.
+        """
         self.growth.insert_one(event)
 
     def add_growth_args(self, user_id, plant_name: str, time: str, light_level, moisture_level, height_px):
+        """
+        Adds growth arguments to a growth event for a specific user and plant.
+
+        Args:
+            user_id (str): The ID of the user.
+            plant_name (str): The name of the plant.
+            time (str): The timestamp of the growth event in the format "%Y-%m-%d %H:%M:%S".
+            light_level: The light level for the growth event.
+            moisture_level: The moisture level for the growth event.
+            height_px: The height in pixels for the growth event.
+
+        Returns:
+            bool: True if the growth arguments were added successfully, False otherwise.
+        """
         try:
             growth_events = self.growth[str(user_id[:-1])]
             log_time = datetime.datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
@@ -102,6 +167,16 @@ class LogDatabase:
             return False
 
     def get_oldest_height_px(self, user_id, plant_name):
+        """
+           Retrieves the oldest height in pixels for a given user ID and plant name.
+
+           Args:
+               user_id (str): User ID.
+               plant_name (str): Plant name.
+
+           Returns:
+               int: Oldest height in pixels if available, 1 otherwise.
+        """
         try:
             growth_events = self.growth[str(user_id[:-1])]
             query = {"plant_name": plant_name}
@@ -117,6 +192,20 @@ class LogDatabase:
             return 1
 
     def plot_growth_percentage(self, user_id, plant_name, logs, start_date=None, end_date=None):
+        """
+        Generates a plot of growth percentage over time for a specific user ID and plant name,
+        along with intervention data.
+
+        Args:
+            user_id (str): User ID.
+            plant_name (str): Plant name.
+            logs (list): List of intervention logs.
+            start_date (str, optional): Start date for the data range. Defaults to None.
+            end_date (str, optional): End date for the data range. Defaults to None.
+
+        Returns:
+            str: HTML img tag representing the plot as a base64-encoded image.
+        """
         growth_events = self.growth[str(user_id[:-1])]
 
         # Set default values for start and end dates
@@ -211,6 +300,18 @@ class LogDatabase:
         return img_html
 
     def moisture_light_plot(self, user_id, plant_name, start_date=None, end_date=None):
+        """
+        Generates a plot of moisture and light levels over time for a specific user ID and plant name.
+
+        Args:
+            user_id (str): User ID.
+            plant_name (str): Plant name.
+            start_date (str, optional): Start date for the data range. Defaults to None.
+            end_date (str, optional): End date for the data range. Defaults to None.
+
+        Returns:
+            str: HTML img tag representing the plot as a base64-encoded image.
+        """
         growth_events = self.growth[str(user_id[:-1])]
 
         # Set default values for start and end dates
@@ -268,6 +369,15 @@ class LogDatabase:
     ###
 
     def add_tester_user(self, full_id: str, plant_type: str, new_light_level, new_moisture_level):
+        """
+        Adds a tester user with the specified details.
+
+        Args:
+            full_id (str): Full user ID.
+            plant_type (str): Plant type.
+            new_light_level: New light level.
+            new_moisture_level: New moisture level.
+        """
         main_id = full_id[:-1]
 
         user_data = {
@@ -282,6 +392,16 @@ class LogDatabase:
         self.conditions_tester_users.insert_one(user_data)
 
     def get_tester_data_by_plant(self, plant_type: str):
+        """
+        Retrieves tester data for a specific plant type.
+
+        Args:
+            plant_type (str): Plant type.
+
+        Returns:
+            list: List of tuples containing average light level, average moisture level,
+            and average growth percentage for each tester user.
+        """
         users = self.conditions_tester_users.find({"plant_type": plant_type})
         plant_data = []
         for user in users:
@@ -310,8 +430,18 @@ class LogDatabase:
         return plant_data
 
     ###
-
     def add_alert(self, user_id, title, details):
+        """
+        Adds an alert for a specific user.
+
+        Args:
+            user_id (str): User ID.
+            title (str): Alert title.
+            details (str): Alert details.
+
+        Returns:
+            bool: True if the alert was successfully added, False otherwise.
+        """
         try:
             alerts = self.alerts[str(user_id[:-1])]
 
@@ -328,6 +458,15 @@ class LogDatabase:
             return False
 
     def get_alerts(self, user_id):
+        """
+        Retrieves all alerts for a specific user.
+
+        Args:
+            user_id (str): User ID.
+
+        Returns:
+            list: List of dictionaries representing alerts.
+        """
         try:
             alerts = self.alerts[str(user_id[:-1])]
             user_alerts = list(alerts.find({"user_id": user_id}))
@@ -337,6 +476,15 @@ class LogDatabase:
             return []
 
     def get_and_delete_alerts(self, user_id):
+        """
+        Retrieves and deletes all alerts for a specific user.
+
+        Args:
+            user_id (str): User ID.
+
+        Returns:
+            list: List of dictionaries representing alerts.
+        """
         try:
             alerts = self.alerts[str(user_id[:-1])]
             user_alerts = list(alerts.find({"user_id": user_id}))
@@ -347,6 +495,17 @@ class LogDatabase:
             return []
 
     def delete_alert(self, user_id, title, details):
+        """
+        Deletes a specific alert for a user.
+
+        Args:
+            user_id (str): User ID.
+            title (str): Alert title.
+            details (str): Alert details.
+
+        Returns:
+            bool: True if the alert. Use max_tokens to increase the limit if necessary.
+        """
         try:
             alerts = self.alerts[str(user_id[:-1])]
 

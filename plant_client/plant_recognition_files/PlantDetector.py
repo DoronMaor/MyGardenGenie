@@ -6,6 +6,11 @@ import mgg_functions as mgf
 
 class PlantDetector:
     def __init__(self):
+        """
+        Initializes the PlantDetector object.
+
+        It sets up the ObjectDetection model for plant detection using the RetinaNet model.
+        """
         self.execution_path = os.getcwd()
         self.detector = ObjectDetection()
         self.detector.setModelTypeAsRetinaNet()
@@ -15,6 +20,18 @@ class PlantDetector:
         self.detector.loadModel()
 
     def detect_plants(self, input_image_path, output_image_path, num_plants=2, distance_threshold=10):
+        """
+               Detects plants in the input image and saves the image with bounding boxes around the detected plants.
+
+               Args:
+                   input_image_path (str): Path to the input image file.
+                   output_image_path (str): Path to save the output image file with bounding boxes.
+                   num_plants (int): Maximum number of plants to detect.
+                   distance_threshold (int): Minimum distance threshold between detected plants to consider them as separate.
+
+               Returns:
+                   int: Number of plants detected.
+        """
         detections = self.detector.detectObjectsFromImage(input_image=input_image_path,
                                                           output_image_path=output_image_path)
         original_image = Image.open(input_image_path)
@@ -65,6 +82,18 @@ class PlantDetector:
         return i
 
     def detect_plants_for_analysis(self, input_image_path, output_image_path, num_plants=2, distance_threshold=10):
+        """
+                Detects plants in the input image, saves cropped images of the plants, and performs analysis on the plants.
+
+                Args:
+                    input_image_path (str): Path to the input image file.
+                    output_image_path (str): Path to save the cropped images of the plants.
+                    num_plants (int): Maximum number of plants to detect.
+                    distance_threshold (int): Minimum distance threshold between detected plants to consider them as separate.
+
+                Returns:
+                    int: Number of plants detected.
+        """
         detections = self.detector.detectObjectsFromImage(input_image=input_image_path,
                                                           output_image_path=output_image_path)
         original_image = Image.open(input_image_path)
@@ -104,8 +133,6 @@ class PlantDetector:
 
             # Crop the image based on the bounding box
             crop_img = original_image.crop((x1, y1, x2, y2))
-
-            # Save the cropped image
             try:
                 p = mgf.get_plant_name(letters_map[i])
                 crop_img.save(output_image_path[:-4] + "_" + (p if p is not None else "") + ".jpg")
@@ -117,6 +144,5 @@ class PlantDetector:
 
 
 if __name__ == '__main__':
-    # Example usage:
     detector = PlantDetector()
     detector.detect_plants("all_plants.jpg", "all_plants_with_bounding_box.jpg", 2)
