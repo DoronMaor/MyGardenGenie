@@ -167,7 +167,7 @@ class GardenManagement:
                                                    "screen")
 
                 elif action_header == "video_stop":
-                    self.video_streamer.stop()
+                    self.video_streamer.stop(remove=0)
                 elif action_header == "get_plant_dict":
                     self.server_handler.send_plants_names(plant_dict=mgf.get_letter_plant_dict(),
                                                           request_id=action_data)
@@ -191,7 +191,9 @@ class GardenManagement:
             # Do the check-up routine for both plants
             pcr.full_routine_checkup(plantA_state, plantB_state, self.gardener, self.event_logger,
                                      testing=False, blitz_mode=self.blitz_mode)
-            # Schedule the next checkup
+            self.update_ui = True
+
+        # Schedule the next checkup
         self.s.enter(mgf.get_routine_interval(), 1, self.routine_checkup)
 
     def take_picture(self):
@@ -221,6 +223,8 @@ class GardenManagement:
 
             listen_thread = threading.Thread(target=self.listen_for_messages)
             listen_thread.start()
+            self.status = "Active"
+
             # Start the infinite loop
             while self.active_loop:
                 # Run scheduled events
@@ -231,6 +235,7 @@ class GardenManagement:
                     self.status = "Plant Recognition"
                     self.plant_recognition_manager.run(current_plants=mgf.check_plant_files())
                     self.do_plant_recognition = False
+                    self.status = "Active"
                     self.update_ui = True
                 
                 if self.blitz_mode:
@@ -254,7 +259,6 @@ class GardenManagement:
             print("Not Active")
             while not self.active_loop:
                 continue
-            self.status = "Active"
             self.server_handler.active = True
 
 

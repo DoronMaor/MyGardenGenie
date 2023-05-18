@@ -45,8 +45,8 @@ def add_plant(plant_name: str, plant_type: str, light_hours: int, moisture: str,
     Returns:
         None
     """
-    headers = ["PLANT_NAME: ", "PLANT_TYPE: ", "LIGHT_HOURS: ", "MOISTURE_LEVEL: ", "MODE: "]
-    content = [plant_name, plant_type, str(light_hours), moisture, "AUTOMATIC"]
+    headers = ["PLANT_NAME: ", "PLANT_TYPE: ", "LIGHT_HOURS: ", "MOISTURE_LEVEL: ", "MODE: ", "CURRENT_HOURS:"]
+    content = [plant_name, plant_type, str(light_hours), moisture, "AUTOMATIC", "0"]
 
     # If num is not None, use it in the filename, otherwise get the first available filename
     filename = "plant%s.mgg" % num.upper() if num is not None else get_available_filename()
@@ -81,12 +81,13 @@ def add_plant_dict(plant_dict: dict, num: str = None):
         with open(filename, "x") as f:
             for header, content in plant_dict.items():
                 f.write(str(header) + ":" + str(content) + "\n")
+            f.write("CURRENT_HOURS:0"+ "\n")
         # If the file already exists, open it in write mode to overwrite its contents
     except FileExistsError:
         with open(filename, "w") as f:
             for header, content in plant_dict.items():
                 f.write(str(header) + ":" + str(content) + "\n")
-
+            f.write("CURRENT_HOURS:0"+ "\n")
 
 def get_automatic_mode(filename: str) -> str:
     """
@@ -138,6 +139,28 @@ def set_mode(filename: str, new_mode: str) -> None:
 
     with open(filename, 'w') as f:
         f.write(contents)
+
+def get_light_hours(filename):
+    if not os.path.isfile(filename):
+        return 0
+
+    with open(filename, 'r') as f:
+        contents = f.read()
+        match = re.search(r'CURRENT_HOURS:(.*)', contents)
+        if match:
+            hours = match.group(1).strip().upper()
+            return int(hours)
+    return 0
+
+def add_light_hours(filename: str, hours: int) -> None:
+    with open(filename, 'r') as f:
+        contents = f.read()
+
+    contents = re.sub(r'CURRENT_HOURS:.*', f'CURRENT_HOURS:{hours+get_light_hours(filename)}', contents)
+
+    with open(filename, 'w') as f:
+        f.write(contents)
+
 
 def get_plant_name(filename: str) -> str:
     """

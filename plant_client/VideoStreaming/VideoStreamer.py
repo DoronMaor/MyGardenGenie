@@ -2,33 +2,27 @@ import datetime
 import random
 import string
 import threading
-import fuckit as fit
+import socket
 import base64
 import time
-from flask_cors import CORS, cross_origin
 import cv2
-from flask import Flask, request, redirect, render_template, g, url_for, session, Response
-from flask_socketio import SocketIO, emit
-import mgg_functions as mgf
-
+from flask import Flask, request, Response
+from flask_cors import CORS, cross_origin
+from flask_socketio import SocketIO
 
 def get_ip():
     """
     Returns the IP address of the computer on which this function is executed.
     """
-    import socket
     ip = None
     try:
         # Create a UDP socket
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.connect(('8.8.8.8', 80))
-        ip = sock.getsockname()[0]
-        sock.close()
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            sock.connect(('8.8.8.8', 80))
+            ip = sock.getsockname()[0]
     except socket.error:
         pass
     return ip
-
-
 
 class VideoStreamer:
     def __init__(self):
@@ -37,12 +31,11 @@ class VideoStreamer:
         self.app.secret_key = "MGG_KEY"
         self.socketio = SocketIO(self.app)
         self.last_awake_call = None
-        self.active_connections = set()
+        self.active_connections = 0
         self.host = get_ip()
 
     def shutdown_server(self):
         print("Shutting down video server")
-        mgf.set_video_connection(False)
         func = request.environ.get('werkzeug.server.shutdown')
         if func is None:
             raise RuntimeError('Not running with the Werkzeug Server')
@@ -70,12 +63,10 @@ class VideoStreamer:
         @self.app.route('/video')
         @cross_origin()
         def video():
-            mgf.set_video_connection(True)
-
             # Add the connection to the set of active connections
             random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=5))
             r = request.remote_addr + random_string
-            self.active_connections.add(r)
+            self.active_connections += 1
 
             # Start the video stream
             response = Response(self.generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
@@ -83,23 +74,23 @@ class VideoStreamer:
             # Remove the connection from the set of active connections when the response is completed
             @response.call_on_close
             def remove_connection():
-                self.active_connections.remove(r)
-                print(f"Disconnected: {r}")
+                self.active_connections -= 1
                 self.stop()
 
             return response
 
         if not self.last_awake_call:
             self.socketio.run(self.app, allow_unsafe_werkzeug=True, port=8080, host=self.host)
-            threading.Thread(target=self.awake_check(), args=(self,))
+            threading.Thread(target=self.awake_check, args=()).start()
 
-    def stop(self):
-        if len(self.active_connections) < 1:
-            with fit:
-                self.camera.release()
-                del self.camera
-                self.last_awake_call = None
-                self.shutdown_server()
+    def stop(self, remove=0):
+        self.active_connections -= remove
+        print("left:", self.active_connections)
+        if self.active_connections < 1:
+            self.camera.release()
+            del self.camera
+            self.last_awake_call = None
+            self.shutdown_server()
 
     def awake_check(self):
         while True:

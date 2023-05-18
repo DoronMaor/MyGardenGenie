@@ -200,6 +200,7 @@ class HomePage:
         light_hours = info_dict['LIGHT_HOURS']
         moisture_lvl = info_dict['MOISTURE_LVL']
         mode = info_dict['MODE']
+        current_hours = info_dict['CURRENT_HOURS']
 
         formatted_str = f"Plant name: {plant_name}\n"
         formatted_str += f"Plant type: {plant_type}\n"
@@ -207,6 +208,7 @@ class HomePage:
         formatted_str += f"Light hours: {light_hours}\n"
         formatted_str += f"Moisture level: {moisture_lvl}\n"
         formatted_str += f"Mode: {mode}\n"
+        formatted_str += f"Light hours counter: {current_hours}\n"
 
         return formatted_str
 

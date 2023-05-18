@@ -120,6 +120,7 @@ def blitz_hysteresis_lighting_handling(plant: str, low_threshold: int, gardener,
         event_logger.automatic_event_logger(user_id=mgf.get_id(), action_data=("Turned on LED", plant), send_now=True)
     elif light_level >= low_threshold and gardener.get_led_ring(plant):
         gardener.set_led_ring(plant, False)
+        mgf.add_light_hours("plant%s.mgg" % plant, mgf.get_routine_interval())
         event_logger.automatic_event_logger(user_id=mgf.get_id(), action_data=("Turned off LED", plant), send_now=True)
 
 
