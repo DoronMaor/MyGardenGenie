@@ -76,9 +76,9 @@ class ArduinoRobot:
         :param rec: Whether to wait for a response.
         :return: The response from the Arduino, or None if no response is expected.
         """
+        self.ser.flushInput()  # Clear the input buffer
         print(f"Sending message to Arduino: {msg}")
         self.ser.write(bytes(msg + "\n", 'utf-8'))
-        self.ser.flushInput()  # Clear the input buffer
 
         if rec:
             m = self.ser.readline().decode("utf-8")

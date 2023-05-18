@@ -259,7 +259,10 @@ def update_moisture_light_values(server_handler):
             continue
         # Get the plant dictionary and moisture and light values from server_handler.
         plant_dict = get_plant_dict(plant_letter)
-        light_level, light_hours, moisture_level = server_handler.get_light_moisture_values(plant_dict["PLANT_TYPE"])
+        try:
+            light_level, light_hours, moisture_level = server_handler.get_light_moisture_values(plant_dict["PLANT_TYPE"])
+        except:
+            light_level, light_hours, moisture_level = server_handler.get_light_moisture_values(plant_dict["PLANT_TYPE"])
 
         # Check if the file exists.
         if not os.path.isfile(filename):
@@ -283,6 +286,15 @@ def update_moisture_light_values(server_handler):
 # endregion
 
 # region GLOBAL
+
+def set_global(filename: str = "global.mgg") -> None:
+
+    content = "ROUTINE_INTER: 60\nREMOTE_CONNECTION: False\nVIDEO_CONNECTION: False\nPICTURE_INTER: 70\nID_NUM: 877ef680d0fe4a1ebaa3215f61efb73A\nTESTING_MODE: FALSE"
+
+    with open(filename, 'w') as f:
+        f.write(content)
+
+
 def get_routine_interval(filename: str = "global.mgg") -> int:
     """
     Retrieves the time interval of a plant check up routine from a file.

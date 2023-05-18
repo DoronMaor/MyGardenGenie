@@ -194,16 +194,16 @@ void loop() {
   if (testingMode)
   {
 
-    int ma = GetMoisture('A');
-    int mb = GetMoisture('B');
+    //int ma = GetMoisture('A');
+    //int mb = GetMoisture('B');
     float l = GetLightSensor();
-    WriteToLCD("MoisA:" + String(ma) + "/" + "MoisB:" + String(mb)+ "/" + "Light:" + String(l));
+    //WriteToLCD("MoisA:" + String(ma) + "/" + "MoisB:" + String(mb)+ "/" + "Light:" + String(l));
     //Serial.print("MoisA:" + String(ma) + "/" + "MoisB:" + String(mb)+ "/" + "Light:" + String(l));
     //TurnPump(1000, 'A');
     //TurnPump(1000, 'B');
-
-    TurnLEDRing(true, 'A');
-    TurnLEDRing(true, 'B');
+    WriteToLCD("Light:" + String(l));
+    //TurnLEDRing(true, 'A');
+    //TurnLEDRing(true, 'B');
     delay(1000);
   }
   else {

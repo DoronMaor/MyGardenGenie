@@ -1,8 +1,8 @@
-light sensor not good
-signin error?
 
 fix clean serial - check needed
+show parameters bug timeout
 
+graph intervention - V
 make alerts fix bugs when admin - V
 reports default green no red - V
 when plants updated, actually update them in PC - V
@@ -12,7 +12,7 @@ Presentation mode button not functioning - V
 bug pictures show in log screen - V
 fix admin log if needed - V
 video streaming 2 clicks first time bug - V
-
+update values - V
 ===
 Presentation steps:
     1.

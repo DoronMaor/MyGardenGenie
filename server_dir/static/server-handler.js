@@ -44,16 +44,23 @@ class ServerHandlerSockIO {
   }
 
   async wait_for_response() {
+    let timeout = false;
+
+    setTimeout(() => {
+      timeout = true;
+    }, 7385);
+
     while (!this.hasOwnProperty("response")) {
       await new Promise((r) => setTimeout(r, 100));
+
+      if (timeout) {
+        return -1;
+      }
     }
-    if (this.response) {
-      const response = this.response;
-      console.log("wait", this.response);
-      delete this.response;
-      return response;
-    }
-    return null;
+
+    const response = this.response;
+    delete this.response;
+    return response;
   }
 
   // endregion

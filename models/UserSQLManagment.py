@@ -1,4 +1,3 @@
-from models.server_handler import ServerHandler
 from models.User import User
 import hashlib
 from pathlib import Path

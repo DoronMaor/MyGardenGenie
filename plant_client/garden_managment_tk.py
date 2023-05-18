@@ -13,9 +13,7 @@ from plant_recognition_files.PlantRecognitionManager import PlantRecognitionMana
 import sched
 import tk_frame.home_page_support as home_page_tk_sprt
 import tkinter as tk
-from tkinter import ttk
 from client_models.PlantHealthSupport import PlantHealthSupport
-from PIL import Image, ImageTk
 
 
 def timer_thread(duration):
@@ -121,6 +119,8 @@ class GardenManagement:
         Returns:
         - None
         """
+        mgf.set_global()
+
         self.gardener = Gardener()
         self.server_handler = ServerHandlerSockIO(server_ip=server_ip, port=5000, client_type="plant", time_out=3)
 
@@ -231,6 +231,8 @@ class GardenManagement:
                 elif action_header == "update_params":
                     mgf.update_moisture_light_values(self.server_handler)
                     self.update_ui = True
+                    time.sleep(1.7)
+
                 else:
                     print("Couldn't analyze this message: ", message)
 

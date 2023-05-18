@@ -238,16 +238,21 @@ class LogDatabase:
             time = result["time"]
             growth_data_points.append((time, growth_percentage))
 
+        if not growth_data_points:
+            return None
+
         # Prepare intervention data
         intervention_points = []
         colors = []
         labels = []
 
-        if not growth_data_points:
-            return None
+        last_time = growth_data_points[-1][0]
 
         for intervention in logs:
             intervention_time = datetime.datetime.strptime(intervention["time"], "%Y-%m-%d %H:%M:%S")
+            if intervention_time > last_time:
+                continue
+
             action = intervention["action"]
             if action.startswith("Watered"):
                 color = "blue"
@@ -555,5 +560,5 @@ if __name__ == '__main__':
     start_date = datetime.datetime(2023, 5, 15, 9, 0, 0)
     end_date = datetime.datetime(2023, 5, 18, 0, 0, 0)
 
-    p.add_fake_growth_data("cd98f4217e49468883465451e9ae41dA", "Plant1", start_date, end_date)
-    p.add_fake_action_data("cd98f4217e49468883465451e9ae41dA", start_date, end_date)
+    p.add_fake_growth_data("f4824b9d981240a8bbcff6bc810acd9A", "mol", start_date, end_date)
+    p.add_fake_action_data("f4824b9d981240a8bbcff6bc810acd9A", start_date, end_date)

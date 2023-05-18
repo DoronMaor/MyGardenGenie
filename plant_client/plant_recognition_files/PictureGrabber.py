@@ -126,4 +126,7 @@ class PictureGrabber:
 
 
         for file in delete:
-            os.remove(file)
+            try:
+                os.remove(file)
+            except:
+                pass
